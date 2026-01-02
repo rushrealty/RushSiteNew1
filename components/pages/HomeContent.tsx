@@ -344,7 +344,7 @@ const HomeContent: React.FC = () => {
           letter-spacing: 1.5px;
           text-transform: uppercase;
           color: var(--gray-500);
-          margin-bottom: 1rem;
+          margin-bottom: 0.5rem;
         }
 
         .guaranteed-sale-page .benefit-title {
@@ -352,15 +352,15 @@ const HomeContent: React.FC = () => {
           font-weight: 800;
           line-height: 1.2;
           letter-spacing: -1px;
-          margin-bottom: 1.25rem;
+          margin-bottom: 0.75rem;
           color: var(--gray-900);
         }
 
         .guaranteed-sale-page .benefit-description {
-          font-size: 1.1rem;
+          font-size: 1.05rem;
           color: var(--gray-500);
-          line-height: 1.7;
-          margin-bottom: 1.5rem;
+          line-height: 1.5;
+          margin-bottom: 1rem;
         }
 
         .guaranteed-sale-page .benefit-points {
@@ -373,7 +373,7 @@ const HomeContent: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          padding: 0.5rem 0;
+          padding: 0.35rem 0;
           font-size: 1rem;
           color: var(--gray-700);
         }
@@ -447,60 +447,87 @@ const HomeContent: React.FC = () => {
           background: #2563EB;
           color: var(--white);
           top: 20px;
-          right: -20px;
+          right: -10px;
+          padding: 0.5rem 0.875rem;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          min-width: auto;
+          max-width: 90px;
         }
 
         .guaranteed-sale-page .benefit-badge.accent .badge-label {
-          font-size: 0.75rem;
+          font-size: 0.6rem;
           font-weight: 500;
           opacity: 0.9;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          line-height: 1.2;
         }
 
         .guaranteed-sale-page .benefit-badge.accent .badge-value {
-          font-size: 1.25rem;
+          font-size: 0.85rem;
           font-weight: 700;
+          line-height: 1.2;
         }
 
         .guaranteed-sale-page .benefit-badge.success {
           background: #22C55E;
           color: var(--white);
           top: 20px;
-          right: -20px;
-          padding: 0.5rem 1rem;
+          right: -10px;
+          padding: 0.5rem 0.875rem;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          min-width: auto;
+          max-width: 80px;
         }
 
         .guaranteed-sale-page .benefit-badge.success .badge-label {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           font-weight: 500;
           opacity: 0.9;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          line-height: 1.2;
         }
 
         .guaranteed-sale-page .benefit-badge.success .badge-value {
-          font-size: 1rem;
+          font-size: 0.85rem;
           font-weight: 700;
+          line-height: 1.2;
         }
 
         .guaranteed-sale-page .benefit-badge.dark {
           background: var(--gray-900);
           color: var(--white);
-          bottom: 60px;
-          right: -30px;
-          padding: 0.5rem 1rem;
+          top: 20px;
+          right: -10px;
+          padding: 0.5rem 0.875rem;
+          display: inline-flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          min-width: auto;
+          max-width: 100px;
         }
 
         .guaranteed-sale-page .benefit-badge.dark .badge-label {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           font-weight: 500;
           opacity: 0.8;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+          line-height: 1.2;
         }
 
         .guaranteed-sale-page .benefit-badge.dark .badge-value {
-          font-size: 1rem;
+          font-size: 0.85rem;
           font-weight: 700;
+          line-height: 1.2;
         }
 
         /* ═══════════════════════════════════════
@@ -1129,13 +1156,6 @@ const HomeContent: React.FC = () => {
                 src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
                 alt="Beautiful home exterior"
               />
-              <div className="hero-image-badge">
-                <div className="hero-badge-icon">🏠</div>
-                <div>
-                  <div className="hero-badge-text">Close in as few as</div>
-                  <div className="hero-badge-value">14 Days</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1399,7 +1419,7 @@ const HomeContent: React.FC = () => {
         <div className="cta-content">
           <h2>Ready to get started?</h2>
           <p>Get your no-obligation cash offer in 48 hours.</p>
-          <a href="#get-offer" className="cta-button">Get My Offer</a>
+          <a href="/get-my-offer" className="cta-button">Get My Offer</a>
         </div>
       </section>
 
