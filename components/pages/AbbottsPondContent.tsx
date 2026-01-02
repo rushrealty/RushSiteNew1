@@ -12,6 +12,7 @@ const AbbottsPondContent: React.FC = () => {
   const [requestSubtitle, setRequestSubtitle] = useState("Abbott's Pond Acres");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState('about');
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -138,14 +139,15 @@ const AbbottsPondContent: React.FC = () => {
     document.body.style.overflow = '';
   };
 
-  const openLightbox = (index: number) => {
+  const openLightbox = (index: number, images?: string[]) => {
+    setLightboxImages(images || galleryImages);
     setLightboxIndex(index);
     setIsLightboxOpen(true);
     document.body.style.overflow = 'hidden';
   };
 
-  const nextLightbox = () => setLightboxIndex((prev) => (prev + 1) % galleryImages.length);
-  const prevLightbox = () => setLightboxIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  const nextLightbox = () => setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+  const prevLightbox = () => setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
@@ -277,7 +279,8 @@ const AbbottsPondContent: React.FC = () => {
         .btn-floorplan-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: var(--white); color: var(--black); font-size: 0.9rem; font-weight: 600; border-radius: 8px; border: 2px solid var(--gray-300); cursor: pointer; transition: all 0.2s; }
         .btn-floorplan-outline:hover { border-color: var(--black); }
         .details-right { display: flex; align-items: center; justify-content: center; }
-        .floorplan-diagram { width: 100%; max-width: 400px; background: var(--white); border-radius: 12px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .floorplan-diagram { width: 100%; max-width: 400px; background: var(--white); border-radius: 12px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer; transition: box-shadow 0.2s; }
+        .floorplan-diagram:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
         .floorplan-diagram img { width: 100%; height: auto; border-radius: 8px; }
         .movein-section { padding: 4rem 0; background: var(--white); }
         .movein-list { display: flex; flex-direction: column; gap: 1rem; }
@@ -450,13 +453,13 @@ const AbbottsPondContent: React.FC = () => {
               <div className="details-left">
                 <h4>About {plan.name}</h4><p>{plan.description}</p>
                 <h4>Other Images</h4>
-                <div className="elevation-options">{plan.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`}><img src={elev} alt={`${plan.name} view ${i + 1}`} /></div>)}</div>
+                <div className="elevation-options">{plan.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`} onClick={(e) => {e.stopPropagation(); openLightbox(i, plan.elevations);}}><img src={elev} alt={`${plan.name} view ${i + 1}`} /></div>)}</div>
                 <div className="details-actions">
                   <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', plan.name);}}>Request Info</button>
-                  <button className="btn-floorplan-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
+                  <button className="btn-floorplan-outline" onClick={(e) => {e.stopPropagation(); openLightbox(0, [plan.floorPlanImg]);}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
                 </div>
               </div>
-              <div className="details-right"><div className="floorplan-diagram"><img src={plan.floorPlanImg} alt={`${plan.name} floor plan`} /></div></div>
+              <div className="details-right"><div className="floorplan-diagram" onClick={(e) => {e.stopPropagation(); openLightbox(0, [plan.floorPlanImg]);}}><img src={plan.floorPlanImg} alt={`${plan.name} floor plan`} /></div></div>
             </div></div>
           </div>
         ))}</div>
@@ -479,13 +482,13 @@ const AbbottsPondContent: React.FC = () => {
               <div className="details-left">
                 <h4>About {home.name}</h4><p>{home.description}</p>
                 <h4>Other Images</h4>
-                <div className="elevation-options">{home.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`}><img src={elev} alt={`${home.name} view ${i + 1}`} /></div>)}</div>
+                <div className="elevation-options">{home.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`} onClick={(e) => {e.stopPropagation(); openLightbox(i, home.elevations);}}><img src={elev} alt={`${home.name} view ${i + 1}`} /></div>)}</div>
                 <div className="details-actions">
                   <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', home.name);}}>Request Info</button>
-                  <button className="btn-floorplan-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
+                  <button className="btn-floorplan-outline" onClick={(e) => {e.stopPropagation(); openLightbox(0, [home.floorPlanImg]);}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
                 </div>
               </div>
-              <div className="details-right"><div className="floorplan-diagram"><img src={home.floorPlanImg} alt={`${home.name} floor plan`} /></div></div>
+              <div className="details-right"><div className="floorplan-diagram" onClick={(e) => {e.stopPropagation(); openLightbox(0, [home.floorPlanImg]);}}><img src={home.floorPlanImg} alt={`${home.name} floor plan`} /></div></div>
             </div></div>
           </div>
         ))}</div>
@@ -553,10 +556,10 @@ const AbbottsPondContent: React.FC = () => {
 
       {isLightboxOpen && <div className="lightbox">
         <button className="lightbox-close" onClick={closeAllModals}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-        <button className="lightbox-nav prev" onClick={prevLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <div className="lightbox-content"><img src={galleryImages[lightboxIndex]} alt={`Gallery ${lightboxIndex + 1}`} /></div>
-        <button className="lightbox-nav next" onClick={nextLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>
-        <div className="lightbox-counter"><span>{lightboxIndex + 1}</span> / <span>{galleryImages.length}</span></div>
+        {lightboxImages.length > 1 && <button className="lightbox-nav prev" onClick={prevLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
+        <div className="lightbox-content"><img src={lightboxImages[lightboxIndex]} alt={`Image ${lightboxIndex + 1}`} /></div>
+        {lightboxImages.length > 1 && <button className="lightbox-nav next" onClick={nextLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
+        {lightboxImages.length > 1 && <div className="lightbox-counter"><span>{lightboxIndex + 1}</span> / <span>{lightboxImages.length}</span></div>}
       </div>}
     </div>
   );
