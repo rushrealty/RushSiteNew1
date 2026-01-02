@@ -36,7 +36,6 @@ const HomeContent: React.FC = () => {
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
     alert('Thank you! We\'ll be in touch within 48 hours with your offer.');
     closeModal();
   };
@@ -74,34 +73,6 @@ const HomeContent: React.FC = () => {
           padding: 7rem 0 4rem;
           background: var(--white);
           overflow: hidden;
-          position: relative;
-        }
-
-        .guaranteed-sale-page .hero-background {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 55%;
-          height: 100%;
-          z-index: 0;
-        }
-
-        .guaranteed-sale-page .hero-background img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
-        }
-
-        .guaranteed-sale-page .hero-background::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 50%;
-          height: 100%;
-          background: linear-gradient(to right, var(--white) 0%, var(--white) 20%, rgba(255, 255, 255, 0) 100%);
-          z-index: 1;
         }
 
         .guaranteed-sale-page .hero-container {
@@ -113,8 +84,6 @@ const HomeContent: React.FC = () => {
           grid-template-columns: 1fr 1fr;
           gap: 5rem;
           align-items: center;
-          position: relative;
-          z-index: 2;
         }
 
         .guaranteed-sale-page .hero-content {
@@ -248,13 +217,30 @@ const HomeContent: React.FC = () => {
           min-height: 580px;
           display: flex;
           align-items: center;
-          justify-content: flex-end;
+          justify-content: center;
+        }
+
+        .guaranteed-sale-page .hero-image-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          min-height: 560px;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        .guaranteed-sale-page .hero-image-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          min-height: 560px;
         }
 
         .guaranteed-sale-page .hero-image-badge {
           position: absolute;
-          bottom: 4rem;
-          right: 2rem;
+          bottom: 2rem;
+          left: 2rem;
           background: var(--white);
           padding: 1rem 1.5rem;
           border-radius: 12px;
@@ -262,7 +248,6 @@ const HomeContent: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          z-index: 3;
         }
 
         .guaranteed-sale-page .hero-badge-icon {
@@ -893,20 +878,6 @@ const HomeContent: React.FC = () => {
         }
 
         @media (max-width: 1024px) {
-          .guaranteed-sale-page .hero-background {
-            width: 100%;
-            height: 50%;
-            top: auto;
-            bottom: 0;
-          }
-
-          .guaranteed-sale-page .hero-background::before {
-            width: 100%;
-            height: 60%;
-            top: 0;
-            background: linear-gradient(to bottom, var(--white) 0%, var(--white) 30%, rgba(255, 255, 255, 0) 100%);
-          }
-
           .guaranteed-sale-page .hero-container {
             grid-template-columns: 1fr;
             text-align: center;
@@ -918,11 +889,15 @@ const HomeContent: React.FC = () => {
 
           .guaranteed-sale-page .hero-image {
             order: 0;
-            min-height: 200px;
+            min-height: 400px;
           }
 
-          .guaranteed-sale-page .hero-image-badge {
-            display: none;
+          .guaranteed-sale-page .hero-image-container {
+            min-height: 400px;
+          }
+
+          .guaranteed-sale-page .hero-image-container img {
+            min-height: 400px;
           }
 
           .guaranteed-sale-page .hero-subtitle {
@@ -999,12 +974,16 @@ const HomeContent: React.FC = () => {
             gap: 1rem;
           }
 
-          .guaranteed-sale-page .hero-background {
-            opacity: 0.3;
+          .guaranteed-sale-page .hero-image {
+            min-height: 300px;
           }
 
-          .guaranteed-sale-page .hero-image {
-            min-height: 100px;
+          .guaranteed-sale-page .hero-image-container {
+            min-height: 300px;
+          }
+
+          .guaranteed-sale-page .hero-image-container img {
+            min-height: 300px;
           }
 
           .guaranteed-sale-page .benefits,
@@ -1062,10 +1041,6 @@ const HomeContent: React.FC = () => {
 
       {/* Hero Section */}
       <section className="hero" id="get-offer">
-        <div className="hero-background">
-          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80" alt="Beautiful Delaware home" />
-        </div>
-
         <div className="hero-container">
           <div className="hero-content">
             <div className="hero-eyebrow">
@@ -1117,11 +1092,17 @@ const HomeContent: React.FC = () => {
           </div>
 
           <div className="hero-image">
-            <div className="hero-image-badge">
-              <div className="hero-badge-icon">🏠</div>
-              <div>
-                <div className="hero-badge-text">Close in as few as</div>
-                <div className="hero-badge-value">14 Days</div>
+            <div className="hero-image-container">
+              <img 
+                src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
+                alt="Beautiful home exterior"
+              />
+              <div className="hero-image-badge">
+                <div className="hero-badge-icon">🏠</div>
+                <div>
+                  <div className="hero-badge-text">Close in as few as</div>
+                  <div className="hero-badge-value">14 Days</div>
+                </div>
               </div>
             </div>
           </div>
@@ -1139,7 +1120,7 @@ const HomeContent: React.FC = () => {
             <ul className="benefit-points">
               <li>
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
-                Cash offer in 48 hours
+                Get an instant cash offer
               </li>
               <li>
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
@@ -1154,7 +1135,11 @@ const HomeContent: React.FC = () => {
           <div className="benefit-image">
             <div className="benefit-image-wrapper">
               <div className="benefit-image-arch">
-                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80" alt="Modern home exterior" />
+                <img 
+                  src="https://drive.google.com/thumbnail?id=1dVt4frsj-Yv1yfR6FWzcFd3eEiZtPUBX&sz=w1000" 
+                  alt="Family Home Guaranteed Cash Offer"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div className="benefit-badge primary">
                 <div className="badge-label">Cash now</div>
@@ -1192,7 +1177,11 @@ const HomeContent: React.FC = () => {
           <div className="benefit-image">
             <div className="benefit-image-wrapper">
               <div className="benefit-image-arch">
-                <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80" alt="Beautiful home with yard" />
+                <img 
+                  src="https://drive.google.com/thumbnail?id=1cJGBkkf7IiuFYD68PQfxafjZtbUH_c5K&sz=w1000" 
+                  alt="Modern living room"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div className="benefit-badge primary">
                 <div className="badge-label">Backup valid</div>
@@ -1230,7 +1219,11 @@ const HomeContent: React.FC = () => {
           <div className="benefit-image">
             <div className="benefit-image-wrapper">
               <div className="benefit-image-arch">
-                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80" alt="Home interior" />
+                <img 
+                  src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80" 
+                  alt="Home interior"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div className="benefit-badge primary">
                 <div className="badge-label">Showings</div>
