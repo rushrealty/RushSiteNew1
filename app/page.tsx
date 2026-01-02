@@ -1,23 +1,12 @@
+import type { Metadata } from 'next';
+import HomeContent from '@/components/pages/HomeContent';
 
-"use client";
+export const metadata: Metadata = {
+  title: 'Your Home. Sold. Guaranteed. | Rush Home Team',
+  description: 'Get a guaranteed offer on your Delaware home in 48 hours. Buy your next home before selling. No showings, no stress, your timeline.',
+  keywords: 'sell home Delaware, guaranteed home sale, cash offer Delaware, sell house fast, Rush Home Team',
+};
 
-import React from 'react';
-import Hero from '../components/Hero';
-import Benefits from '../components/Benefits';
-import Comparison from '../components/Comparison';
-import Testimonials from '../components/Testimonials';
-import Faq from '../components/Faq';
-import CtaSection from '../components/CtaSection';
-
-export default function Home() {
-  return (
-    <>
-      <Hero />
-      <Benefits />
-      <Comparison />
-      <Testimonials />
-      <Faq />
-      <CtaSection />
-    </>
-  );
+export default function HomePage() {
+  return <HomeContent />;
 }
