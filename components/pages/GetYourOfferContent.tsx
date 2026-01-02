@@ -619,8 +619,9 @@ export default function GetYourOfferContent() {
 
         .get-offer-page .lock-benefits {
           display: flex;
-          flex-wrap: wrap;
-          gap: 1rem 2rem;
+          flex-wrap: nowrap;
+          justify-content: space-between;
+          gap: 1.5rem;
           padding-top: 1.5rem;
           border-top: 1px solid var(--gray-200);
         }
@@ -803,6 +804,7 @@ export default function GetYourOfferContent() {
 
           .get-offer-page .lock-benefits {
             justify-content: center;
+            flex-wrap: wrap;
           }
         }
 
