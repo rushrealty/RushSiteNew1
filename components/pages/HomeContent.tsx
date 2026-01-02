@@ -464,8 +464,22 @@ const HomeContent: React.FC = () => {
         .guaranteed-sale-page .benefit-badge.success {
           background: #22C55E;
           color: var(--white);
-          top: 40px;
-          left: -10px;
+          top: 20px;
+          right: -20px;
+          padding: 0.5rem 1rem;
+        }
+
+        .guaranteed-sale-page .benefit-badge.success .badge-label {
+          font-size: 0.65rem;
+          font-weight: 500;
+          opacity: 0.9;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .guaranteed-sale-page .benefit-badge.success .badge-value {
+          font-size: 1rem;
+          font-weight: 700;
         }
 
         .guaranteed-sale-page .benefit-badge.dark {
@@ -473,6 +487,20 @@ const HomeContent: React.FC = () => {
           color: var(--white);
           bottom: 60px;
           right: -30px;
+          padding: 0.5rem 1rem;
+        }
+
+        .guaranteed-sale-page .benefit-badge.dark .badge-label {
+          font-size: 0.65rem;
+          font-weight: 500;
+          opacity: 0.8;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .guaranteed-sale-page .benefit-badge.dark .badge-value {
+          font-size: 1rem;
+          font-weight: 700;
         }
 
         /* ═══════════════════════════════════════
@@ -1015,6 +1043,10 @@ const HomeContent: React.FC = () => {
             right: 0;
           }
 
+          .guaranteed-sale-page .benefit-badge.success {
+            right: 0;
+          }
+
           .guaranteed-sale-page .section-title {
             font-size: 2rem;
           }
@@ -1094,7 +1126,7 @@ const HomeContent: React.FC = () => {
           <div className="hero-image">
             <div className="hero-image-container">
               <img 
-                src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
+                src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
                 alt="Beautiful home exterior"
               />
               <div className="hero-image-badge">
