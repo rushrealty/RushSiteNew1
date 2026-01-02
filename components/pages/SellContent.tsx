@@ -1,1323 +1,1154 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function SellContent() {
+const SellContent: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  const faqItems = [
-    {
-      question: "How long does it take to sell a house in Delaware?",
-      answer: "On average, homes in Delaware sell within 30-60 days once listed, though this varies by location, price point, and market conditions. Well-priced homes in desirable areas can sell within days, while unique properties may take longer. Our pricing strategy and marketing approach are designed to minimize time on market while maximizing your return."
-    },
-    {
-      question: "What repairs should I make before selling?",
-      answer: "Focus on repairs that affect safety, functionality, and first impressions: fix leaky faucets, replace broken fixtures, patch holes, and touch up paint. Major renovations rarely return full value, but addressing deferred maintenance does. We'll walk through your home and provide specific recommendations based on what buyers in your price range expect."
-    },
-    {
-      question: "How do you determine my home's listing price?",
-      answer: "We analyze recent comparable sales, current competition, market trends, and your home's unique features to recommend an optimal price. Overpricing leads to extended market time and often results in selling for less. We'll present data-driven pricing options and help you choose the strategy that aligns with your goals."
-    },
-    {
-      question: "What if I need to sell before buying my next home?",
-      answer: "Our QuickBuy Flex program provides a guaranteed backup offer on your current home, allowing you to shop for your next home without a sale contingency. You can try to sell traditionally while knowing you have a guaranteed exit. If your home sells on the open market, you keep the higher proceeds. If not, the backup offer activates."
-    },
-    {
-      question: "What costs should I expect when selling?",
-      answer: "Typical seller costs include agent commissions (negotiable), title insurance, transfer taxes (varies by county), prorated property taxes, and any agreed-upon buyer credits or repairs. Delaware has relatively low closing costs compared to neighboring states. We'll provide a detailed net sheet showing your estimated proceeds early in the process."
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const target = document.getElementById(id);
+    if (target) {
+      const navHeight = 72;
+      const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight - 20;
+      window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+      });
     }
-  ];
+  };
 
   return (
-    <>
-      <style jsx global>{`
+    <div className="how-to-sell-page">
+      <style>{`
+        .how-to-sell-page {
+            --black: #000000;
+            --white: #ffffff;
+            --gray-50: #fafafa;
+            --gray-100: #f4f4f4;
+            --gray-200: #e9e6dd;
+            --gray-300: #cbc3b7;
+            --gray-400: #a5a49f;
+            --gray-500: #838789;
+            --gray-600: #6b6b6b;
+            --gray-700: #444444;
+            --gray-800: #231f20;
+            --accent: #1a1a1a;
+            --success: #037f4c;
+            --gold: #C9A962;
+            --font-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: var(--font-primary);
+            background: var(--white);
+            color: var(--gray-800);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
         /* ═══════════════════════════════════════
-           HOW TO SELL PAGE STYLES
+           HERO SECTION (STACKED & TIGHTER)
         ═══════════════════════════════════════ */
-        
-        .hts-hero {
-          padding: 140px 2rem 80px;
-          background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
-        }
-
-        .hts-hero-container {
-          max-width: 900px;
-          margin: 0 auto;
-          text-align: center;
-        }
-
-        .hts-hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          padding: 0.5rem 1rem;
-          border-radius: 100px;
-          font-size: 0.85rem;
-          font-weight: 500;
-          color: #6b6b6b;
-          margin-bottom: 1.5rem;
-        }
-
-        .hts-hero-badge svg {
-          width: 16px;
-          height: 16px;
-        }
-
-        .hts-hero h1 {
-          font-size: clamp(2.5rem, 5vw, 3.5rem);
-          font-weight: 800;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
-          margin-bottom: 1.5rem;
-          color: #000000;
-        }
-
-        .hts-hero-subtitle {
-          font-size: 1.25rem;
-          color: #6b6b6b;
-          max-width: 600px;
-          margin: 0 auto 2.5rem;
-          line-height: 1.6;
-        }
-
-        .hts-hero-meta {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 2rem;
-          flex-wrap: wrap;
-          font-size: 0.9rem;
-          color: #838789;
-        }
-
-        .hts-hero-meta-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .hts-hero-meta-item svg {
-          width: 18px;
-          height: 18px;
-        }
-
-        /* Table of Contents */
-        .hts-toc-section {
-          padding: 0 2rem 4rem;
-        }
-
-        .hts-toc-container {
-          max-width: 900px;
-          margin: 0 auto;
-        }
-
-        .hts-toc-card {
-          background: #fafafa;
-          border-radius: 16px;
-          padding: 2rem;
-          border: 1px solid #f4f4f4;
-        }
-
-        .hts-toc-title {
-          font-size: 0.8rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #838789;
-          margin-bottom: 1.5rem;
-        }
-
-        .hts-toc-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 1.5rem;
-        }
-
-        .hts-toc-phase-number {
-          width: 32px;
-          height: 32px;
-          background: #000000;
-          color: #ffffff;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.85rem;
-          font-weight: 700;
-          margin-bottom: 0.75rem;
-        }
-
-        .hts-toc-phase-title {
-          font-size: 0.95rem;
-          font-weight: 600;
-          color: #000000;
-          margin-bottom: 0.5rem;
-        }
-
-        .hts-toc-phase-items {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .hts-toc-phase-items li {
-          font-size: 0.85rem;
-          color: #838789;
-          padding: 0.25rem 0;
-        }
-
-        .hts-toc-phase-items a {
-          color: #6b6b6b;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .hts-toc-phase-items a:hover {
-          color: #000000;
-        }
-
-        /* Content Sections */
-        .hts-content-section {
-          padding: 4rem 2rem;
-        }
-
-        .hts-content-section:nth-child(even) {
-          background: #fafafa;
-        }
-
-        .hts-content-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .hts-phase-header {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 2rem;
-          padding-bottom: 1.5rem;
-          border-bottom: 2px solid #000000;
-        }
-
-        .hts-phase-number {
-          width: 48px;
-          height: 48px;
-          background: #000000;
-          color: #ffffff;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.25rem;
-          font-weight: 700;
-          flex-shrink: 0;
-        }
-
-        .hts-phase-title-group h2 {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #000000;
-          letter-spacing: -0.02em;
-          margin: 0;
-        }
-
-        .hts-phase-title-group p {
-          font-size: 0.95rem;
-          color: #838789;
-          margin: 0.25rem 0 0 0;
-        }
-
-        .hts-content-block {
-          margin-bottom: 3rem;
-        }
-
-        .hts-content-block:last-child {
-          margin-bottom: 0;
-        }
-
-        .hts-content-block h3 {
-          font-size: 1.35rem;
-          font-weight: 700;
-          color: #000000;
-          margin-bottom: 1rem;
-          letter-spacing: -0.01em;
-        }
-
-        .hts-content-block h4 {
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #231f20;
-          margin: 1.5rem 0 0.75rem;
-        }
-
-        .hts-content-block p {
-          color: #444444;
-          margin-bottom: 1rem;
-          font-size: 1rem;
-          line-height: 1.7;
-        }
-
-        .hts-content-block ul, .hts-content-block ol {
-          margin: 1rem 0 1.5rem 1.5rem;
-          color: #444444;
-        }
-
-        .hts-content-block li {
-          margin-bottom: 0.5rem;
-          padding-left: 0.5rem;
-          line-height: 1.6;
-        }
-
-        /* Info Cards */
-        .hts-info-card {
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          border-radius: 12px;
-          padding: 1.5rem;
-          margin: 1.5rem 0;
-        }
-
-        .hts-info-card.highlight {
-          background: #231f20;
-          border-color: #231f20;
-          color: #ffffff;
-        }
-
-        .hts-info-card.highlight h4,
-        .hts-info-card.highlight p {
-          color: #ffffff;
-        }
-
-        .hts-info-card.highlight p {
-          opacity: 0.9;
-        }
-
-        .hts-info-card h4 {
-          font-size: 1rem;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .hts-info-card p {
-          font-size: 0.95rem;
-          margin-bottom: 0;
-        }
-
-        /* Tip Box */
-        .hts-tip-box {
-          background: linear-gradient(135deg, #f8f9f8 0%, #f0f2f0 100%);
-          border-left: 4px solid #d4a84b;
-          border-radius: 0 12px 12px 0;
-          padding: 1.25rem 1.5rem;
-          margin: 1.5rem 0;
-        }
-
-        .hts-tip-box-label {
-          font-size: 0.75rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: #d4a84b;
-          margin-bottom: 0.5rem;
-        }
-
-        .hts-tip-box p {
-          font-size: 0.95rem;
-          color: #444444;
-          margin-bottom: 0;
-        }
-
-        /* Data Table */
-        .hts-data-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 1.5rem 0;
-          font-size: 0.95rem;
-        }
-
-        .hts-data-table th,
-        .hts-data-table td {
-          padding: 1rem;
-          text-align: left;
-          border-bottom: 1px solid #e9e6dd;
-        }
-
-        .hts-data-table th {
-          background: #f4f4f4;
-          font-weight: 600;
-          color: #231f20;
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .hts-data-table tr:last-child td {
-          border-bottom: none;
-        }
-
-        .hts-data-table td {
-          color: #444444;
-        }
-
-        /* Checklist */
-        .hts-checklist {
-          list-style: none;
-          margin: 1.5rem 0;
-          padding: 0;
-        }
-
-        .hts-checklist li {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          padding: 0.75rem 0;
-          border-bottom: 1px solid #f4f4f4;
-          margin-bottom: 0;
-          padding-left: 0;
-        }
-
-        .hts-checklist li:last-child {
-          border-bottom: none;
-        }
-
-        .hts-checklist-icon {
-          width: 24px;
-          height: 24px;
-          background: #f4f4f4;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-
-        .hts-checklist-icon svg {
-          width: 14px;
-          height: 14px;
-          color: #6b6b6b;
-        }
-
-        .hts-checklist-content strong {
-          display: block;
-          color: #231f20;
-          font-weight: 600;
-          margin-bottom: 0.25rem;
-        }
-
-        .hts-checklist-content span {
-          font-size: 0.9rem;
-          color: #6b6b6b;
-        }
-
-        /* Step Cards */
-        .hts-step-cards {
-          display: grid;
-          gap: 1rem;
-          margin: 1.5rem 0;
-        }
-
-        .hts-step-card {
-          display: flex;
-          gap: 1rem;
-          padding: 1.25rem;
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          border-radius: 12px;
-        }
-
-        .hts-step-card-number {
-          width: 36px;
-          height: 36px;
-          background: #f4f4f4;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 0.9rem;
-          color: #444444;
-          flex-shrink: 0;
-        }
-
-        .hts-step-card-content h5 {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #000000;
-          margin: 0 0 0.25rem 0;
-        }
-
-        .hts-step-card-content p {
-          font-size: 0.9rem;
-          color: #6b6b6b;
-          margin-bottom: 0;
-        }
-
-        /* Programs Grid */
-        .hts-programs-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          margin: 1.5rem 0;
-        }
-
-        .hts-program-card {
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          border-radius: 12px;
-          padding: 1.25rem;
-        }
-
-        .hts-program-card.featured {
-          border-color: #000000;
-          border-width: 2px;
-        }
-
-        .hts-program-card h5 {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #000000;
-          margin: 0 0 0.5rem 0;
-        }
-
-        .hts-program-card p {
-          font-size: 0.9rem;
-          color: #6b6b6b;
-          margin-bottom: 0.75rem;
-        }
-
-        .hts-program-card-highlight {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #037f4c;
-        }
-
-        /* FAQ Section */
-        .hts-faq-section {
-          padding: 4rem 2rem;
-          background: #fafafa;
-        }
-
-        .hts-faq-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .hts-faq-title {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #000000;
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .hts-faq-item {
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          border-radius: 12px;
-          margin-bottom: 1rem;
-          overflow: hidden;
-        }
-
-        .hts-faq-question {
-          padding: 1.25rem 1.5rem;
-          font-weight: 600;
-          color: #000000;
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: background 0.2s ease;
-        }
-
-        .hts-faq-question:hover {
-          background: #fafafa;
-        }
-
-        .hts-faq-question svg {
-          width: 20px;
-          height: 20px;
-          color: #838789;
-          transition: transform 0.3s ease;
-          flex-shrink: 0;
-          margin-left: 1rem;
-        }
-
-        .hts-faq-item.active .hts-faq-question svg {
-          transform: rotate(180deg);
-        }
-
-        .hts-faq-answer {
-          padding: 0 1.5rem;
-          max-height: 0;
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .hts-faq-item.active .hts-faq-answer {
-          padding: 0 1.5rem 1.25rem;
-          max-height: 500px;
-        }
-
-        .hts-faq-answer p {
-          color: #6b6b6b;
-          font-size: 0.95rem;
-          line-height: 1.6;
-          margin: 0;
-        }
-
-        /* CTA Section */
-        .hts-cta-section {
-          padding: 5rem 2rem;
-          background: #000000;
-          text-align: center;
-        }
-
-        .hts-cta-container {
-          max-width: 700px;
-          margin: 0 auto;
-        }
-
-        .hts-cta-section h2 {
-          font-size: 2.25rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 1rem;
-          letter-spacing: -0.02em;
-        }
-
-        .hts-cta-section > .hts-cta-container > p {
-          font-size: 1.1rem;
-          color: #a5a49f;
-          margin-bottom: 2rem;
-        }
-
-        .hts-cta-buttons {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-
-        .hts-cta-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          padding: 1rem 2rem;
-          border-radius: 8px;
-          font-size: 1rem;
-          font-weight: 600;
-          transition: all 0.3s ease;
-          text-decoration: none;
-        }
-
-        .hts-cta-btn-primary {
-          background: #ffffff;
-          color: #000000;
-        }
-
-        .hts-cta-btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 30px rgba(255,255,255,0.2);
-        }
-
-        .hts-cta-btn-secondary {
-          background: transparent;
-          color: #ffffff;
-          border: 1px solid #525252;
-        }
-
-        .hts-cta-btn-secondary:hover {
-          background: #231f20;
-          border-color: #838789;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-          .hts-hero {
-            padding: 120px 1.5rem 60px;
-          }
-          
-          .hts-toc-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          
-          .hts-programs-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .hts-content-section {
-            padding: 3rem 1.5rem;
-          }
-          
-          .hts-phase-header {
+        .how-to-sell-page .hero {
+            padding: 80px 2rem 40px;
+            background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+            text-align: center;
+        }
+
+        .how-to-sell-page .hero-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
             flex-direction: column;
-            align-items: flex-start;
-          }
-          
-          .hts-cta-section h2 {
-            font-size: 1.75rem;
-          }
-          
-          .hts-data-table {
+            align-items: center;
+        }
+
+        .how-to-sell-page .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            padding: 0.5rem 1.25rem;
+            border-radius: 100px;
             font-size: 0.85rem;
-          }
-          
-          .hts-data-table th,
-          .hts-data-table td {
-            padding: 0.75rem 0.5rem;
-          }
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
         }
 
-        @media (max-width: 480px) {
-          .hts-toc-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .hts-hero-meta {
-            flex-direction: column;
+        .how-to-sell-page .hero-badge svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .how-to-sell-page .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.5rem;
+            color: var(--black);
+        }
+
+        .how-to-sell-page .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto 1rem;
+            line-height: 1.6;
+        }
+
+        .how-to-sell-page .hero-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: var(--gray-500);
+        }
+
+        .how-to-sell-page .hero-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .how-to-sell-page .hero-meta-item svg {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+
+        /* ═══════════════════════════════════════
+           TABLE OF CONTENTS
+        ═══════════════════════════════════════ */
+        .how-to-sell-page .toc-section {
+            padding: 0 2rem 4rem;
+        }
+
+        .how-to-sell-page .toc-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .how-to-sell-page .toc-card {
+            background: var(--gray-50);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--gray-100);
+        }
+
+        .how-to-sell-page .toc-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-500);
+            margin-bottom: 1.5rem;
+        }
+
+        .how-to-sell-page .toc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .how-to-sell-page .toc-phase-number {
+            width: 32px;
+            height: 32px;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .how-to-sell-page .toc-phase-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+        }
+
+        .how-to-sell-page .toc-phase-items {
+            list-style: none;
+            padding: 0;
+        }
+
+        .how-to-sell-page .toc-phase-items li {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            padding: 0.25rem 0;
+        }
+
+        .how-to-sell-page .toc-phase-items a {
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .how-to-sell-page .toc-phase-items a:hover {
+            color: var(--black);
+        }
+
+        /* ═══════════════════════════════════════
+           CONTENT SECTIONS
+        ═══════════════════════════════════════ */
+        .how-to-sell-page .content-section {
+            padding: 4rem 2rem;
+        }
+
+        .how-to-sell-page .content-section:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        .how-to-sell-page .content-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .how-to-sell-page .phase-header {
+            display: flex;
+            align-items: center;
             gap: 1rem;
-          }
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--black);
+        }
+
+        .how-to-sell-page .phase-number {
+            width: 48px;
+            height: 48px;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .how-to-sell-page .phase-title-group h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--black);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .how-to-sell-page .phase-title-group p {
+            font-size: 0.95rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+            margin-bottom: 0;
+        }
+
+        .how-to-sell-page .content-block {
+            margin-bottom: 3rem;
+        }
+
+        .how-to-sell-page .content-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .how-to-sell-page .content-block h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .how-to-sell-page .content-block h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .how-to-sell-page .content-block p {
+            color: var(--gray-700);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .how-to-sell-page .content-block ul, .how-to-sell-page .content-block ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+            color: var(--gray-700);
+        }
+
+        .how-to-sell-page .content-block li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .how-to-sell-page .info-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .how-to-sell-page .info-card.highlight {
+            background: var(--gray-800);
+            border-color: var(--gray-800);
+            color: var(--white);
+        }
+
+        .how-to-sell-page .info-card.highlight h4,
+        .how-to-sell-page .info-card.highlight p {
+            color: var(--white);
+        }
+
+        .how-to-sell-page .info-card.highlight p {
+            opacity: 0.9;
+        }
+
+        .how-to-sell-page .info-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .how-to-sell-page .info-card p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        .how-to-sell-page .tip-box {
+            background: linear-gradient(135deg, #f8f9f8 0%, #f0f2f0 100%);
+            border-left: 4px solid var(--success);
+            border-radius: 0 12px 12px 0;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .how-to-sell-page .tip-box-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--success);
+            margin-bottom: 0.5rem;
+        }
+
+        .how-to-sell-page .tip-box p {
+            font-size: 0.95rem;
+            color: var(--gray-700);
+            margin-bottom: 0;
+        }
+
+        .how-to-sell-page .checklist {
+            list-style: none;
+            margin: 1.5rem 0;
+            padding: 0;
+        }
+
+        .how-to-sell-page .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-100);
+            margin-bottom: 0;
+            padding-left: 0;
+        }
+
+        .how-to-sell-page .checklist li:last-child {
+            border-bottom: none;
+        }
+
+        .how-to-sell-page .checklist-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--gray-100);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .how-to-sell-page .checklist-icon svg {
+            width: 14px;
+            height: 14px;
+            color: var(--gray-600);
+        }
+
+        .how-to-sell-page .checklist-content strong {
+            display: block;
+            color: var(--gray-800);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .how-to-sell-page .checklist-content span {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+        }
+
+        .how-to-sell-page .step-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .how-to-sell-page .step-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .how-to-sell-page .step-card-number {
+            width: 32px;
+            height: 32px;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .how-to-sell-page .step-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 0.5rem;
+        }
+
+        .how-to-sell-page .step-card p {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+
+        .how-to-sell-page .two-column-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .how-to-sell-page .column-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .how-to-sell-page .column-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .how-to-sell-page .column-card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .how-to-sell-page .column-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--gray-100);
+            margin-bottom: 0;
+        }
+
+        .how-to-sell-page .column-card li:last-child {
+            border-bottom: none;
+        }
+
+        .how-to-sell-page .column-card li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════
+           FAQ SECTION
+        ═══════════════════════════════════════ */
+        .how-to-sell-page .faq-section {
+            padding: 4rem 2rem;
+            background: var(--gray-50);
+        }
+
+        .how-to-sell-page .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .how-to-sell-page .faq-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .how-to-sell-page .faq-item {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .how-to-sell-page .faq-question {
+            padding: 1.25rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .how-to-sell-page .faq-question:hover {
+            color: var(--black);
+        }
+
+        .how-to-sell-page .faq-question svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            margin-left: 1rem;
+        }
+
+        .how-to-sell-page .faq-item.active .faq-question svg {
+            transform: rotate(180deg);
+        }
+
+        .how-to-sell-page .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .how-to-sell-page .faq-item.active .faq-answer {
+            max-height: 800px;
+        }
+
+        .how-to-sell-page .faq-answer p {
+            padding: 0 1.5rem 1.5rem;
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════
+           CTA SECTION
+        ═══════════════════════════════════════ */
+        .how-to-sell-page .cta-section {
+            padding: 5rem 2rem;
+            background: var(--black);
+            text-align: center;
+        }
+
+        .how-to-sell-page .cta-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .how-to-sell-page .cta-section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 1rem;
+        }
+
+        .how-to-sell-page .cta-section p {
+            font-size: 1.1rem;
+            color: var(--gray-400);
+            margin-bottom: 2rem;
+        }
+
+        .how-to-sell-page .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .how-to-sell-page .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.75rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .how-to-sell-page .cta-btn-primary {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        .how-to-sell-page .cta-btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--gray-600);
+        }
+
+        @media (max-width: 1024px) {
+            .how-to-sell-page .toc-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .how-to-sell-page .hero { padding: 40px 1.5rem 30px; }
+            .how-to-sell-page .hero h1 { font-size: 2rem; }
+            .how-to-sell-page .hero-subtitle { font-size: 1.1rem; }
+            .how-to-sell-page .hero-meta { flex-direction: column; gap: 0.75rem; }
+            .how-to-sell-page .toc-grid { grid-template-columns: 1fr; }
+            .how-to-sell-page .content-section { padding: 3rem 1.5rem; }
+            .how-to-sell-page .phase-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .how-to-sell-page .step-cards, .how-to-sell-page .two-column-cards { grid-template-columns: 1fr; }
+            .how-to-sell-page .cta-section h2 { font-size: 1.75rem; }
+            .how-to-sell-page .cta-buttons { flex-direction: column; }
+            .how-to-sell-page .cta-btn { width: 100%; justify-content: center; }
         }
       `}</style>
 
-      {/* Hero Section */}
-      <section className="hts-hero">
-        <div className="hts-hero-container">
-          <div className="hts-hero-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-              <path d="M2 17l10 5 10-5"/>
-              <path d="M2 12l10 5 10-5"/>
-            </svg>
-            Complete Seller&apos;s Guide
-          </div>
-          <h1>How to Sell Your Home in Delaware</h1>
-          <p className="hts-hero-subtitle">
-            From preparation to closing, we&apos;ll guide you through every step. Your roadmap to a successful sale.
-          </p>
-          <div className="hts-hero-meta">
-            <div className="hts-hero-meta-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
-              10 min read
-            </div>
-            <div className="hts-hero-meta-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              Updated January 2026
-            </div>
-            <div className="hts-hero-meta-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              Delaware Focus
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Table of Contents */}
-      <section className="hts-toc-section">
-        <div className="hts-toc-container">
-          <div className="hts-toc-card">
-            <div className="hts-toc-title">Your Home Selling Journey</div>
-            <div className="hts-toc-grid">
-              <div className="hts-toc-phase">
-                <div className="hts-toc-phase-number">1</div>
-                <div className="hts-toc-phase-title">Preparation</div>
-                <ul className="hts-toc-phase-items">
-                  <li><a href="#phase-1">Define your goals</a></li>
-                  <li><a href="#phase-1">Prepare your home</a></li>
-                  <li><a href="#phase-1">Price strategy</a></li>
-                </ul>
-              </div>
-              <div className="hts-toc-phase">
-                <div className="hts-toc-phase-number">2</div>
-                <div className="hts-toc-phase-title">Listing &amp; Marketing</div>
-                <ul className="hts-toc-phase-items">
-                  <li><a href="#phase-2">Go live</a></li>
-                  <li><a href="#phase-2">Showings</a></li>
-                  <li><a href="#phase-2">Review offers</a></li>
-                </ul>
-              </div>
-              <div className="hts-toc-phase">
-                <div className="hts-toc-phase-number">3</div>
-                <div className="hts-toc-phase-title">Under Contract</div>
-                <ul className="hts-toc-phase-items">
-                  <li><a href="#phase-3">Buyer inspections</a></li>
-                  <li><a href="#phase-3">Appraisal</a></li>
-                  <li><a href="#phase-3">Final steps</a></li>
-                </ul>
-              </div>
-              <div className="hts-toc-phase">
-                <div className="hts-toc-phase-number">4</div>
-                <div className="hts-toc-phase-title">Closing</div>
-                <ul className="hts-toc-phase-items">
-                  <li><a href="#phase-4">Final walkthrough</a></li>
-                  <li><a href="#phase-4">Settlement</a></li>
-                  <li><a href="#phase-4">Keys &amp; proceeds</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Phase 1: Preparation */}
-      <section className="hts-content-section" id="phase-1">
-        <div className="hts-content-container">
-          <div className="hts-phase-header">
-            <div className="hts-phase-number">1</div>
-            <div className="hts-phase-title-group">
-              <h2>Preparation</h2>
-              <p>Set your goals and get your home market-ready</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Define Your Selling Goals</h3>
-            <p>Before listing, clarify what matters most to you. Your goals will shape our pricing strategy, marketing approach, and timeline.</p>
-            
-            <ul className="hts-checklist">
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>What&apos;s your timeline?</strong>
-                  <span>Need to move quickly, or can you wait for the right offer?</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>What&apos;s your target net?</strong>
-                  <span>Understanding your bottom line helps us price strategically</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Are you buying another home?</strong>
-                  <span>Timing coordination between selling and buying is crucial</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Do you want certainty or maximum price?</strong>
-                  <span>Our programs offer different balances of speed and value</span>
-                </div>
-              </li>
-            </ul>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Choose Your Selling Path</h3>
-            <p>We offer multiple ways to sell, each designed for different situations and priorities.</p>
-
-            <div className="hts-programs-grid">
-              <div className="hts-program-card">
-                <h5>Rush Immediate</h5>
-                <p>Get a cash offer and close in as few as 14 days. No showings, no repairs, no uncertainty.</p>
-                <div className="hts-program-card-highlight">Best for: Speed &amp; certainty</div>
-              </div>
-              <div className="hts-program-card featured">
-                <h5>Rush Flex</h5>
-                <p>Get a guaranteed backup offer while you list traditionally. Try for top dollar with a safety net.</p>
-                <div className="hts-program-card-highlight">Best for: Buy before you sell</div>
-              </div>
-              <div className="hts-program-card">
-                <h5>Traditional Listing</h5>
-                <p>Full market exposure with professional marketing, photography, and expert negotiation.</p>
-                <div className="hts-program-card-highlight">Best for: Maximum value</div>
-              </div>
-            </div>
-
-            <div className="hts-info-card highlight">
-              <h4>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-                Not Sure Which Path?
-              </h4>
-              <p>Enter your address on our home page to get a guaranteed offer. Once you see your number, you can decide whether to accept it immediately, use it as a backup while listing, or list traditionally without it.</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Prepare Your Home</h3>
-            <p>First impressions matter. These preparations can significantly impact buyer interest and final sale price.</p>
-
-            <h4>Quick Wins That Matter</h4>
-            <ul>
-              <li><strong>Declutter and depersonalize</strong> — Help buyers envision themselves in the space</li>
-              <li><strong>Deep clean everything</strong> — Including carpets, windows, and grout</li>
-              <li><strong>Touch up paint</strong> — Neutral colors appeal to more buyers</li>
-              <li><strong>Boost curb appeal</strong> — Fresh mulch, trimmed hedges, clean entry</li>
-              <li><strong>Fix minor repairs</strong> — Leaky faucets, squeaky doors, loose handles</li>
-              <li><strong>Maximize light</strong> — Clean fixtures, update bulbs, open blinds</li>
-            </ul>
-
-            <div className="hts-tip-box">
-              <div className="hts-tip-box-label">Pro Tip</div>
-              <p>Don&apos;t over-improve. Major renovations rarely return full value at sale. Focus on cleanliness, repairs, and cosmetic updates. We&apos;ll advise on which improvements make sense for your home and price point.</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Pricing Strategy</h3>
-            <p>Price is the single most important factor in selling your home. We use data-driven analysis to recommend an optimal price.</p>
-
-            <h4>What We Analyze</h4>
-            <ul>
-              <li><strong>Recent comparable sales</strong> — Similar homes that sold in the past 3-6 months</li>
-              <li><strong>Active competition</strong> — What buyers are seeing right now</li>
-              <li><strong>Pending sales</strong> — Contracts that show current market activity</li>
-              <li><strong>Market trends</strong> — Whether prices are rising, stable, or declining</li>
-              <li><strong>Your home&apos;s unique features</strong> — Updates, lot size, location factors</li>
-            </ul>
-
-            <div className="hts-info-card">
-              <h4>The Danger of Overpricing</h4>
-              <p>Homes priced above market value sit longer, attract fewer buyers, and often sell for less than if priced correctly from the start. The first two weeks on market are critical—that&apos;s when buyer interest is highest.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Phase 2: Listing & Marketing */}
-      <section className="hts-content-section" id="phase-2">
-        <div className="hts-content-container">
-          <div className="hts-phase-header">
-            <div className="hts-phase-number">2</div>
-            <div className="hts-phase-title-group">
-              <h2>Listing &amp; Marketing</h2>
-              <p>Go live and attract qualified buyers</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Going Live</h3>
-            <p>Once your home is ready and priced, we launch a comprehensive marketing campaign.</p>
-
-            <div className="hts-step-cards">
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">1</div>
-                <div className="hts-step-card-content">
-                  <h5>Professional Photography</h5>
-                  <p>High-quality photos and video tour that showcase your home&apos;s best features.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">2</div>
-                <div className="hts-step-card-content">
-                  <h5>MLS Listing</h5>
-                  <p>Your home is listed on Bright MLS, syndicating to Zillow, Realtor.com, and hundreds of sites.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">3</div>
-                <div className="hts-step-card-content">
-                  <h5>Targeted Marketing</h5>
-                  <p>Digital ads, social media promotion, and email campaigns to qualified buyers.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">4</div>
-                <div className="hts-step-card-content">
-                  <h5>Signage &amp; Lockbox</h5>
-                  <p>Professional yard sign and secure electronic lockbox for agent showings.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Showings</h3>
-            <p>Buyers will want to tour your home. We make this process as convenient as possible while maximizing exposure.</p>
-
-            <h4>Showing Tips</h4>
-            <ul>
-              <li><strong>Be flexible</strong> — The more accessible your home, the more buyers will see it</li>
-              <li><strong>Leave during showings</strong> — Buyers feel more comfortable exploring without sellers present</li>
-              <li><strong>Keep it show-ready</strong> — Quick daily tidying makes last-minute showings easier</li>
-              <li><strong>Secure valuables</strong> — Lock away jewelry, medications, and personal documents</li>
-              <li><strong>Consider pets</strong> — Remove or crate pets during showings when possible</li>
-            </ul>
-
-            <div className="hts-tip-box">
-              <div className="hts-tip-box-label">Feedback</div>
-              <p>We collect and share feedback from every showing. This helps us understand buyer reactions and adjust strategy if needed. Consistent feedback about specific issues may indicate a pricing or presentation opportunity.</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Reviewing Offers</h3>
-            <p>When offers come in, we review every detail together and advise on the best response.</p>
-
-            <h4>What We Evaluate</h4>
-            <ul>
-              <li><strong>Price</strong> — Is it competitive with recent sales and your goals?</li>
-              <li><strong>Financing</strong> — Cash, conventional, FHA, VA—each has different implications</li>
-              <li><strong>Contingencies</strong> — Inspection, financing, appraisal, sale of buyer&apos;s home</li>
-              <li><strong>Timeline</strong> — Does the proposed closing date work for your plans?</li>
-              <li><strong>Buyer qualification</strong> — Pre-approval strength and proof of funds</li>
-              <li><strong>Special terms</strong> — Credits, inclusions, possession date</li>
-            </ul>
-
-            <div className="hts-info-card">
-              <h4>Multiple Offers</h4>
-              <p>In competitive situations, we help you navigate multiple offers strategically. Sometimes the highest price isn&apos;t the best offer—terms, timing, and buyer qualification all matter.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Phase 3: Under Contract */}
-      <section className="hts-content-section" id="phase-3">
-        <div className="hts-content-container">
-          <div className="hts-phase-header">
-            <div className="hts-phase-number">3</div>
-            <div className="hts-phase-title-group">
-              <h2>Under Contract</h2>
-              <p>Navigate inspections, appraisal, and final preparations</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>After Contract Acceptance</h3>
-            <p>Once you accept an offer, several things happen quickly. We manage the timeline and keep you informed.</p>
-
-            <ul className="hts-checklist">
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Earnest money deposited</strong>
-                  <span>Buyer&apos;s deposit is held in escrow by the settlement company</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Contract sent to title/settlement</strong>
-                  <span>They begin title search and prepare for closing</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Buyer schedules inspections</strong>
-                  <span>Typically within 7-10 days of contract</span>
-                </div>
-              </li>
-              <li>
-                <div className="hts-checklist-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div className="hts-checklist-content">
-                  <strong>Lender orders appraisal</strong>
-                  <span>Required for financed purchases</span>
-                </div>
-              </li>
-            </ul>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Buyer Inspections</h3>
-            <p>Buyers typically hire a professional inspector to evaluate your home&apos;s condition. This is normal and expected.</p>
-
-            <h4>What to Expect</h4>
-            <p>The inspection usually takes 2-4 hours. Inspectors look at the home&apos;s structure, roof, plumbing, electrical, HVAC, and more. After receiving the report, buyers may request repairs or credits.</p>
-
-            <h4>Responding to Repair Requests</h4>
-            <p>We help you evaluate requests and respond strategically. Options include:</p>
-            <ul>
-              <li>Complete requested repairs before closing</li>
-              <li>Offer a credit toward the buyer&apos;s closing costs</li>
-              <li>Decline requests for minor items</li>
-              <li>Negotiate a middle ground</li>
-            </ul>
-
-            <div className="hts-tip-box">
-              <div className="hts-tip-box-label">Important</div>
-              <p>Not all inspection findings are negotiable. Cosmetic issues and normal wear are typically accepted as-is. Safety issues, major systems problems, and items that affect financing are more likely to require resolution.</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Appraisal</h3>
-            <p>If the buyer is financing, their lender will order an appraisal to verify the home&apos;s value supports the loan amount.</p>
-
-            <h4>Possible Outcomes</h4>
-            <table className="hts-data-table">
-              <thead>
-                <tr>
-                  <th>Appraisal Result</th>
-                  <th>What Happens</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>At or above contract price</td>
-                  <td>Transaction proceeds normally</td>
-                </tr>
-                <tr>
-                  <td>Below contract price</td>
-                  <td>Negotiate: seller reduces price, buyer pays difference, or meet in middle</td>
-                </tr>
-                <tr>
-                  <td>Significantly below</td>
-                  <td>May need to cancel or substantially renegotiate</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <p>We price homes based on recent comparable sales, which typically aligns with appraised values. However, rapidly changing markets can sometimes create appraisal gaps.</p>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Final Preparations</h3>
-            <p>As closing approaches, prepare to hand over your home to the new owners.</p>
-
-            <ul>
-              <li><strong>Complete agreed repairs</strong> — Provide receipts and documentation</li>
-              <li><strong>Schedule move-out</strong> — Coordinate with your closing date</li>
-              <li><strong>Cancel or transfer utilities</strong> — Schedule for closing day or possession date</li>
-              <li><strong>Gather keys, remotes, codes</strong> — Everything the buyer will need</li>
-              <li><strong>Clean the home</strong> — Leave it in broom-clean condition at minimum</li>
-              <li><strong>Remove all personal belongings</strong> — Unless specifically included in the sale</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* Phase 4: Closing */}
-      <section className="hts-content-section" id="phase-4">
-        <div className="hts-content-container">
-          <div className="hts-phase-header">
-            <div className="hts-phase-number">4</div>
-            <div className="hts-phase-title-group">
-              <h2>Closing</h2>
-              <p>Sign, transfer, and receive your proceeds</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Buyer&apos;s Final Walkthrough</h3>
-            <p>The buyer will do a final walkthrough, typically 24-48 hours before closing, to verify:</p>
-            <ul>
-              <li>Agreed repairs have been completed</li>
-              <li>The home&apos;s condition hasn&apos;t changed since their last visit</li>
-              <li>All included items remain in the home</li>
-              <li>You&apos;ve removed all personal belongings</li>
-            </ul>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Settlement Day</h3>
-            <p>In Delaware, closings are typically handled by settlement attorneys. Here&apos;s what to expect:</p>
-
-            <div className="hts-step-cards">
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">1</div>
-                <div className="hts-step-card-content">
-                  <h5>Review Settlement Statement</h5>
-                  <p>We&apos;ll review your final numbers before closing to ensure everything is correct.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">2</div>
-                <div className="hts-step-card-content">
-                  <h5>Sign Documents</h5>
-                  <p>You&apos;ll sign the deed, transfer documents, and closing disclosures.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">3</div>
-                <div className="hts-step-card-content">
-                  <h5>Transfer Keys</h5>
-                  <p>Hand over all keys, garage remotes, access codes, and manuals.</p>
-                </div>
-              </div>
-              <div className="hts-step-card">
-                <div className="hts-step-card-number">4</div>
-                <div className="hts-step-card-content">
-                  <h5>Receive Proceeds</h5>
-                  <p>Your net proceeds are wired to your bank account, typically same or next day.</p>
-                </div>
-              </div>
-            </div>
-
-            <h4>What to Bring</h4>
-            <ul>
-              <li>Valid government-issued photo ID</li>
-              <li>All keys, garage door openers, and access devices</li>
-              <li>Manuals and warranties for appliances/systems</li>
-              <li>Your bank account information for wire transfer</li>
-            </ul>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>Understanding Your Proceeds</h3>
-            <p>Your net proceeds are the sale price minus all costs. Here&apos;s a typical breakdown:</p>
-
-            <table className="hts-data-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Typical Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Real estate commissions</td>
-                  <td>Negotiable</td>
-                </tr>
-                <tr>
-                  <td>Title insurance (owner&apos;s policy)</td>
-                  <td>$500-$2,000</td>
-                </tr>
-                <tr>
-                  <td>Delaware transfer tax</td>
-                  <td>3% (varies by county)</td>
-                </tr>
-                <tr>
-                  <td>Prorated property taxes</td>
-                  <td>Varies</td>
-                </tr>
-                <tr>
-                  <td>Mortgage payoff</td>
-                  <td>Your remaining balance</td>
-                </tr>
-                <tr>
-                  <td>Agreed buyer credits</td>
-                  <td>If applicable</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div className="hts-info-card">
-              <h4>Net Sheet</h4>
-              <p>We provide a detailed net sheet early in the process so you know your estimated proceeds. This is updated as the transaction progresses and finalized at closing.</p>
-            </div>
-          </div>
-
-          <div className="hts-content-block">
-            <h3>After Closing</h3>
-            <p>Congratulations on your successful sale! A few final items:</p>
-
-            <ul>
-              <li><strong>Keep closing documents</strong> — You&apos;ll need them for tax purposes</li>
-              <li><strong>Update your address</strong> — Forward mail and update accounts</li>
-              <li><strong>Cancel homeowners insurance</strong> — Effective on closing date</li>
-              <li><strong>File change of address</strong> — With the post office and other services</li>
-            </ul>
-
-            <div className="hts-tip-box">
-              <div className="hts-tip-box-label">Tax Note</div>
-              <p>Consult a tax professional about capital gains exclusions. Many homeowners can exclude up to $250,000 (single) or $500,000 (married) of gain if you&apos;ve lived in the home for at least 2 of the past 5 years.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="hts-faq-section">
-        <div className="hts-faq-container">
-          <h2 className="hts-faq-title">Frequently Asked Questions</h2>
-
-          {faqItems.map((item, index) => (
-            <div 
-              key={index} 
-              className={`hts-faq-item ${activeFaq === index ? 'active' : ''}`}
-            >
-              <div 
-                className="hts-faq-question" 
-                onClick={() => toggleFaq(index)}
-              >
-                {item.question}
+      {/* ═══════════════════════════════════════
+           HERO SECTION
+      ═══════════════════════════════════════ */}
+      <section className="hero">
+        <div className="hero-container">
+            <div className="hero-badge">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 9l6 6 6-6"/>
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
-              </div>
-              <div className="hts-faq-answer">
-                <p>{item.answer}</p>
-              </div>
+                Complete Seller's Guide
             </div>
-          ))}
+            <h1>How to Sell Your Home in Delaware</h1>
+            <p className="hero-subtitle">
+                From listing to closing day, we'll guide you through every step. Your roadmap to a successful sale.
+            </p>
+            <div className="hero-meta">
+                <div className="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    12 min read
+                </div>
+                <div className="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Updated December 2025
+                </div>
+                <div className="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    Delaware Focus
+                </div>
+            </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="hts-cta-section">
-        <div className="hts-cta-container">
-          <h2>Ready to Sell Your Home?</h2>
-          <p>Get your guaranteed cash offer or schedule a consultation to discuss your options.</p>
-          <div className="hts-cta-buttons">
-            <a href="/get-offer" className="hts-cta-btn hts-cta-btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                <path d="M2 17l10 5 10-5"/>
-                <path d="M2 12l10 5 10-5"/>
-              </svg>
-              Get Your Cash Offer
-            </a>
-            <a href="tel:302-219-6707" className="hts-cta-btn hts-cta-btn-secondary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              Call 302-219-6707
-            </a>
-          </div>
+      {/* ═══════════════════════════════════════
+           TABLE OF CONTENTS
+      ═══════════════════════════════════════ */}
+      <section className="toc-section">
+        <div className="toc-container">
+            <div className="toc-card">
+                <div className="toc-title">Your Home Selling Journey</div>
+                <div className="toc-grid">
+                    <div className="toc-phase">
+                        <div className="toc-phase-number">1</div>
+                        <div className="toc-phase-title">Preparation</div>
+                        <ul className="toc-phase-items">
+                            <li><a href="#phase-1" onClick={(e) => scrollToSection(e, 'phase-1')}>Know your options</a></li>
+                            <li><a href="#phase-1" onClick={(e) => scrollToSection(e, 'phase-1')}>Prep your home</a></li>
+                            <li><a href="#phase-1" onClick={(e) => scrollToSection(e, 'phase-1')}>Price it right</a></li>
+                        </ul>
+                    </div>
+                    <div className="toc-phase">
+                        <div className="toc-phase-number">2</div>
+                        <div className="toc-phase-title">Going to Market</div>
+                        <ul className="toc-phase-items">
+                            <li><a href="#phase-2" onClick={(e) => scrollToSection(e, 'phase-2')}>List your home</a></li>
+                            <li><a href="#phase-2" onClick={(e) => scrollToSection(e, 'phase-2')}>Showings & open houses</a></li>
+                            <li><a href="#phase-2" onClick={(e) => scrollToSection(e, 'phase-2')}>Review offers</a></li>
+                        </ul>
+                    </div>
+                    <div className="toc-phase">
+                        <div className="toc-phase-number">3</div>
+                        <div className="toc-phase-title">Under Contract</div>
+                        <ul className="toc-phase-items">
+                            <li><a href="#phase-3" onClick={(e) => scrollToSection(e, 'phase-3')}>Inspections</a></li>
+                            <li><a href="#phase-3" onClick={(e) => scrollToSection(e, 'phase-3')}>Appraisal</a></li>
+                            <li><a href="#phase-3" onClick={(e) => scrollToSection(e, 'phase-3')}>Clear to close</a></li>
+                        </ul>
+                    </div>
+                    <div className="toc-phase">
+                        <div className="toc-phase-number">4</div>
+                        <div className="toc-phase-title">Closing</div>
+                        <ul className="toc-phase-items">
+                            <li><a href="#phase-4" onClick={(e) => scrollToSection(e, 'phase-4')}>Final preparations</a></li>
+                            <li><a href="#phase-4" onClick={(e) => scrollToSection(e, 'phase-4')}>Settlement day</a></li>
+                            <li><a href="#phase-4" onClick={(e) => scrollToSection(e, 'phase-4')}>Hand over keys</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
       </section>
-    </>
+
+      {/* ═══════════════════════════════════════
+           PHASE 1: PREPARATION
+      ═══════════════════════════════════════ */}
+      <section className="content-section" id="phase-1">
+        <div className="content-container">
+            <div className="phase-header">
+                <div className="phase-number">1</div>
+                <div className="phase-title-group">
+                    <h2>Preparation</h2>
+                    <p>Getting ready to list your home</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>Know Your Selling Options</h3>
+                <p>Every seller has different priorities—speed, price, convenience, or certainty. Understanding your options helps you make the best decision for your situation.</p>
+
+                <div className="info-card highlight">
+                    <h4>💡 Need to Sell Fast?</h4>
+                    <p>With Rush Home's Guaranteed Sale Program, you can receive a cash offer on your Delaware home within 48 hours. Close in as few as 14 days, skip the showings, and move on your timeline—not the market's.</p>
+                </div>
+
+                <h4>Traditional Listing</h4>
+                <p>List on the MLS, market to all buyers, and typically achieve the highest sale price. Best for sellers who have time and flexibility. Average time on market in Delaware is 30-45 days, plus 30-45 days to close.</p>
+
+                <h4>Cash Offer</h4>
+                <p>Sell as-is to a cash buyer with no showings, repairs, or financing contingencies. Close in as few as 14 days. Best for sellers who prioritize speed and certainty over maximum price.</p>
+
+                <h4>Guaranteed Sale</h4>
+                <p>Get the best of both worlds—list your home traditionally while holding a guaranteed backup offer. If your home doesn't sell on the open market within your timeframe, we'll buy it at the agreed price.</p>
+            </div>
+
+            <div className="content-block">
+                <h3>Prepare Your Home to Sell</h3>
+                <p>Small improvements make big differences in how quickly your house sells and the price it commands. Focus on changes that help buyers imagine themselves living there.</p>
+
+                <div className="two-column-cards">
+                    <div className="column-card">
+                        <h4>🏠 Prep the Exterior</h4>
+                        <ul>
+                            <li>Keep lawn manicured and watered</li>
+                            <li>Trim hedges, weed flower beds</li>
+                            <li>Check foundation and steps for cracks</li>
+                            <li>Clean and align gutters</li>
+                            <li>Apply fresh paint to front door</li>
+                            <li>Add colorful flowers near entrance</li>
+                        </ul>
+                    </div>
+                    <div className="column-card">
+                        <h4>🛋️ Prep the Interior</h4>
+                        <ul>
+                            <li>Declutter every room</li>
+                            <li>Remove personal photos</li>
+                            <li>Paint walls neutral colors</li>
+                            <li>Deep clean carpets and floors</li>
+                            <li>Fix leaky faucets and squeaky doors</li>
+                            <li>Replace dim bulbs with bright LEDs</li>
+                            <li>Repair cracks, holes, and damage</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div className="tip-box">
+                    <div className="tip-box-label">Pro Tip</div>
+                    <p>The best rule of thumb: leave your property in the condition you'd like to be greeted if you were stepping into a home you'd just purchased.</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>4 Factors That Affect Your Home's Saleability</h3>
+                <ul className="checklist">
+                    <li>
+                        <div className="checklist-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div className="checklist-content">
+                            <strong>Price Point</strong>
+                            <span>Pricing for the current market is critical. Factors that matter: location, design, amenities, competing properties, and economic conditions. What you paid or spent on improvements has little influence.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div className="checklist-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div className="checklist-content">
+                            <strong>Market Conditions</strong>
+                            <span>The real estate market fluctuates. We'll discuss the pros and cons of listing during varied market conditions to help you time your sale strategically.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div className="checklist-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </div>
+                        <div className="checklist-content">
+                            <strong>Property Condition</strong>
+                            <span>Condition affects both price and speed. If repairs or staging are needed, we'll assist with guidance and our trusted vendor network.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div className="checklist-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                        </div>
+                        <div className="checklist-content">
+                            <strong>Market Exposure</strong>
+                            <span>We focus on what we can control—market exposure and negotiating offers. With a comprehensive marketing plan, your home will get noticed in any market.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+           PHASE 2: GOING TO MARKET
+      ═══════════════════════════════════════ */}
+      <section className="content-section" id="phase-2">
+        <div className="content-container">
+            <div className="phase-header">
+                <div className="phase-number">2</div>
+                <div className="phase-title-group">
+                    <h2>Going to Market</h2>
+                    <p>Listing your home and attracting buyers</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>The 10-Step Selling Process</h3>
+                <p>Here's what to expect when you list your home with Rush Home Team, from initial consultation to handing over the keys.</p>
+
+                <div className="step-cards">
+                    {[
+                      { num: 1, title: 'Discovery & Research', desc: 'We tour your home and give insights on what will help your sale. We discuss the process and develop initial marketing strategies.' },
+                      { num: 2, title: 'Listing Appointment', desc: 'We discuss the value of your home, review expectations, sign documents and enter into contract. You\'re ready to list!' },
+                      { num: 3, title: 'Pre-Launch', desc: 'All marketing materials are collected. From photography to lock boxes, we make sure everything is prepared for launch day.' },
+                      { num: 4, title: 'Launch Day', desc: 'Your home\'s profile is posted online. A yard sign is placed on your property. All marketing materials are rolled out.' },
+                      { num: 5, title: 'Buyer Prospecting', desc: 'Consistent exposure of your home is spread across marketing platforms. All scheduled events are completed until we reach a sales agreement.' },
+                      { num: 6, title: 'Sales Agreement', desc: 'Once an offer has been made, we review all terms and conditions and respond as needed. Negotiations happen here.' },
+                      { num: 7, title: 'Inspections', desc: 'Your buyer will likely hire an inspector. The inspector may recommend repairs—we\'ll negotiate on your behalf.' },
+                      { num: 8, title: 'Loan Commitment', desc: 'The buyer\'s loan is underwritten and appraisal is performed. All documentation is verified and we wait for approval.' },
+                      { num: 9, title: 'Closing Preparation', desc: 'Lender requirements have been met and documents ordered. Closing is scheduled. The buyer has a final walk through 24-48 hours prior.' },
+                      { num: 10, title: 'Closing', desc: 'The last step! Documents are signed, keys are exchanged, and proceeds are received. We\'re here to help after the sale!' }
+                    ].map((step) => (
+                      <div key={step.num} className="step-card">
+                        <div className="step-card-number">{step.num}</div>
+                        <h4>{step.title}</h4>
+                        <p>{step.desc}</p>
+                      </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>Show Home Ready in One Hour</h3>
+                <p>Got a last-minute showing? Here's your quick prep checklist:</p>
+
+                <ul className="checklist">
+                    {[
+                      'Make the beds', 'Grab a basket and put personal clutter in your car', 'Make sure bathroom towels are clean, straightened and match',
+                      'Wipe down toilets and put the lids down', 'Wipe down all counter tops and sinks', 'Open all blinds & turn on all the lights in the house',
+                      'Make sure the house temperature is comfortable', 'Make sure the house smells good (don\'t overdo the air freshener)',
+                      'Vacuum carpeted areas, sweep all surfaces', 'Clean all mirrors', 'Sweep the front doorway and wipe off the mat'
+                    ].map((item, idx) => (
+                      <li key={idx}>
+                        <div className="checklist-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
+                        <div className="checklist-content">
+                          <span>{item}</span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+           PHASE 3: UNDER CONTRACT
+      ═══════════════════════════════════════ */}
+      <section className="content-section" id="phase-3">
+        <div className="content-container">
+            <div className="phase-header">
+                <div className="phase-number">3</div>
+                <div className="phase-title-group">
+                    <h2>Under Contract</h2>
+                    <p>From accepted offer to clear to close</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>What to Expect After Accepting an Offer</h3>
+                <p>Once you've accepted an offer, it's time to start the under contract process. There are a few dates and deadlines to be aware of: title deadline, due diligence, inspection, appraisal, and loan conditions. The under contract process can normally take anywhere from 30-60 days.</p>
+
+                <h4>Inspection</h4>
+                <p>One of the most crucial steps in buying a home is performing an inspection. The buyers elect to do this if they choose. The buyer's agent will set up a day and time that works for you to have the inspector perform a full inspection on your home. You will be asked to leave during this time. It should take anywhere from 1-4 hours depending on the size of your home.</p>
+                <p>After inspection, the buyer's agent will send an inspection report requesting specific repairs or replacements, if needed. At this time you can decide which items you agree to fix, repair or replace, if any. <strong>Remember: inspection items that affect health and safety are required.</strong></p>
+
+                <h4>Appraisal</h4>
+                <p>An appraisal will be required by the lender if the buyer is obtaining a loan. The appraisal could come in low, high, or at value. We will guide you through the process on the right moves to make if the appraisal comes in low. After the appraisal, we wait for the loan conditions deadline for the buyer and are that much closer to the closing table.</p>
+
+                <div className="info-card">
+                    <h4>📋 Information to Have Ready</h4>
+                    <p>Once your home is on the market, have this information ready in case the buyer or lender requests it: manuals for appliances, receipts of work done to the home, all keys and garage door openers, surveys previously done, a list of utility providers & average costs, and alarm instructions.</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>Negotiating the Deal Successfully</h3>
+                <ul className="checklist">
+                    {[
+                      { s: 'Disclose everything', d: 'Be proactive about disclosing all known defects to buyers—avoid legal problems later.' },
+                      { s: 'Respect the buyer', d: 'Remember your priorities, but also respect the buyer. This will be their next home and they\'re nervous about the unknowns.' },
+                      { s: 'Ask questions', d: 'Offers may include complicated terminology, which can be clarified for you.' },
+                      { s: 'Respond quickly', d: 'The mood for the buyer to buy is exactly when the offer is made—don\'t delay.' },
+                      { s: 'Meet halfway', d: 'If there are disagreements about small expenses, split the difference and move on.' },
+                      { s: 'Stay calm', d: 'Even if the situation is tense, keeping your cool leads to better outcomes.' }
+                    ].map((item, idx) => (
+                      <li key={idx}>
+                        <div className="checklist-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
+                        <div className="checklist-content">
+                          <strong>{item.s}</strong>
+                          <span>{item.d}</span>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+            </div>
+
+            <div className="content-block">
+                <h3>HOA Communities</h3>
+                <p>If you live in an HOA community, check in with the HOA to see if there are any restrictions or policies when listing your condo/townhome. If you have any known info regarding assessments, certification letters or HOA covenants, have those available for buyers.</p>
+            </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+           PHASE 4: CLOSING
+      ═══════════════════════════════════════ */}
+      <section className="content-section" id="phase-4">
+        <div className="content-container">
+            <div className="phase-header">
+                <div className="phase-number">4</div>
+                <div className="phase-title-group">
+                    <h2>Closing</h2>
+                    <p>The final steps to completing your sale</p>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>Closing 101</h3>
+                <p>The closing process finalizes the sale of your home and makes everything official. Also known as settlement, the closing is when you get paid and the buyer receives the deed to your home.</p>
+
+                <h4>What to Bring to Closing</h4>
+                <ul>
+                    <li>A valid government-issued picture ID</li>
+                    <li>House keys</li>
+                    <li>Garage door opener(s)</li>
+                    <li>Mailbox key and any other spare keys</li>
+                </ul>
+
+                <h4>What to Expect</h4>
+                <p>The closing attorney will look over the purchase contract and identify what payments are owed and by whom. They prepare documents for the closing, conduct the closing, and make sure taxes, title searches, real estate commissions and other closing costs are paid. They ensure that the buyer's title is recorded and that you receive any money due to you.</p>
+
+                <div className="two-column-cards">
+                    <div className="column-card">
+                        <h4>💵 Your Costs at Closing</h4>
+                        <ul>
+                            <li>Mortgage balance and prepayment penalties</li>
+                            <li>Other claims (unpaid property taxes)</li>
+                            <li>Unpaid special assessments</li>
+                            <li>Real estate commission</li>
+                            <li>Title insurance policy</li>
+                            <li>Home warranty (if applicable)</li>
+                        </ul>
+                    </div>
+                    <div className="column-card">
+                        <h4>📁 Keep for Tax Purposes</h4>
+                        <ul>
+                            <li>Copies of all closing documents</li>
+                            <li>All home improvement receipts</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className="content-block">
+                <h3>Seller Etiquette Checklist</h3>
+                <p>As you prepare to hand over the keys, here's everything you need to do to leave your home in perfect condition for the new owners.</p>
+
+                <h4>Before Closing Day</h4>
+                <ul className="checklist">
+                    {[
+                      'Remove all personal property, including items you\'re throwing out', 'Schedule bulk trash pick up before closing (no bulk trash at curb on closing day)',
+                      'Vacuum and sweep all floors', 'Clean kitchen appliances, inside refrigerator and stove', 'Contact utility company to transfer utilities as of closing day',
+                      'Cancel homeowners insurance to coincide with closing date', 'Update your address and forward your mail', 'Yard should be freshly mowed on closing day'
+                    ].map((item, idx) => (
+                      <li key={idx}>
+                        <div className="checklist-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
+                        <div className="checklist-content"><span>{item}</span></div>
+                      </li>
+                    ))}
+                </ul>
+
+                <h4>What to Leave Behind</h4>
+                <ul className="checklist">
+                    {[
+                      'One front door key to closing; all other keys left in kitchen', 'All garage door openers and remotes for fans/lights in the kitchen',
+                      'Mailbox key and mailbox number (if applicable)', 'Manuals, warranties, and guides for items staying in the home',
+                      'Maintenance schedule should remain in the home', 'Leave forwarding address for mail and deliveries', 'Consider leaving a note with trash/recycle day'
+                    ].map((item, idx) => (
+                      <li key={idx}>
+                        <div className="checklist-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
+                        <div className="checklist-content"><span>{item}</span></div>
+                      </li>
+                    ))}
+                </ul>
+
+                <div className="tip-box">
+                    <div className="tip-box-label">Nice Touch</div>
+                    <p>Make a list of any items pertaining to the property (extra flooring, paint cans, roofing materials) and ask the buyers if they want to keep them. A congratulatory card or bottle of sparkling wine is always appreciated!</p>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+           FAQ SECTION
+      ═══════════════════════════════════════ */}
+      <section className="faq-section">
+        <div className="faq-container">
+            <h2 className="faq-title">Frequently Asked Questions</h2>
+
+            {[
+              { q: "How long does it take to sell a house?", a: "In Delaware, homes typically sell within 30-45 days of listing, plus 30-45 days to close. However, timeline varies based on price point, condition, location, and market conditions. With a cash offer through our Guaranteed Sale Program, you can close in as few as 14 days." },
+              { q: "What repairs should I make before selling?", a: "Focus on high-ROI fixes: fresh neutral paint, clean carpets, updated lighting, and minor repairs like leaky faucets or squeaky doors. Avoid major renovations that won't recover their cost. If you prefer not to make any repairs, ask about our cash offer program where you can sell as-is." },
+              { q: "How do I determine the right asking price?", a: "We'll complete a Comparative Market Analysis (CMA) looking at recently sold homes similar to yours in size, age, condition, and location. Pricing strategy depends on your goals—whether maximizing price or selling quickly. Overpricing often leads to longer market time and lower final sale price." },
+              { q: "What are the costs of selling a home?", a: "Typical seller costs include real estate commission, title insurance, transfer taxes, attorney fees, and any agreed-upon closing cost credits. In Delaware, expect total closing costs of 6-8% of the sale price. We'll provide a detailed net sheet so you know exactly what to expect." },
+              { q: "Can I sell my current home while buying a new one?", a: "Yes! Our Guaranteed Sale Program provides a backup offer on your current home, which allows you to make competitive, non-contingent offers on your next home. You can list traditionally while having the security of a guaranteed sale price if the market doesn't deliver what you need." }
+            ].map((faq, idx) => (
+              <div key={idx} className={`faq-item ${activeFaq === idx ? 'active' : ''}`}>
+                <div className="faq-question" onClick={() => toggleFaq(idx)}>
+                    {faq.q}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </div>
+                <div className="faq-answer">
+                    <p>{faq.a}</p>
+                </div>
+              </div>
+            ))}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+           CTA SECTION
+      ═══════════════════════════════════════ */}
+      <section className="cta-section">
+        <div className="cta-container">
+            <h2>Ready to Sell Your Delaware Home?</h2>
+            <p>Let's discuss your goals and create a personalized plan to get you the best outcome.</p>
+            <div className="cta-buttons">
+                <a href="tel:302-943-7814" className="cta-btn cta-btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    Call 302-943-7814
+                </a>
+                <a href="/get-offer" className="cta-btn cta-btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Get Your Offer
+                </a>
+            </div>
+        </div>
+      </section>
+    </div>
   );
-}
+};
+
+export default SellContent;
