@@ -1,11 +1,15 @@
+
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MapPin } from 'lucide-react';
 import { COMMUNITIES_DATA } from '../data/communities';
 
 const AvailableCommunities: React.FC = () => {
   const [filter, setFilter] = useState('all');
-  const navigate = useNavigate();
+  const router = useRouter();
   
   const communitiesMap = COMMUNITIES_DATA as Record<string, any>;
   const [visibleCount, setVisibleCount] = useState(Object.keys(communitiesMap).length);
@@ -16,8 +20,6 @@ const AvailableCommunities: React.FC = () => {
   const infoWindow = useRef<any>(null);
 
   useEffect(() => {
-    document.title = "New Construction Communities | Rush Home Team";
-    
     let isMounted = true;
 
     const initMap = async () => {
@@ -69,10 +71,9 @@ const AvailableCommunities: React.FC = () => {
 
             bounds.extend(position);
 
-            // Determine marker color based on county to match legend
-            let markerColor = '#d4a84b'; // Sussex (Gold)
-            if (community.county === 'kent') markerColor = '#000000'; // Kent (Black)
-            else if (community.county === 'newcastle') markerColor = '#2563EB'; // New Castle (Blue)
+            let markerColor = '#d4a84b';
+            if (community.county === 'kent') markerColor = '#000000';
+            else if (community.county === 'newcastle') markerColor = '#2563EB';
 
             const pin = new PinElement({
               background: markerColor,
@@ -88,7 +89,6 @@ const AvailableCommunities: React.FC = () => {
               content: pin.element
             });
 
-            // Custom properties for filtering
             (marker as any).communityId = id;
             (marker as any).county = community.county;
             (marker as any).externalUrl = community.externalUrl;
@@ -122,7 +122,7 @@ const AvailableCommunities: React.FC = () => {
                   if (community.externalUrl) {
                     window.open(community.externalUrl, '_blank');
                   } else {
-                    navigate(`/available-communities/${id}`);
+                    router.push(`/available-communities/${id}`);
                   }
                 };
               }, 100);
@@ -147,7 +147,7 @@ const AvailableCommunities: React.FC = () => {
       markers.current.forEach(m => m.map = null);
       markers.current = [];
     };
-  }, [navigate, communitiesMap]);
+  }, [router, communitiesMap]);
 
   useEffect(() => {
     let count = 0;
@@ -332,8 +332,6 @@ const AvailableCommunities: React.FC = () => {
         .community-name { font-size: 1.25rem; font-weight: 700; color: var(--black); margin: 0; }
         .community-status { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; background: rgba(34, 197, 94, 0.1); border-radius: 50px; font-size: 0.7rem; font-weight: 700; color: var(--success); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
         .community-status::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
-        .community-status.closing-out { background: rgba(212, 168, 75, 0.15); color: #b8860b; }
-        .community-status.closing-out::before { background: #d4a84b; }
         .community-location { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--gray-600); margin-bottom: 0.75rem; }
         .county-tag { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 0.5rem; }
         .county-tag.kent { background: rgba(0, 0, 0, 0.1); color: var(--kent-color); }
@@ -374,7 +372,6 @@ const AvailableCommunities: React.FC = () => {
         .cta-content p { font-size: 1.1rem; color: var(--gray-400); margin-bottom: 2rem; }
         .cta-buttons { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
         .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: var(--white); color: var(--black); font-size: 1rem; font-weight: 600; border-radius: 8px; transition: all 0.3s ease; }
-        .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2rem; background: transparent; color: var(--white); font-size: 1rem; font-weight: 600; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; }
 
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
@@ -444,12 +441,9 @@ const AvailableCommunities: React.FC = () => {
                   <div className="community-info">
                     <div className="community-header">
                       <h3 className="community-name">{community.name}</h3>
-                      <span className={`community-status ${community.status === 'Closing Out' ? 'closing-out' : ''}`}>{community.status}</span>
                     </div>
                     <div className="community-location">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                      </svg>
+                      <MapPin size={16} />
                       {community.location}
                       <span className={`county-tag ${community.county}`}>{community.county}</span>
                     </div>
@@ -466,7 +460,7 @@ const AvailableCommunities: React.FC = () => {
                   {cardInner}
                 </a>
               ) : (
-                <Link key={id} to={`/available-communities/${id}`} className="community-card">
+                <Link key={id} href={`/available-communities/${id}`} className="community-card">
                   {cardInner}
                 </Link>
               );
@@ -483,47 +477,6 @@ const AvailableCommunities: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <section className="represent-section">
-        <div className="represent-container">
-          <div className="represent-header">
-            <span className="represent-label">Expertise</span>
-            <h2 className="represent-title">New Construction <em>Specialists</em></h2>
-          </div>
-          <div className="represent-grid">
-            <div className="represent-card">
-              <div className="represent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-              <h3>Exclusive Access</h3>
-              <p>Get first look at new communities and pre-construction pricing before it hits the market.</p>
-            </div>
-            <div className="represent-card">
-              <div className="represent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h20M5 20V8.5l7-4.5 7 4.5V20"/></svg></div>
-              <h3>Process Expertise</h3>
-              <p>From lot selection to final walkthrough, we guide you through every phase of building.</p>
-            </div>
-            <div className="represent-card">
-              <div className="represent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-              <h3>Timeline Management</h3>
-              <p>We track construction milestones and keep you informed every step of the way.</p>
-            </div>
-            <div className="represent-card">
-              <div className="represent-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-              <h3>Builder Relations</h3>
-              <p>Our established partnerships mean smoother transactions and faster resolution of concerns.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2>Ready to Build?</h2>
-          <p>Let us guide you through the process with expert representation and local market knowledge.</p>
-          <div className="cta-buttons">
-            <a href="tel:302-219-6707" className="btn-primary">Call 302-219-6707</a>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

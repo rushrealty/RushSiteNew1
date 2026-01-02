@@ -1,5 +1,5 @@
 
-import CommunitiesContent from "../../components/pages/CommunitiesContent";
+import AvailableCommunities from "../../pages/AvailableCommunities";
 
 export const metadata = {
   title: "New Construction Communities | Delaware | Rush Home Team",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function AvailableCommunitiesPage() {
-  return <CommunitiesContent />;
+  return <AvailableCommunities />;
 }

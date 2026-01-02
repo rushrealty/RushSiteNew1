@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { use } from 'react';
-import { COMMUNITIES_DATA } from '../../../../data/communities';
+import { COMMUNITIES_DATA } from '../../../data/communities';
 import { ShieldCheck, CheckCircle2, MapPin, Share2 } from 'lucide-react';
 import Link from 'next/link';
 
