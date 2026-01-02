@@ -6,6 +6,7 @@ import Link from 'next/link';
 const AbbottsPondContent: React.FC = () => {
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
   const [expandedFloorPlan, setExpandedFloorPlan] = useState<string | null>(null);
+  const [expandedMoveIn, setExpandedMoveIn] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestSubtitle, setRequestSubtitle] = useState("Abbott's Pond Acres");
@@ -30,7 +31,8 @@ const AbbottsPondContent: React.FC = () => {
       elevations: [
         'https://drive.google.com/thumbnail?id=1G21W80sdVTcQe1OM4TnJWpJN4j2FhR3F&sz=w1000',
         'https://drive.google.com/thumbnail?id=1o7UXDMiTJ7Cu9WhirIffRTcinhrlsXYc&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1nyaCrwAbnQRaXuU4DX11miwQSjyqg_MS&sz=w1000'
+        'https://drive.google.com/thumbnail?id=1nyaCrwAbnQRaXuU4DX11miwQSjyqg_MS&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1o4FpirFvnP7Q-e6whXfLEjUBcpL9KZb-&sz=w1000'
       ] },
     { id: 'burlington', name: 'Burlington', price: '$430,000', beds: '3', baths: '2.5', garage: '2', stories: '2', sqft: '1,955',
       description: 'A thoughtful design featuring a formal dining room and a sprawling 2 story living room. Starting with 3 upper level bedrooms and large primary ensuite, this layout maximizes every square foot.',
@@ -57,7 +59,8 @@ const AbbottsPondContent: React.FC = () => {
       elevations: [
         'https://drive.google.com/thumbnail?id=17ggeIFE-snJAnbN-7XWECEZWZDe9yzzB&sz=w1000',
         'https://drive.google.com/thumbnail?id=1Yjm5vq2GK9-zKjEotJhOX8Q_RK7W69wF&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1Yw33rtGDJe4sMm3o5kdljV_cTa6MPXrf&sz=w1000'
+        'https://drive.google.com/thumbnail?id=1Yw33rtGDJe4sMm3o5kdljV_cTa6MPXrf&sz=w1000',
+        'https://drive.google.com/thumbnail?id=15fYysN5W-1mvBY9ylW8t7AwmBOQzIrtH&sz=w1000'
       ] },
     { id: 'wyoming', name: 'Wyoming', price: '$440,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,379',
       description: 'This beautiful 4-bedroom, 2.5-bath home offers 2,379 sq ft of thoughtfully designed living space. Upstairs, you\'ll love the oversized primary suite complete with a luxurious ensuite bath.',
@@ -66,7 +69,8 @@ const AbbottsPondContent: React.FC = () => {
       elevations: [
         'https://drive.google.com/thumbnail?id=1IrBgP92YYCxU8lfT1ffEyRlt_AEqLhOa&sz=w1000',
         'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoBkUpxy&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1000'
+        'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1gvFg6UlzyqEjJtbB3GA7JButrfZt8Dlm&sz=w1000'
       ] },
     { id: 'georgetown', name: 'Georgetown', price: '$495,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,513',
       description: 'This stunning property offers over 2,500 square feet of living space with the master bedroom conveniently located on the main level. Features a grand 2-story living room.',
@@ -75,7 +79,22 @@ const AbbottsPondContent: React.FC = () => {
       elevations: [
         'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1000',
         'https://drive.google.com/thumbnail?id=1cy706xj69lA-TilGaypgyqrfdOcWtYBJ&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1chIFJtKPgIALLDgJ5AOeIlPbnkQLkUw0&sz=w1000'
+        'https://drive.google.com/thumbnail?id=1chIFJtKPgIALLDgJ5AOeIlPbnkQLkUw0&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1cZ7booYQIkrjwY-omgah7J1XacwhSYXn&sz=w1000'
+      ] }
+  ];
+
+  const moveInReadyHomes = [
+    { id: 'hampshire', name: 'Hampshire', address: 'Hampshire Inventory Home', lot: 'Available Now', price: '$475,900', status: 'Ready Now',
+      beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,415',
+      description: "This Hampshire model features 4 bedrooms, 2 and a half bath and is beautifully designed. What better way to relax than in your master suite, which has an amazing en-suite full sized bathroom with tub and shower! The Hampshire's main floor also boasts an eat-in kitchen with dramatic maple 42\" cabinetry. Spacious 9 foot high ceilings make the open floor plan bright and welcoming. The great room is built for hosting or just relaxing and taking in your beautiful new home.",
+      img: 'https://drive.google.com/thumbnail?id=17SgJm_eAMsAWMjMIFQIku6vcDizZzpVz&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=1hY4VDlMQgKMhIwqdnqDP2oj6IHMUXWHS&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1nKN9-gYEntJ4NqpuN4WbsTFjk8FrYJN2&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1CfElppr3yD2ISfBmxL9kiJwSP4pvzjj4&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1Cn-xYMBupcddQEyUfzu-wdyd073U9utX&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1CfFrsoeYdRLDlMYuqwYA7uuAR2ilZyqZ&sz=w1000'
       ] }
   ];
 
@@ -163,7 +182,7 @@ const AbbottsPondContent: React.FC = () => {
         .btn-share svg { width: 20px; height: 20px; }
         .hero-gallery { display: grid; grid-template-columns: 1.2fr 1fr; gap: 0.5rem; border-radius: 12px; overflow: hidden; }
         .gallery-main { position: relative; height: 400px; cursor: pointer; overflow: hidden; }
-        .gallery-main img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .gallery-main img { width: 100%; height: 100%; object-fit: contain; background: #fff; transition: transform 0.3s; }
         .gallery-main:hover img { transform: scale(1.02); }
         .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0.5rem; }
         .gallery-item { position: relative; overflow: hidden; cursor: pointer; }
@@ -233,6 +252,7 @@ const AbbottsPondContent: React.FC = () => {
         .floorplan-image { position: relative; height: 200px; overflow: hidden; }
         .floorplan-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .floorplan-card:hover .floorplan-image img { transform: scale(1.05); }
+        .movein-badge { position: absolute; top: 1rem; left: 1rem; padding: 0.35rem 0.75rem; background: var(--success); color: var(--white); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; }
         .floorplan-content { padding: 1.5rem 2rem; display: flex; flex-direction: column; justify-content: center; }
         .floorplan-name { font-size: 1.5rem; font-weight: 700; color: var(--black); margin-bottom: 0.25rem; }
         .floorplan-price { font-size: 1.1rem; font-weight: 700; color: var(--gray-700); margin-bottom: 0.75rem; }
@@ -429,24 +449,46 @@ const AbbottsPondContent: React.FC = () => {
             <div className="floorplan-details"><div className="floorplan-details-content">
               <div className="details-left">
                 <h4>About {plan.name}</h4><p>{plan.description}</p>
-                <h4>Elevation Options</h4>
-                <div className="elevation-options"><div className="elevation-thumb active"><img src={plan.img} alt="Elevation A" /></div><div className="elevation-thumb"><img src={galleryImages[1]} alt="Elevation B" /></div><div className="elevation-thumb"><img src={galleryImages[2]} alt="Elevation C" /></div></div>
+                <h4>Other Images</h4>
+                <div className="elevation-options">{plan.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`}><img src={elev} alt={`${plan.name} view ${i + 1}`} /></div>)}</div>
                 <div className="details-actions">
                   <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', plan.name);}}>Request Info</button>
                   <button className="btn-floorplan-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
                 </div>
               </div>
-              <div className="details-right"><div className="floorplan-diagram"><img src={plan.img} alt={`${plan.name} floor plan`} /></div></div>
+              <div className="details-right"><div className="floorplan-diagram"><img src={plan.floorPlanImg} alt={`${plan.name} floor plan`} /></div></div>
             </div></div>
           </div>
         ))}</div>
       </div></section>
 
       <section className="movein-section" id="movein"><div className="container">
-        <div className="section-header"><h2>Homes for sale in this community (1)</h2></div>
-        <div className="movein-list">
-          <div className="movein-card"><div className="movein-image"><img src="https://drive.google.com/thumbnail?id=17SgJm_eAMsAWMjMIFQIku6vcDizZzpVz&sz=w1000" alt="Hampshire Inventory Home" /><span className="movein-status">Ready Now</span></div><div className="movein-content"><div className="movein-price">$475,900</div><div className="movein-address">Hampshire Inventory Home</div><div className="movein-specs"><span>4 Bed</span><span>2.5 Bath</span><span>2 Garage</span><span>2 Story</span><span>2,415 Sq. Ft.</span></div></div><div className="movein-action"><button className="movein-btn" onClick={() => openModal('request', 'Hampshire Inventory Home')}>View Details</button></div></div>
-        </div>
+        <div className="section-header"><h2>Homes for sale in this community ({moveInReadyHomes.length})</h2></div>
+        <div className="movein-list">{moveInReadyHomes.map(home => (
+          <div key={home.id} className={`floorplan-card ${expandedMoveIn === home.id ? 'expanded' : ''}`}>
+            <div className="floorplan-main" onClick={() => setExpandedMoveIn(expandedMoveIn === home.id ? null : home.id)}>
+              <div className="floorplan-image"><img src={home.img} alt={home.name} /><span className="movein-badge">{home.status}</span></div>
+              <div className="floorplan-content">
+                <h3 className="floorplan-name">{home.price}</h3>
+                <div className="floorplan-price">{home.address}</div>
+                <div className="floorplan-specs"><span>{home.beds} Bed</span><span className="divider">|</span><span>{home.baths} Bath</span><span className="divider">|</span><span>{home.garage} Garage</span><span className="divider">|</span><span>{home.stories} Story</span><span className="divider">|</span><span>{home.sqft} Sq. Ft.</span></div>
+              </div>
+              <div className="floorplan-action"><button className="floorplan-view-btn">View Details</button></div>
+            </div>
+            <div className="floorplan-details"><div className="floorplan-details-content">
+              <div className="details-left">
+                <h4>About {home.name}</h4><p>{home.description}</p>
+                <h4>Other Images</h4>
+                <div className="elevation-options">{home.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`}><img src={elev} alt={`${home.name} view ${i + 1}`} /></div>)}</div>
+                <div className="details-actions">
+                  <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', home.name);}}>Request Info</button>
+                  <button className="btn-floorplan-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
+                </div>
+              </div>
+              <div className="details-right"><div className="floorplan-diagram"><img src={home.floorPlanImg} alt={`${home.name} floor plan`} /></div></div>
+            </div></div>
+          </div>
+        ))}</div>
       </div></section>
 
       <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/vqGWerxzkAp9d0B6/sales-map" title="Site Map" /></div></div></section>
