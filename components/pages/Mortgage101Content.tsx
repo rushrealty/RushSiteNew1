@@ -82,7 +82,7 @@ export default function Mortgage101Content() {
            HERO SECTION
         ═══════════════════════════════════════ */
         .mortgage-101-page .hero {
-          padding: 140px 2rem 80px;
+          padding: 110px 2rem 50px;
           background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
         }
 
@@ -112,19 +112,19 @@ export default function Mortgage101Content() {
         }
 
         .mortgage-101-page .hero h1 {
-          font-size: clamp(2.5rem, 5vw, 3.5rem);
+          font-size: clamp(2rem, 4vw, 2.75rem);
           font-weight: 800;
           line-height: 1.1;
           letter-spacing: -0.03em;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
           color: var(--black);
         }
 
         .mortgage-101-page .hero-subtitle {
-          font-size: 1.25rem;
+          font-size: 1.1rem;
           color: var(--gray-600);
-          max-width: 650px;
-          margin: 0 auto 2.5rem;
+          max-width: 600px;
+          margin: 0 auto 2rem;
           line-height: 1.6;
         }
 
@@ -914,15 +914,15 @@ export default function Mortgage101Content() {
 
         @media (max-width: 768px) {
           .mortgage-101-page .hero {
-            padding: 120px 1.5rem 60px;
+            padding: 100px 1.5rem 40px;
           }
 
           .mortgage-101-page .hero h1 {
-            font-size: 2rem;
+            font-size: 1.75rem;
           }
 
           .mortgage-101-page .hero-subtitle {
-            font-size: 1.1rem;
+            font-size: 1rem;
           }
 
           .mortgage-101-page .hero-meta {
