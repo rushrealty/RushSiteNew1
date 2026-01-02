@@ -15,30 +15,68 @@ const AbbottsPondContent: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const galleryImages = [
-    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600',
-    'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1600',
-    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600',
-    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600',
-    'https://images.unsplash.com/photo-1600573472591-ee6981cf35b6?w=1600',
-    'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1600',
-    'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1600',
-    'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1600',
-    'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1600',
-    'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=1600',
-    'https://images.unsplash.com/photo-1600047509358-9dc75507daeb?w=1600'
+    'https://drive.google.com/thumbnail?id=1oF8FDvL11zdHgdIQtmllgWIAPoV6wgZY&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1EdjXo54My1a3K9Q19GBHJ77DEB0y_L6r&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1RnAGcAoxqxtbwPWSioGBeeQjuot_uoE2&sz=w1600'
   ];
 
   const floorPlans = [
-    { id: 'lewes', name: 'The Lewes', price: '$489,900', beds: 3, baths: 2, garage: 2, stories: 1, sqft: '2,022',
-      description: 'The Lewes is a spacious single-story ranch home perfect for those seeking main-level living. Featuring an open-concept great room and kitchen, plus a luxurious owner\'s suite.',
-      img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800' },
-    { id: 'georgetown', name: 'The Georgetown', price: '$555,900', beds: 4, baths: 3.5, garage: 2, stories: 2, sqft: '2,890',
-      description: 'The Georgetown offers generous living space across two floors with a first-floor owner\'s suite option. Perfect for growing families who need room to spread out.',
-      img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800' },
-    { id: 'livingston', name: 'The Livingston', price: '$599,900', beds: 5, baths: 3, garage: 2, stories: 2, sqft: '2,650',
-      description: 'The Livingston is designed for families who want it all. Five bedrooms, a spacious loft, and an open main level make this the ultimate family home.',
-      img: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800' }
+    { id: 'lewes', name: 'Lewes', price: '$445,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '2,022',
+      description: 'Lewes is a spacious single-story ranch home perfect for those seeking main-level living. Featuring an open-concept great room and kitchen, plus a luxurious owner\'s suite.',
+      img: 'https://drive.google.com/thumbnail?id=10bJIxlQx0IyarO1ODmXDf59XW1rLNpIJ&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=149HSk6Sgzg61xLuyYlemVjz06Oo6d_E2&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1G21W80sdVTcQe1OM4TnJWpJN4j2FhR3F&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1o7UXDMiTJ7Cu9WhirIffRTcinhrlsXYc&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1nyaCrwAbnQRaXuU4DX11miwQSjyqg_MS&sz=w1000'
+      ] },
+    { id: 'burlington', name: 'Burlington', price: '$430,000', beds: '3', baths: '2.5', garage: '2', stories: '2', sqft: '1,955',
+      description: 'A thoughtful design featuring a formal dining room and a sprawling 2 story living room. Starting with 3 upper level bedrooms and large primary ensuite, this layout maximizes every square foot.',
+      img: 'https://drive.google.com/thumbnail?id=1oRtutWp8QKUPPu29luHWh8ytcVo838T7&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=16icNWKWKvoTWMIHCp8cpvbFv2gEwbbV1&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1Re7WuqQU6EC0UXrrXGopiTVKLJHwwTyk&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1RW-3s6GUtZnAEobiK8MzZb0wWVj1-S89&sz=w1000'
+      ] },
+    { id: 'ashburton', name: 'Ashburton', price: '$465,000', beds: '4', baths: '2.5', garage: '2', stories: '1', sqft: '2,257',
+      description: 'A premium single-story floor plan with an expansive central living area. The open floor plan allows the chef to oversee the family room and never feel separated from the party.',
+      img: 'https://drive.google.com/thumbnail?id=16U1tFpQYEtBKxtd4DZfkCumjr5E7W2Xs&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=1LSA9h1M_quWCqQxT4grPM-EHx4jkWpaS&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1X-9d5BB9-Dzajq2rRVDt6pcwQua9NCsv&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1EdjXo54My1a3K9Q19GBHJ77DEB0y_L6r&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1LEptssQ1V48f5H0VyhHXGaCVQyFeMSkR&sz=w1000'
+      ] },
+    { id: 'oceanview', name: 'Oceanview', price: '$510,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '2,378',
+      description: 'This ranch style home boasts over 2,300 square feet of luxury living with an open floor plan perfect for entertaining. The home features elegant finishes, large windows, and high ceilings.',
+      img: 'https://drive.google.com/thumbnail?id=1tBLScrZHZBS36Lx2LkIm4PSdeyMs0Xrw&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=1cFtLug8fJtr0EqVefFmy-hmx9OJ72_mY&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=17ggeIFE-snJAnbN-7XWECEZWZDe9yzzB&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1Yjm5vq2GK9-zKjEotJhOX8Q_RK7W69wF&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1Yw33rtGDJe4sMm3o5kdljV_cTa6MPXrf&sz=w1000'
+      ] },
+    { id: 'wyoming', name: 'Wyoming', price: '$440,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,379',
+      description: 'This beautiful 4-bedroom, 2.5-bath home offers 2,379 sq ft of thoughtfully designed living space. Upstairs, you\'ll love the oversized primary suite complete with a luxurious ensuite bath.',
+      img: 'https://drive.google.com/thumbnail?id=1geLCtkZfc68Zx6vzf2Do2u5uoY6P1XMo&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=1UjKll52BEBh9XQUxpmPGxSYMrrHFPWcM&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1IrBgP92YYCxU8lfT1ffEyRlt_AEqLhOa&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoBkUpxy&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1000'
+      ] },
+    { id: 'georgetown', name: 'Georgetown', price: '$495,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,513',
+      description: 'This stunning property offers over 2,500 square feet of living space with the master bedroom conveniently located on the main level. Features a grand 2-story living room.',
+      img: 'https://drive.google.com/thumbnail?id=1OAAtpIBWc7fMvpVPiwtDHsasdWYa0LY2&sz=w1000',
+      floorPlanImg: 'https://drive.google.com/thumbnail?id=15hUnb4K6LyT7wdwgeovl7NU0Wj5nhw7a&sz=w1000',
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1cy706xj69lA-TilGaypgyqrfdOcWtYBJ&sz=w1000',
+        'https://drive.google.com/thumbnail?id=1chIFJtKPgIALLDgJ5AOeIlPbnkQLkUw0&sz=w1000'
+      ] }
   ];
 
   useEffect(() => {
@@ -172,6 +210,13 @@ const AbbottsPondContent: React.FC = () => {
         .builder-logo { width: 56px; height: 56px; background: var(--white); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--gray-600); border: 1px solid var(--gray-200); }
         .builder-info h4 { font-size: 0.95rem; font-weight: 600; color: var(--black); margin-bottom: 0.25rem; }
         .builder-info p { font-size: 0.85rem; color: var(--gray-500); }
+        .builder-logo-img { width: 80px; height: auto; object-fit: contain; border-radius: 8px; }
+        .quickbuy-banner { display: flex; align-items: center; gap: 1.5rem; background: linear-gradient(90deg, #111 0%, #222 100%); border-radius: 16px; padding: 1.75rem; margin-top: 2rem; border: 1px solid #333; }
+        .quickbuy-icon { width: 56px; height: 56px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .quickbuy-icon svg { width: 28px; height: 28px; color: var(--black); }
+        .quickbuy-content h4 { font-size: 1rem; font-weight: 800; color: var(--white); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 0.5rem; }
+        .quickbuy-content p { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0; }
+        .quickbuy-content strong { color: var(--white); }
         .features-card { background: var(--gray-900); border-radius: 16px; padding: 2rem; color: var(--white); }
         .features-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
         .features-card h3 svg { width: 20px; height: 20px; color: var(--gold); }
@@ -299,7 +344,7 @@ const AbbottsPondContent: React.FC = () => {
         .lightbox-nav.next { right: 2rem; }
         .lightbox-counter { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); color: var(--white); font-size: 0.9rem; }
         @media (max-width: 1024px) { .hero-gallery { grid-template-columns: 1fr; } .gallery-main { height: 300px; } .gallery-grid { display: none; } .about-grid { grid-template-columns: 1fr; gap: 2rem; } .floorplan-main { grid-template-columns: 250px 1fr auto; } .floorplan-details-content { grid-template-columns: 1fr; } .movein-card { grid-template-columns: 220px 1fr auto; } .location-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .container { padding: 0 1rem; } .hero { padding-top: 80px; } .hero-actions { flex-direction: column; align-items: stretch; gap: 0.75rem; } .btn-request-info { justify-content: center; } .gallery-main { height: 250px; } .hero-info { flex-direction: column; } .hero-pricing { text-align: left; } .quick-stats { flex-wrap: wrap; gap: 1.5rem; } .sub-nav { overflow-x: auto; padding: 0 1rem; } .sub-nav-content { min-width: max-content; } .sub-nav-link { padding: 1rem; font-size: 0.85rem; } .floorplan-main { grid-template-columns: 1fr; } .floorplan-image { height: 200px; } .floorplan-content { padding: 1.25rem; } .floorplan-action { padding: 0 1.25rem 1.25rem; } .floorplan-view-btn { width: 100%; } .movein-card { grid-template-columns: 1fr; } .movein-image { height: 200px; } .movein-action { padding: 0 1.25rem 1.25rem; } .movein-btn { width: 100%; } .map-header { flex-direction: column; align-items: flex-start; gap: 1rem; } .map-container iframe { height: 400px; } .cta-content h2 { font-size: 1.75rem; } .form-row { grid-template-columns: 1fr; } .details-actions { flex-direction: column; } .btn-floorplan, .btn-floorplan-outline { width: 100%; justify-content: center; } }
+        @media (max-width: 768px) { .container { padding: 0 1rem; } .hero { padding-top: 80px; } .hero-actions { flex-direction: column; align-items: stretch; gap: 0.75rem; } .btn-request-info { justify-content: center; } .gallery-main { height: 250px; } .hero-info { flex-direction: column; } .hero-pricing { text-align: left; } .quick-stats { flex-wrap: wrap; gap: 1.5rem; } .sub-nav { overflow-x: auto; padding: 0 1rem; } .sub-nav-content { min-width: max-content; } .sub-nav-link { padding: 1rem; font-size: 0.85rem; } .quickbuy-banner { flex-direction: column; text-align: center; padding: 1.5rem; } .quickbuy-icon { margin: 0 auto; } .floorplan-main { grid-template-columns: 1fr; } .floorplan-image { height: 200px; } .floorplan-content { padding: 1.25rem; } .floorplan-action { padding: 0 1.25rem 1.25rem; } .floorplan-view-btn { width: 100%; } .movein-card { grid-template-columns: 1fr; } .movein-image { height: 200px; } .movein-action { padding: 0 1.25rem 1.25rem; } .movein-btn { width: 100%; } .map-header { flex-direction: column; align-items: flex-start; gap: 1rem; } .map-container iframe { height: 400px; } .cta-content h2 { font-size: 1.75rem; } .form-row { grid-template-columns: 1fr; } .details-actions { flex-direction: column; } .btn-floorplan, .btn-floorplan-outline { width: 100%; justify-content: center; } }
       `}</style>
 
       <section className="hero">
@@ -317,16 +362,16 @@ const AbbottsPondContent: React.FC = () => {
             <div className="hero-main">
               <div className="community-status"><span className="status-dot"></span>Now Selling</div>
               <h1 className="hero-title">Abbott&apos;s Pond Acres</h1>
-              <div className="hero-location"><a href="https://maps.google.com/?q=123+Model+Home+Drive,+Clayton,+DE+19938" target="_blank" rel="noopener noreferrer">123 Model Home Drive, Clayton, DE 19938</a></div>
+              <div className="hero-location"><a href="https://maps.google.com/?q=20+Amanda+Ave,+Greenwood,+DE+19950" target="_blank" rel="noopener noreferrer">20 Amanda Ave, Greenwood, DE 19950</a></div>
               <div className="quick-stats">
                 <div className="stat"><span className="stat-value">3 - 5</span><span className="stat-label">Bedrooms</span></div><div className="stat-divider"></div>
                 <div className="stat"><span className="stat-value">2 - 3.5</span><span className="stat-label">Bathrooms</span></div><div className="stat-divider"></div>
                 <div className="stat"><span className="stat-value">2</span><span className="stat-label">Garage</span></div><div className="stat-divider"></div>
                 <div className="stat"><span className="stat-value">1 - 2</span><span className="stat-label">Stories</span></div><div className="stat-divider"></div>
-                <div className="stat"><span className="stat-value">2,022 - 2,890</span><span className="stat-label">Sq. Ft.</span></div>
+                <div className="stat"><span className="stat-value">1,955 - 2,513</span><span className="stat-label">Sq. Ft.</span></div>
               </div>
             </div>
-            <div className="hero-pricing"><div className="price-label">Starting From</div><div className="price-value">$489,900</div></div>
+            <div className="hero-pricing"><div className="price-label">Starting From</div><div className="price-value">$430,000</div></div>
           </div>
         </div>
       </section>
@@ -343,16 +388,28 @@ const AbbottsPondContent: React.FC = () => {
         <div className="about-content">
           <h2>About Abbott&apos;s Pond Acres</h2>
           <div className={`about-text ${isAboutCollapsed ? 'collapsed' : ''}`}>
-            <p>Discover peaceful country living just minutes from Dover in the heart of Kent County. Abbott&apos;s Pond Acres offers spacious homesites, modern floor plans, and the charm of rural Delaware without sacrificing convenience.</p>
-            <p>Each home features open-concept layouts, energy-efficient construction, and the quality craftsmanship you expect from Ashburn Homes. With quick access to Route 13 and downtown Dover, you&apos;ll enjoy the perfect blend of tranquility and accessibility.</p>
-            <p>The community features upcoming amenities including a tot lot and playground for children, as well as a picnic pavilion overlooking the community open space.</p>
+            <p>Located in Greenwood, Abbott&apos;s Pond Acres offers a peaceful residential setting with the perfect blend of privacy and convenience. This quiet community is known for its spacious surroundings, relaxed atmosphere, and easy access to nearby towns for shopping, dining, and everyday essentials.</p>
+            <p>With quick connections to Route 13, residents enjoy a convenient commute to Milford and Dover, while Delaware&apos;s coastal beaches, state parks, and outdoor recreation are just a short drive away. Whether you&apos;re looking for a calm place to unwind or a central location that keeps you connected, Abbott&apos;s Pond Acres delivers comfortable living in a laid-back Delaware setting.</p>
           </div>
           <button className={`read-more-btn ${!isAboutCollapsed ? 'expanded' : ''}`} onClick={() => setIsAboutCollapsed(!isAboutCollapsed)}>{isAboutCollapsed ? 'Read more' : 'Read less'}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></button>
-          <div className="builder-card"><div className="builder-logo">ASHBURN</div><div className="builder-info"><h4>Built by Ashburn Homes</h4><p>40+ years building quality homes in Delaware</p></div></div>
+          
+          {/* QuickBuy Lock Banner */}
+          <div className="quickbuy-banner">
+            <div className="quickbuy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+            <div className="quickbuy-content">
+              <h4>Need to sell your current home first?</h4>
+              <p>Ask about our <strong>RushHome QuickBuy Lock</strong> program. We&apos;ll give you a guaranteed backup offer so you can buy your next home today without a sale contingency. No stress, just certainty.</p>
+            </div>
+          </div>
+
+          <div className="builder-card">
+            <img src="https://drive.google.com/thumbnail?id=10oYf7kWSBirByVTWoVLr6aUFNuZ4Lpep&sz=w200" alt="Ashburn Homes" className="builder-logo-img" />
+            <div className="builder-info"><h4>Built by Ashburn Homes</h4><p>40+ years building quality homes in Delaware</p></div>
+          </div>
         </div>
         <div className="features-card">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Standard Features</h3>
-          <div className="features-list">{['Granite Countertops','Stainless Steel Appliances','LVP Flooring Throughout',"9' Ceilings on First Floor",'2-Car Attached Garage','Energy Star Certified','Smart Home Technology','Full Landscaping Included'].map((f,i)=><div key={i} className="feature-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg><span>{f}</span></div>)}</div>
+          <div className="features-list">{['Granite Countertops','42" Upper Kitchen Cabinets',"9' Ceilings on First Floor",'2-Car Attached Garage','Energy Star Certified','Weather Sealing System','LVP Flooring in Wet Areas','Full Landscaping Included'].map((f,i)=><div key={i} className="feature-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg><span>{f}</span></div>)}</div>
         </div>
       </div></div></section>
 
@@ -386,32 +443,33 @@ const AbbottsPondContent: React.FC = () => {
       </div></section>
 
       <section className="movein-section" id="movein"><div className="container">
-        <div className="section-header"><h2>Homes for sale in this community (2)</h2></div>
+        <div className="section-header"><h2>Homes for sale in this community (1)</h2></div>
         <div className="movein-list">
-          <div className="movein-card"><div className="movein-image"><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800" alt="Move-in ready" /><span className="movein-status">Ready Now</span></div><div className="movein-content"><div className="movein-price">$525,000</div><div className="movein-address">123 Abbott Lane, Lot 24</div><div className="movein-specs"><span>4 Bed</span><span>3 Bath</span><span>2 Garage</span><span>2 Story</span><span>2,450 Sq. Ft.</span></div></div><div className="movein-action"><button className="movein-btn" onClick={() => openModal('request', '123 Abbott Lane')}>View Details</button></div></div>
-          <div className="movein-card"><div className="movein-image"><img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800" alt="Move-in ready" /><span className="movein-status">Move-In Aug</span></div><div className="movein-content"><div className="movein-price">$549,900</div><div className="movein-address">125 Abbott Lane, Lot 26</div><div className="movein-specs"><span>5 Bed</span><span>3 Bath</span><span>2 Garage</span><span>2 Story</span><span>2,650 Sq. Ft.</span></div></div><div className="movein-action"><button className="movein-btn" onClick={() => openModal('request', '125 Abbott Lane')}>View Details</button></div></div>
+          <div className="movein-card"><div className="movein-image"><img src="https://drive.google.com/thumbnail?id=17SgJm_eAMsAWMjMIFQIku6vcDizZzpVz&sz=w1000" alt="Hampshire Inventory Home" /><span className="movein-status">Ready Now</span></div><div className="movein-content"><div className="movein-price">$475,900</div><div className="movein-address">Hampshire Inventory Home</div><div className="movein-specs"><span>4 Bed</span><span>2.5 Bath</span><span>2 Garage</span><span>2 Story</span><span>2,415 Sq. Ft.</span></div></div><div className="movein-action"><button className="movein-btn" onClick={() => openModal('request', 'Hampshire Inventory Home')}>View Details</button></div></div>
         </div>
       </div></section>
 
-      <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/RBmOqZ9Y0jZoy8VD/sales-map" title="Site Map" /></div></div></section>
+      <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/vqGWerxzkAp9d0B6/sales-map" title="Site Map" /></div></div></section>
 
       <section className="location-section" id="location"><div className="container"><div className="location-grid">
         <div className="location-card">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Schools</h3>
-          <p className="school-district-name">Served by <strong>Smyrna School District</strong></p>
+          <p className="school-district-name">Served by <strong>Milford School District</strong></p>
           <ul className="school-list">
-            <li className="school-item"><div><div className="school-name">Smyrna Elementary</div><div className="school-grades">Grades K-4</div></div><div className="school-distance">2.3 mi</div></li>
-            <li className="school-item"><div><div className="school-name">Smyrna Middle School</div><div className="school-grades">Grades 5-8</div></div><div className="school-distance">3.1 mi</div></li>
-            <li className="school-item"><div><div className="school-name">Smyrna High School</div><div className="school-grades">Grades 9-12</div></div><div className="school-distance">3.4 mi</div></li>
+            <li className="school-item"><div><div className="school-name">Evelyn I. Morris Early Childhood</div><div className="school-grades">Grades PK, K</div></div><div className="school-distance">10.6 mi</div></li>
+            <li className="school-item"><div><div className="school-name">Mispillion Elementary School</div><div className="school-grades">Grades 1-5</div></div><div className="school-distance">11.7 mi</div></li>
+            <li className="school-item"><div><div className="school-name">Milford Central Academy</div><div className="school-grades">Grades 6-8</div></div><div className="school-distance">11.2 mi</div></li>
+            <li className="school-item"><div><div className="school-name">Milford Senior High School</div><div className="school-grades">Grades 9-12</div></div><div className="school-distance">11.2 mi</div></li>
           </ul>
         </div>
         <div className="location-card">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>What&apos;s Nearby</h3>
           <div className="nearby-list">
-            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Smyrna Walmart & Shopping</span><span className="time">4 min</span></div>
-            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Local Restaurants & Dining</span><span className="time">5 min</span></div>
-            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Bayhealth Hospital</span><span className="time">12 min</span></div>
-            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Dover Mall & Outlets</span><span className="time">15 min</span></div>
+            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Local Dining & Shops (Greenwood)</span><span className="time">3 min</span></div>
+            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Harrington Casino & Raceway</span><span className="time">10 min</span></div>
+            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Killens Pond State Park</span><span className="time">14 min</span></div>
+            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Walmart Supercenter (Milford)</span><span className="time">18 min</span></div>
+            <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Delaware Beaches (Rehoboth)</span><span className="time">48 min</span></div>
           </div>
         </div>
       </div></div></section>
