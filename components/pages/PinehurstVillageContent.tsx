@@ -12,13 +12,13 @@ const PinehurstVillageContent = () => {
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
   const [linkCopied, setLinkCopied] = useState(false);
 
-  // Gallery images for lightbox - all home photos
+  // Gallery images from Google Drive
   const galleryImages = [
-    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600',
-    'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1600',
-    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600',
-    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600',
+    'https://drive.google.com/thumbnail?id=1rz0seNr6VhDlx6m9LKMqAIyuGRuoAOOs&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1qJy3hT5Sg5HEz30-_hcaBdDbDI5BLgdr&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1ceA5K9Jy5inq4Lzq1CLfFo_lBO4tmkf0&sz=w1600',
+    'https://drive.google.com/thumbnail?id=19E0JerP-nPbxDCMHV2mxbbw1oawNHEW2&sz=w1600',
+    'https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w1600',
   ];
 
   // Floor plans data - sorted by price high to low per template
@@ -406,14 +406,58 @@ const PinehurstVillageContent = () => {
         .community-page .read-more-btn svg { width: 16px; height: 16px; transition: transform 0.3s; }
         .community-page .read-more-btn.expanded svg { transform: rotate(180deg); }
 
+        /* QuickBuy Lock Banner */
+        .community-page .quickbuy-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            padding: 1.75rem;
+            background: var(--gray-900);
+            border-radius: 16px;
+            margin-top: 2rem;
+        }
+        .community-page .quickbuy-icon {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .community-page .quickbuy-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--white);
+        }
+        .community-page .quickbuy-content h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--white);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .community-page .quickbuy-content p {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.6;
+        }
+        .community-page .quickbuy-content strong {
+            color: var(--white);
+            font-weight: 700;
+        }
+
         .community-page .builder-card {
             display: flex;
             align-items: center;
             gap: 1rem;
             padding: 1.25rem;
-            background: var(--gray-50);
+            background: var(--white);
+            border: 1px solid var(--gray-200);
             border-radius: 12px;
-            margin-top: 2rem;
+            margin-top: 1rem;
         }
         .community-page .builder-logo {
             width: 56px;
@@ -429,6 +473,19 @@ const PinehurstVillageContent = () => {
             border: 1px solid var(--gray-200);
             text-align: center;
             line-height: 1.2;
+        }
+        .community-page .builder-logo-img {
+            width: 72px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .community-page .builder-logo-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         .community-page .builder-info h4 { font-size: 0.95rem; font-weight: 600; color: var(--black); }
         .community-page .builder-info p { font-size: 0.85rem; color: var(--gray-500); }
@@ -950,20 +1007,20 @@ const PinehurstVillageContent = () => {
 
             <div className="hero-gallery">
               <div className="gallery-main" onClick={() => openLightbox(0)}>
-                <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200" alt="Pinehurst Village Model Home" />
+                <img src="https://drive.google.com/thumbnail?id=1rz0seNr6VhDlx6m9LKMqAIyuGRuoAOOs&sz=w1200" alt="Pinehurst Village" referrerPolicy="no-referrer" style={{objectFit: 'contain', backgroundColor: '#fafafa'}} />
               </div>
               <div className="gallery-grid">
                 <div className="gallery-item" onClick={() => openLightbox(1)}>
-                  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600" alt="Exterior View" />
+                  <img src="https://drive.google.com/thumbnail?id=1qJy3hT5Sg5HEz30-_hcaBdDbDI5BLgdr&sz=w600" alt="Exterior View" referrerPolicy="no-referrer" />
                 </div>
                 <div className="gallery-item" onClick={() => openLightbox(2)}>
-                  <img src="https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600" alt="Exterior View 2" />
+                  <img src="https://drive.google.com/thumbnail?id=1ceA5K9Jy5inq4Lzq1CLfFo_lBO4tmkf0&sz=w600" alt="Exterior View 2" referrerPolicy="no-referrer" />
                 </div>
                 <div className="gallery-item" onClick={() => openLightbox(3)}>
-                  <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600" alt="Kitchen" />
+                  <img src="https://drive.google.com/thumbnail?id=19E0JerP-nPbxDCMHV2mxbbw1oawNHEW2&sz=w600" alt="Kitchen" referrerPolicy="no-referrer" />
                 </div>
                 <div className="gallery-item" onClick={() => openLightbox(4)}>
-                  <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600" alt="Living Room" />
+                  <img src="https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w600" alt="Living Room" referrerPolicy="no-referrer" />
                 </div>
               </div>
             </div>
@@ -1031,11 +1088,28 @@ const PinehurstVillageContent = () => {
                   {isAboutCollapsed ? 'Read more' : 'Read less'}
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
+
+                {/* QuickBuy Lock Banner */}
+                <div className="quickbuy-banner">
+                  <div className="quickbuy-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      <path d="M9 12l2 2 4-4"/>
+                    </svg>
+                  </div>
+                  <div className="quickbuy-content">
+                    <h4>NEED TO SELL YOUR CURRENT HOME FIRST?</h4>
+                    <p>Ask about our <strong>RushHome QuickBuy Lock</strong> program. We&apos;ll give you a guaranteed backup offer so you can buy your next home today without a sale contingency. No stress, just certainty.</p>
+                  </div>
+                </div>
+
                 <div className="builder-card">
-                  <div className="builder-logo">VILLAGE BUILDERS</div>
+                  <div className="builder-logo-img">
+                    <img src="https://drive.google.com/thumbnail?id=10oYf7kWSBirByVTWoVLr6aUFNuZ4Lpep&sz=w200" alt="Ashburn Homes" referrerPolicy="no-referrer" />
+                  </div>
                   <div className="builder-info">
-                    <h4>Built by Village Builders</h4>
-                    <p>Quality homes in Kent County, Delaware</p>
+                    <h4>Built by Ashburn Homes</h4>
+                    <p>40+ years building quality homes in Delaware</p>
                   </div>
                 </div>
               </div>
@@ -1130,7 +1204,7 @@ const PinehurstVillageContent = () => {
               <h2>Interactive Site Map</h2>
             </div>
             <div className="map-container">
-              <iframe src="https://sales.higharc.com/pinehurst-village/embed" title="Pinehurst Village Site Map"></iframe>
+              <iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/RBmOqZ9Y0jZoy8VD/sales-map" title="Pinehurst Village Site Map"></iframe>
             </div>
           </div>
         </section>
@@ -1271,7 +1345,7 @@ const PinehurstVillageContent = () => {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div className="lightbox-content">
-              <img src={galleryImages[lightboxIndex]} alt="" />
+              <img src={galleryImages[lightboxIndex]} alt="" referrerPolicy="no-referrer" />
             </div>
             <button className="lightbox-nav next" onClick={nextImage}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
