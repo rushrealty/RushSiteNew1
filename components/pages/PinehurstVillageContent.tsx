@@ -815,11 +815,16 @@ const PinehurstVillageContent = () => {
         .community-page .nearby-item .time { font-size: 0.8rem; color: var(--gray-400); font-weight: 700; flex: none; }
 
         /* CTA Section */
-        .community-page .cta-section { padding: 5rem 0; background: var(--gray-900); text-align: center; }
+        .community-page .cta-section { padding: 5rem 0; background: var(--gray-900); }
+        .community-page .cta-section .container {
+            display: flex;
+            justify-content: center;
+        }
         .community-page .cta-content { 
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
         }
         .community-page .cta-content h2 { font-size: 2.25rem; font-weight: 700; color: var(--white); margin-bottom: 1rem; }
         .community-page .cta-content p {
