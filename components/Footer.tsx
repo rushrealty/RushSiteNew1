@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
@@ -58,13 +57,23 @@ const Footer: React.FC = () => {
               <img src="https://drive.google.com/thumbnail?id=10kOmcpqibmoiQJAOxhsrN1T6Nyw9j-hu&sz=w1000" alt="Compass" className="h-7 w-auto" />
             </a>
         </div>
-        <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-[10px] text-brand-slate uppercase tracking-widest font-bold">
-          <p>&copy; {new Date().getFullYear()} Rush Home Team. All rights reserved.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/fair-housing">Fair Housing</Link>
-          </div>
+        
+        {/* Legal Section */}
+        <div className="flex flex-col items-center text-center">
+            {/* Disclaimer */}
+            <p className="text-xs text-brand-slate max-w-4xl mx-auto leading-relaxed mb-8 px-4">
+              Rush Home Team works with guaranteed sale partners to provide cash offers. All offers are subject to property evaluation and approval. Rush Home Team is a team of licensed real estate agents affiliated with Compass RE. This is not a commitment to purchase.
+            </p>
+
+            {/* Bottom Bar with Copyright */}
+            <div className="w-full border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-brand-slate">
+              <p>&copy; {new Date().getFullYear()} Rush Home Team. All rights reserved.</p>
+              <div className="flex space-x-6 mt-4 md:mt-0">
+                <Link href="/privacy" className="hover:text-brand-black transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-brand-black transition-colors">Terms of Service</Link>
+                <Link href="/fair-housing" className="hover:text-brand-black transition-colors">Fair Housing</Link>
+              </div>
+            </div>
         </div>
       </div>
     </footer>
