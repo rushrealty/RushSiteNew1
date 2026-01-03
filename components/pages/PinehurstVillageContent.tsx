@@ -1,529 +1,773 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { Share2, ChevronDown, ChevronRight, Check, MapPin, Phone, Mail, X, Facebook, Twitter, Linkedin, Link as LinkIcon, Building2, GraduationCap, ShoppingCart, Plane, Hospital, ShoppingBag, Waves } from 'lucide-react';
 
-const PinehurstVillageContent: React.FC = () => {
-  const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
-  const [expandedFloorPlan, setExpandedFloorPlan] = useState<string | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-  const [requestSubtitle, setRequestSubtitle] = useState("Pinehurst Village");
+const PinehurstVillageContent = () => {
+  const [activeModal, setActiveModal] = useState<string | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
-  const [activeSection, setActiveSection] = useState('about');
-  const [copiedLink, setCopiedLink] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
+  const [canExpandAbout, setCanExpandAbout] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
 
-  const galleryImages = [
-    'https://drive.google.com/thumbnail?id=1rz0seNr6VhDlx6m9LKMqAIyuGRuoAOOs&sz=w1600',
-    'https://drive.google.com/thumbnail?id=1qJy3hT5Sg5HEz30-_hcaBdDbDI5BLgdr&sz=w1600',
-    'https://drive.google.com/thumbnail?id=1ceA5K9Jy5inq4Lzq1CLfFo_lBO4tmkf0&sz=w1600',
-    'https://drive.google.com/thumbnail?id=19E0JerP-nPbxDCMHV2mxbbw1oawNHEW2&sz=w1600',
-    'https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w1600'
-  ];
-
-  const floorPlans = [
-    { id: 'windsor', name: 'Windsor', price: '$400,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '1,727',
-      description: 'The beautiful Windsor is a home that provides options. Looking for a nice size rancher that provides a clean open floor plan with 3 bedrooms and 2 full bath, then the Windsor is your home. Looking for a 2 story home that offers up to 5 bedrooms and over 2,300 sq ft, then the Windsor is your house. Either way you slice it, the Windsor is a dynamic home that is sure to please. The kitchen overlooks the living room to provide an open floor plan that ensures no one is left out.',
-      img: 'https://drive.google.com/thumbnail?id=1Et6Pcx4lzk5tFD50-EmGQIhxiUqrmHZv&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=164XZLPqedjzRaDlSbtM6LYh1m-jcwHuS&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=1Kc0MWxbFOo9YPJdPAVODzfEMvuFlU0zE&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1oIePo4rEDV8_Y57i3AppIJo5HyByd0wp&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1HLhNlUrQmyGrPRVNI_XeoO9sEzt1wifP&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1xe-HPh51RTLmQnm5U_iDuZ5b6_1v1wiF&sz=w1000'
-      ] },
-    { id: 'livingston', name: 'Livingston', price: '$420,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '1,854',
-      description: 'An open floor plan has never looked this good! The main floor hosts a 3 bedroom rancher with a split bedroom arrangement. With upgrades, the Livingston can host up to 5 bedrooms. The kitchen overlooks the open dining room and great room. There is space to put an optional 2nd floor with two bedrooms, a loft, and a full bath. Oversized windows in every room make this home bright!',
-      img: 'https://drive.google.com/thumbnail?id=1kq1cd8XgPpkT2l9c0nN7EhUVWRU8F4FT&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=1eIenSKLz4CRnf8x6oXqWBIEp7wLEmDiH&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=19E0JerP-nPbxDCMHV2mxbbw1oawNHEW2&sz=w1000',
-        'https://drive.google.com/thumbnail?id=10eAF0Qr8FOUbJvF9bqr_J_lw27YJ7mYQ&sz=w1000',
-        'https://drive.google.com/thumbnail?id=10WLqLktNIAm-MJVwMLKzIbtBjXY2pQ88&sz=w1000',
-        'https://drive.google.com/thumbnail?id=10rbsLU6W3KTN3C3iV5DA2PRCvoLjQOgT&sz=w1000'
-      ] },
-    { id: 'lewes', name: 'Lewes', price: '$430,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '2,022',
-      description: 'Spacious main-level living with a grand feel. The Lewes includes a large kitchen island, walk-in pantry, and a primary suite that feels like a private retreat.',
-      img: 'https://drive.google.com/thumbnail?id=10bJIxlQx0IyarO1ODmXDf59XW1rLNpIJ&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=149HSk6Sgzg61xLuyYlemVjz06Oo6d_E2&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=1G21W80sdVTcQe1OM4TnJWpJN4j2FhR3F&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1o7UXDMiTJ7Cu9WhirIffRTcinhrlsXYc&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1nyaCrwAbnQRaXuU4DX11miwQSjyqg_MS&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1o4FpirFvnP7Q-e6whXfLEjUBcpL9KZb-&sz=w1000'
-      ] },
-    { id: 'wyoming', name: 'Wyoming', price: '$425,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,379',
-      description: 'A classic 2-story design with expanded living areas. The Wyoming offers four spacious bedrooms on the upper level and a wide footprint for impressive curb appeal.',
-      img: 'https://drive.google.com/thumbnail?id=1geLCtkZfc68Zx6vzf2Do2u5uoY6P1XMo&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=1UjKll52BEBh9XQUxpmPGxSYMrrHFPWcM&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=1IrBgP92YYCxU8lfT1ffEyRlt_AEqLhOa&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoBkUpxy&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1gvFg6UlzyqEjJtbB3GA7JButrfZt8Dlm&sz=w1000'
-      ] },
-    { id: 'camden-grand', name: 'Camden Grand', price: '$458,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,680',
-      description: 'Step into the Camden Grand, a breathtaking 2,680 sq. ft. home designed to impress at every turn. The soaring two-story family room floods the main level with natural light, creating an unforgettable space to gather and entertain. A chef-inspired kitchen with stainless steel appliances, a spacious island, and pantry flows seamlessly into the breakfast area and living space, while a formal dining room and private study add both elegance and versatility.',
-      img: 'https://drive.google.com/thumbnail?id=1GKgbkA-bZx8vLmMAr589Jo7bGt_8YWmC&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=1GKgbkA-bZx8vLmMAr589Jo7bGt_8YWmC&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=14yiXK5bTK_H1JBUkGELQHOupJDXwBxbd&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1RqKbtnPymNGs2drhqiQ1wSHGctEbezTr&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1-7bJhKbVZ9AHWXCBM6GOl_YfJHgWwMkJ&sz=w1000',
-        'https://drive.google.com/thumbnail?id=15nZ-4mph-4-2fr0HsPjqdnL9KToooWDj&sz=w1000'
-      ] },
-    { id: 'georgetown', name: 'Georgetown', price: '$480,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,513',
-      description: 'A sophisticated master-on-main design with extra bedrooms upstairs. The Georgetown offers the convenience of first-floor primary living with the space of a full 2-story home.',
-      img: 'https://drive.google.com/thumbnail?id=1OAAtpIBWc7fMvpVPiwtDHsasdWYa0LY2&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=15hUnb4K6LyT7wdwgeovl7NU0Wj5nhw7a&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1cy706xj69lA-TilGaypgyqrfdOcWtYBJ&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1chIFJtKPgIALLDgJ5AOeIlPbnkQLkUw0&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1cZ7booYQIkrjwY-omgah7J1XacwhSYXn&sz=w1000'
-      ] }
-  ];
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    const handleScroll = () => {
-      const sections = ['about', 'floorplans', 'map', 'location'];
-      let current = 'about';
-      sections.forEach(sectionId => {
-        const section = document.getElementById(sectionId);
-        if (section && window.scrollY >= section.offsetTop - 200) current = sectionId;
-      });
-      setActiveSection(current);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeAllModals();
-      if (isLightboxOpen) {
-        if (e.key === 'ArrowRight') nextLightbox();
-        if (e.key === 'ArrowLeft') prevLightbox();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, lightboxImages]);
-
-  const closeAllModals = () => {
-    setIsShareModalOpen(false);
-    setIsRequestModalOpen(false);
-    setIsLightboxOpen(false);
-    document.body.style.overflow = 'auto';
+  const community = {
+    name: 'Pinehurst Village',
+    address: '25 Belfry Dr, Felton, DE 19943',
+    price: 'From $400,000',
+    bedrooms: '3-5',
+    bathrooms: '2-3.5',
+    garage: '2-Car',
+    stories: '1-2',
+    sqft: '1,727 - 2,680',
+    status: 'Now Selling',
+    description: 'Pinehurst Village by Village Builders offers quality new construction homes in the heart of Kent County, Delaware. These thoughtfully designed residences feature open-concept floor plans, modern finishes, and the space your family needs to grow. Every home includes an unfinished basement with rough-in plumbing—ready to finish as your needs evolve.',
+    gallery: [
+      'https://drive.google.com/thumbnail?id=1rz0seNr6VhDlx6m9LKMqAIyuGRuoAOOs&sz=w1200', // Logo
+      'https://drive.google.com/thumbnail?id=1S5J-MZ7pZ8kQqN3xV2dF4hL9rT6wY1cK&sz=w800',
+      'https://drive.google.com/thumbnail?id=1T6K-NA8qA9lRrO4yW3eG5iM0sU7xZ2dL&sz=w800',
+      'https://drive.google.com/thumbnail?id=1U7L-OB9rB0mSsP5zX4fH6jN1tV8yA3eM&sz=w800',
+      'https://drive.google.com/thumbnail?id=1V8M-PC0sC1nTtQ6aY5gI7kO2uW9zB4fN&sz=w800',
+    ],
+    features: [
+      'Unfinished basement with rough-in plumbing included',
+      '20% OFF design center options (limited time)',
+      'Granite countertops throughout',
+      'Stainless steel appliance package',
+      'Luxury vinyl plank flooring on main level',
+      '2-car garage with opener',
+      'Full sodded yard with landscaping',
+      'Energy-efficient construction',
+    ],
+    higharc: 'https://sales.higharc.com/pinehurst-village/embed',
   };
 
-  const openModal = (type: 'share' | 'request', subtitle?: string) => {
-    closeAllModals();
-    if (type === 'share') setIsShareModalOpen(true);
-    else {
-      setRequestSubtitle(subtitle || "Pinehurst Village");
-      setIsRequestModalOpen(true);
+  const floorPlans = [
+    {
+      id: 'windsor',
+      name: 'The Windsor',
+      price: '$400,000',
+      beds: '3',
+      baths: '2',
+      garage: '2-Car',
+      stories: '1',
+      sqft: '1,727',
+      description: 'The beautiful Windsor is a home that provides options. Looking for a nice size rancher that provides a clean open floor plan with 3 bedrooms and 2 full baths, then the Windsor is your home. The kitchen overlooks the living room to provide an open floor plan that ensures no one is left out.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1XaYbZcAdBeCfDgEhFiGjHkIlJmKnLoMp&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1YbZcAdBeCfDgEhFiGjHkIlJmKnLoMpQr&sz=w800',
+        'https://drive.google.com/thumbnail?id=1ZcAdBeCfDgEhFiGjHkIlJmKnLoMpQrSt&sz=w800',
+      ],
+    },
+    {
+      id: 'livingston',
+      name: 'The Livingston',
+      price: '$420,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2-Car',
+      stories: '2',
+      sqft: '2,100',
+      description: 'The Livingston offers the perfect balance of space and function. This two-story home features 4 bedrooms, including a spacious owner\'s suite on the second floor. The main level boasts an open-concept living area with a modern kitchen.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1AdBeCfDgEhFiGjHkIlJmKnLoMpQrStUv&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1BeCfDgEhFiGjHkIlJmKnLoMpQrStUvWx&sz=w800',
+        'https://drive.google.com/thumbnail?id=1CfDgEhFiGjHkIlJmKnLoMpQrStUvWxYz&sz=w800',
+      ],
+    },
+    {
+      id: 'lewes',
+      name: 'The Lewes',
+      price: '$430,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2-Car',
+      stories: '2',
+      sqft: '2,200',
+      description: 'The Lewes is designed for modern family living. This spacious two-story home features an inviting entry, open living spaces on the main level, and four generous bedrooms upstairs including a luxurious owner\'s suite.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1DgEhFiGjHkIlJmKnLoMpQrStUvWxYzAb&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1EhFiGjHkIlJmKnLoMpQrStUvWxYzAbCd&sz=w800',
+        'https://drive.google.com/thumbnail?id=1FiGjHkIlJmKnLoMpQrStUvWxYzAbCdEf&sz=w800',
+      ],
+    },
+    {
+      id: 'wyoming',
+      name: 'The Wyoming',
+      price: '$425,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2-Car',
+      stories: '2',
+      sqft: '2,050',
+      description: 'The Wyoming combines classic design with modern amenities. This well-appointed two-story home features a welcoming front porch, open main level living, and four comfortable bedrooms on the upper floor.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1GjHkIlJmKnLoMpQrStUvWxYzAbCdEfGh&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1HkIlJmKnLoMpQrStUvWxYzAbCdEfGhIj&sz=w800',
+        'https://drive.google.com/thumbnail?id=1IlJmKnLoMpQrStUvWxYzAbCdEfGhIjKl&sz=w800',
+      ],
+    },
+    {
+      id: 'camden-grand',
+      name: 'The Camden Grand',
+      price: '$458,000',
+      beds: '5',
+      baths: '3',
+      garage: '2-Car',
+      stories: '2',
+      sqft: '2,450',
+      description: 'The Camden Grand lives up to its name with impressive space and thoughtful design. This expansive two-story home offers 5 bedrooms and 3 full baths, perfect for larger families or those who love to entertain guests.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1JmKnLoMpQrStUvWxYzAbCdEfGhIjKlMn&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1KnLoMpQrStUvWxYzAbCdEfGhIjKlMnOp&sz=w800',
+        'https://drive.google.com/thumbnail?id=1LoMpQrStUvWxYzAbCdEfGhIjKlMnOpQr&sz=w800',
+      ],
+    },
+    {
+      id: 'georgetown',
+      name: 'The Georgetown',
+      price: '$480,000',
+      beds: '5',
+      baths: '3.5',
+      garage: '2-Car',
+      stories: '2',
+      sqft: '2,680',
+      description: 'The Georgetown is the flagship of the Pinehurst Village collection. This stunning two-story home offers maximum space and luxury with 5 bedrooms, 3.5 baths, and nearly 2,700 square feet of living space.',
+      floorPlanImage: 'https://drive.google.com/thumbnail?id=1MpQrStUvWxYzAbCdEfGhIjKlMnOpQrSt&sz=w1200',
+      images: [
+        'https://drive.google.com/thumbnail?id=1NQrStUvWxYzAbCdEfGhIjKlMnOpQrStUv&sz=w800',
+        'https://drive.google.com/thumbnail?id=1OrStUvWxYzAbCdEfGhIjKlMnOpQrStUvW&sz=w800',
+      ],
+    },
+  ];
+
+  const schools = [
+    { name: 'Lake Forest South Elementary', type: 'Elementary', distance: '2.1 mi' },
+    { name: 'Lake Forest Central Elementary', type: 'Elementary', distance: '4.3 mi' },
+    { name: 'W.T. Chipman Middle School', type: 'Middle', distance: '5.8 mi' },
+    { name: 'Lake Forest High School', type: 'High', distance: '5.2 mi' },
+  ];
+
+  const nearbyPlaces = [
+    { name: 'Killens Pond State Park', type: 'Recreation', icon: Waves },
+    { name: 'Walmart Supercenter', type: 'Shopping', icon: ShoppingCart },
+    { name: 'Dover Air Force Base', type: 'Military', icon: Plane },
+    { name: 'Bayhealth Hospital', type: 'Healthcare', icon: Hospital },
+    { name: 'Dover Mall', type: 'Shopping', icon: ShoppingBag },
+    { name: 'Rehoboth Beach', type: 'Beach', icon: Waves },
+  ];
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      setCanExpandAbout(descriptionRef.current.scrollHeight > 150);
     }
-    document.body.style.overflow = 'hidden';
+  }, []);
+
+  const openModal = (modal: string) => setActiveModal(modal);
+  const closeAllModals = () => {
+    setActiveModal(null);
+    setIsLightboxOpen(false);
+    setLinkCopied(false);
   };
 
   const openLightbox = (index: number, images?: string[]) => {
-    setLightboxImages(images || galleryImages);
+    setLightboxImages(images || community.gallery);
     setLightboxIndex(index);
     setIsLightboxOpen(true);
-    document.body.style.overflow = 'hidden';
+  };
+
+  const openFloorPlanLightbox = (plan: typeof floorPlans[0]) => {
+    setLightboxImages([plan.floorPlanImage]);
+    setLightboxIndex(0);
+    setIsLightboxOpen(true);
+  };
+
+  const openPlanImagesLightbox = (plan: typeof floorPlans[0], startIndex: number = 0) => {
+    setLightboxImages(plan.images);
+    setLightboxIndex(startIndex);
+    setIsLightboxOpen(true);
   };
 
   const nextLightbox = () => setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
   const prevLightbox = () => setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+  const scrollToSection = (e: React.MouseEvent, sectionId: string) => {
     e.preventDefault();
-    const section = document.getElementById(sectionId);
-    if (section) {
-      const offset = 160;
-      const top = section.offsetTop - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 140;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
     }
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Request submitted! We will contact you soon.');
-    closeAllModals();
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   return (
-    <div className="community-page">
+    <div className="bg-white min-h-screen font-['Montserrat']">
       <style>{`
-        :root { --black: #000000; --white: #ffffff; --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #e5e5e5; --gray-300: #d4d4d4; --gray-400: #a3a3a3; --gray-500: #737373; --gray-600: #525252; --gray-700: #404040; --gray-800: #262626; --gray-900: #171717; --gold: #d4a84b; --gold-light: #e8c97a; --success: #22c55e; }
-        .community-page { font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--gray-900); line-height: 1.6; background: var(--white); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-        
-        .hero { padding-top: 100px; background: var(--white); }
-        .hero-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem; }
-        .btn-request-info { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: var(--black); color: var(--white); font-size: 0.9rem; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s; }
-        .btn-request-info:hover { background: var(--gray-800); }
-        .btn-share { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; background: var(--white); color: var(--gray-700); font-size: 0.9rem; font-weight: 500; border: 1px solid var(--gray-300); border-radius: 50px; cursor: pointer; transition: all 0.2s; }
-        .btn-share:hover { border-color: var(--gray-400); background: var(--gray-50); }
-        .btn-share svg { width: 18px; height: 18px; }
-        
-        .hero-gallery { display: grid; grid-template-columns: 1fr 300px; gap: 0.75rem; margin-bottom: 1.5rem; border-radius: 16px; overflow: hidden; }
-        .gallery-main { position: relative; height: 450px; cursor: pointer; overflow: hidden; border-radius: 12px; background: #fff; }
-        .gallery-main img { width: 100%; height: 100%; object-fit: contain; background: #fff; transition: transform 0.3s; }
-        .gallery-main:hover img { transform: scale(1.02); }
-        .gallery-grid { display: grid; grid-template-rows: repeat(4, 1fr); gap: 0.75rem; }
-        .gallery-item { position: relative; cursor: pointer; overflow: hidden; border-radius: 8px; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-        .gallery-item:hover img { transform: scale(1.05); }
-        
-        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--gray-500); margin-bottom: 1rem; flex-wrap: wrap; }
-        .breadcrumb a { color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
-        .breadcrumb a:hover { color: var(--black); }
-        .breadcrumb strong { color: var(--gray-900); }
-        
-        .hero-info { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; padding-bottom: 2rem; }
-        .hero-main { flex: 1; }
-        .community-status { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray-600); margin-bottom: 0.75rem; }
-        .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        .status-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
-        .hero-title { font-size: 2.25rem; font-weight: 800; line-height: 1.1; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-        .hero-location { display: flex; align-items: center; gap: 0.5rem; color: var(--gray-600); font-size: 0.95rem; }
-        .hero-location a { color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
-        .hero-location a:hover { color: var(--black); text-decoration: underline; }
-        .quick-stats { display: flex; gap: 2rem; margin-top: 1.25rem; }
-        .stat { text-align: left; }
-        .stat-value { display: block; font-size: 1.35rem; font-weight: 700; color: var(--black); }
-        .stat-label { font-size: 0.8rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-divider { width: 1px; background: var(--gray-200); }
-        .hero-pricing { text-align: right; }
-        .price-label { font-size: 0.8rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; }
-        .price-value { font-size: 2rem; font-weight: 700; color: var(--black); }
-        .price-sqft { font-size: 0.85rem; color: var(--gray-500); margin-top: 0.25rem; }
+        .about-text.collapsed { max-height: 150px; overflow: hidden; position: relative; }
+        .about-text.collapsed::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, #fff); }
+        .sub-nav { position: sticky; top: 72px; z-index: 100; background: #fff; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; }
         
-        .sub-nav { position: sticky; top: 80px; z-index: 100; background: var(--white); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
-        .sub-nav-content { display: flex; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-        .sub-nav-link { padding: 1rem 1.5rem; font-size: 0.9rem; font-weight: 500; color: var(--gray-600); border-bottom: 3px solid transparent; transition: all 0.2s; text-decoration: none; }
-        .sub-nav-link:hover { color: var(--black); }
-        .sub-nav-link.active { color: var(--black); border-bottom-color: var(--black); }
+        .modal-overlay-custom { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+        .lightbox-custom { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: flex; align-items: center; justify-content: center; }
         
-        .about-section { padding: 3rem 0; }
-        .about-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 3rem; }
-        .about-content h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
-        .about-text { color: var(--gray-600); line-height: 1.8; }
-        .about-text.collapsed { max-height: 100px; overflow: hidden; position: relative; }
-        .about-text.collapsed::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, var(--white)); }
-        .about-text p { margin-bottom: 1rem; }
-        .read-more-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: none; border: none; color: var(--black); font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0; margin-top: 0.5rem; }
-        .read-more-btn svg { width: 18px; height: 18px; transition: transform 0.2s; }
-        .read-more-btn.expanded svg { transform: rotate(180deg); }
+        .request-modal-container { background: #fff; width: 100%; max-width: 480px; border-radius: 32px; padding: 3rem 2.5rem; position: relative; box-shadow: 0 40px 100px rgba(0,0,0,0.3); max-height: 95vh; overflow-y: auto; }
+        .request-label { display: block; font-size: 0.85rem; font-weight: 700; color: #404040; margin-bottom: 0.5rem; }
+        .request-input { width: 100%; padding: 0.875rem 1.25rem; border: 1px solid #d4d4d4; border-radius: 12px; font-size: 1rem; font-family: inherit; transition: all 0.2s ease; background: #fff; color: #000; }
+        .request-input:focus { outline: none; border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+        .request-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23737373' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem; }
+        .submit-button-custom { width: 100%; padding: 1.25rem; background: #000; color: #fff; border-radius: 16px; font-weight: 900; font-size: 1.2rem; margin-top: 1.5rem; transition: all 0.2s ease; cursor: pointer; border: none; }
+        .submit-button-custom:hover { background: #262626; }
         
-        .quickbuy-banner { display: flex; align-items: center; gap: 1.5rem; background: linear-gradient(135deg, #111 0%, #222 100%); border-radius: 12px; padding: 1.5rem 2rem; margin-top: 2rem; }
-        .quickbuy-icon { width: 48px; height: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .quickbuy-icon svg { width: 24px; height: 24px; color: var(--black); }
-        .quickbuy-content { flex: 1; }
-        .quickbuy-content h4 { color: var(--white); font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .quickbuy-content p { color: var(--gray-400); font-size: 0.85rem; line-height: 1.5; margin: 0; }
-        .quickbuy-content strong { color: var(--gold); }
+        .guaranteed-sold-banner { background: linear-gradient(90deg, #111 0%, #222 100%); border-radius: 16px; padding: 2rem; color: white; margin-top: 2.5rem; display: flex; align-items: center; gap: 1.5rem; border: 1px solid #333; }
+
+        .share-modal-container { background: #fff; width: 100%; max-width: 420px; border-radius: 24px; padding: 2.5rem; position: relative; box-shadow: 0 40px 100px rgba(0,0,0,0.3); }
+        .share-option-btn { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 1rem; border-radius: 12px; font-weight: 700; color: #404040; transition: all 0.2s; border: 1px solid #f0f0f0; margin-bottom: 0.75rem; background: #fff; cursor: pointer; }
+        .share-option-btn:hover { background: #fafafa; border-color: #d4d4d4; }
+        .copy-link-btn-custom { width: 100%; margin-top: 1rem; padding: 1.1rem; border: 2px solid #000; border-radius: 100px; font-weight: 900; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; background: transparent; color: #000; }
+        .copy-link-btn-custom.active { background: #22c55e; border-color: #22c55e; color: #fff; }
         
-        .builder-card { display: flex; align-items: center; gap: 1rem; background: var(--gray-50); border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem; }
-        .builder-logo-img { height: 50px; width: auto; object-fit: contain; }
-        .builder-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
-        .builder-info p { font-size: 0.85rem; color: var(--gray-500); margin: 0; }
-        
-        .features-card { background: var(--gray-50); border-radius: 16px; padding: 2rem; height: fit-content; }
-        .features-card h3 { display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; }
-        .features-card h3 svg { width: 22px; height: 22px; color: var(--success); }
-        .features-list { display: grid; gap: 1rem; }
-        .feature-item { display: flex; align-items: flex-start; gap: 0.75rem; }
-        .feature-item svg { width: 18px; height: 18px; color: var(--success); flex-shrink: 0; margin-top: 2px; }
-        .feature-item span { font-size: 0.9rem; color: var(--gray-700); }
-        
-        .floorplans-section { padding: 3rem 0; background: var(--gray-50); }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .section-header h2 { font-size: 1.5rem; font-weight: 700; }
-        .floorplan-list { display: flex; flex-direction: column; gap: 1rem; }
-        .floorplan-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
-        .floorplan-card:hover { border-color: var(--gray-300); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .floorplan-card.expanded { border-color: var(--black); }
-        .floorplan-main { display: grid; grid-template-columns: 280px 1fr auto; cursor: pointer; }
-        .floorplan-image { position: relative; height: 200px; overflow: hidden; }
-        .floorplan-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
-        .floorplan-card:hover .floorplan-image img { transform: scale(1.05); }
-        .movein-badge { position: absolute; top: 1rem; left: 1rem; padding: 0.35rem 0.75rem; background: var(--success); color: var(--white); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; }
-        .floorplan-content { padding: 1.5rem; display: flex; flex-direction: column; justify-content: center; }
-        .floorplan-name { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .floorplan-price { font-size: 1rem; color: var(--gray-600); margin-bottom: 0.75rem; }
-        .floorplan-specs { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: var(--gray-500); }
-        .floorplan-specs .divider { color: var(--gray-300); }
-        .floorplan-action { display: flex; align-items: center; padding-right: 1.5rem; }
-        .floorplan-view-btn { padding: 0.75rem 1.5rem; background: var(--black); color: var(--white); font-size: 0.85rem; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        .floorplan-view-btn:hover { background: var(--gray-800); }
-        .floorplan-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
-        .floorplan-card.expanded .floorplan-details { max-height: 600px; }
-        .floorplan-details-content { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; border-top: 1px solid var(--gray-200); background: var(--gray-50); }
-        .details-left h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .details-left p { color: var(--gray-600); font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
-        .elevation-options { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
-        .elevation-thumb { width: 80px; height: 60px; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: border-color 0.2s; }
-        .elevation-thumb:hover, .elevation-thumb.active { border-color: var(--black); }
-        .elevation-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .details-actions { display: flex; gap: 1rem; }
-        .btn-floorplan { padding: 0.875rem 1.5rem; background: var(--black); color: var(--white); font-size: 0.9rem; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s; }
-        .btn-floorplan:hover { background: var(--gray-800); }
-        .btn-floorplan-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: var(--white); color: var(--black); font-size: 0.9rem; font-weight: 600; border: 2px solid var(--black); border-radius: 50px; cursor: pointer; transition: all 0.2s; }
-        .btn-floorplan-outline:hover { background: var(--black); color: var(--white); }
-        .details-right { display: flex; align-items: center; justify-content: center; }
-        .floorplan-diagram { width: 100%; max-width: 400px; background: var(--white); border-radius: 12px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.06); cursor: pointer; transition: box-shadow 0.2s; }
-        .floorplan-diagram:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
-        .floorplan-diagram img { width: 100%; height: auto; border-radius: 8px; }
-        
-        .map-section { padding: 3rem 0; }
-        .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .map-header h2 { font-size: 1.5rem; font-weight: 700; }
-        .map-container { border-radius: 16px; overflow: hidden; border: 1px solid var(--gray-200); }
-        .map-container iframe { width: 100%; height: 600px; border: none; }
-        
-        .location-section { padding: 3rem 0; background: var(--gray-50); }
-        .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
-        .location-card { background: var(--white); border-radius: 16px; padding: 2rem; }
-        .location-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
-        .location-card h3 svg { width: 22px; height: 22px; }
-        .school-list { display: flex; flex-direction: column; gap: 1rem; }
-        .school-item { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--gray-100); }
-        .school-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .school-name { font-weight: 600; font-size: 0.9rem; }
-        .school-grades { font-size: 0.8rem; color: var(--gray-500); }
-        .school-distance { font-size: 0.85rem; color: var(--gray-600); }
-        .places-list { display: grid; gap: 1rem; }
-        .place-item { display: flex; align-items: center; gap: 1rem; }
-        .place-icon { width: 40px; height: 40px; background: var(--gray-100); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .place-icon svg { width: 20px; height: 20px; color: var(--gray-600); }
-        .place-info { flex: 1; }
-        .place-name { font-weight: 600; font-size: 0.9rem; }
-        .place-time { font-size: 0.8rem; color: var(--gray-500); }
-        
-        .cta-section { padding: 4rem 0; background: var(--black); }
-        .cta-content { text-align: center; max-width: 600px; margin: 0 auto; }
-        .cta-content h2 { color: var(--white); font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
-        .cta-content p { color: var(--gray-400); margin-bottom: 2rem; }
-        .cta-buttons { display: flex; justify-content: center; gap: 1rem; }
-        .btn-cta { padding: 1rem 2rem; font-size: 0.95rem; font-weight: 600; border-radius: 50px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .btn-cta-primary { background: var(--white); color: var(--black); border: none; }
-        .btn-cta-primary:hover { background: var(--gray-100); }
-        .btn-cta-secondary { background: transparent; color: var(--white); border: 2px solid var(--white); }
-        .btn-cta-secondary:hover { background: var(--white); color: var(--black); }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
-        .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { padding: 1.5rem 1.5rem 0; }
-        .modal-header h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .modal-header p { color: var(--gray-500); font-size: 0.9rem; }
-        .modal-body { padding: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 0.5rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.875rem 1rem; font-size: 0.95rem; font-family: inherit; border: 1px solid var(--gray-300); border-radius: 8px; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--black); }
-        .form-group textarea { resize: vertical; min-height: 100px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-submit { width: 100%; padding: 1rem; background: var(--black); color: var(--white); font-size: 0.95rem; font-weight: 600; border: none; border-radius: 50px; cursor: pointer; transition: all 0.2s; }
-        .form-submit:hover { background: var(--gray-800); }
-        
-        .share-modal { max-width: 400px; }
-        .share-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .share-option { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; background: var(--gray-50); border-radius: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: var(--gray-700); }
-        .share-option:hover { background: var(--gray-100); }
-        .share-option svg { width: 24px; height: 24px; }
-        .share-option span { font-size: 0.75rem; font-weight: 500; }
-        .copy-link { display: flex; gap: 0.5rem; }
-        .copy-link input { flex: 1; padding: 0.75rem 1rem; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: 8px; background: var(--gray-50); }
-        .copy-link button { padding: 0.75rem 1.25rem; background: var(--black); color: var(--white); font-size: 0.85rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-        
-        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: flex; align-items: center; justify-content: center; }
-        .lightbox-close { position: absolute; top: 1.5rem; right: 1.5rem; width: 44px; height: 44px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .lightbox-close:hover { background: rgba(255,255,255,0.2); }
-        .lightbox-close svg { width: 24px; height: 24px; color: var(--white); }
-        .lightbox-content { max-width: 90vw; max-height: 85vh; }
-        .lightbox-content img { max-width: 100%; max-height: 85vh; object-fit: contain; border-radius: 8px; }
-        .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.1); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .lightbox-nav svg { width: 24px; height: 24px; color: var(--white); }
-        .lightbox-nav:hover { background: rgba(255,255,255,0.2); }
-        .lightbox-nav.prev { left: 2rem; }
-        .lightbox-nav.next { right: 2rem; }
-        .lightbox-counter { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); color: var(--white); font-size: 0.9rem; }
-        @media (max-width: 1024px) { .hero-gallery { grid-template-columns: 1fr; } .gallery-main { height: 300px; } .gallery-grid { display: none; } .about-grid { grid-template-columns: 1fr; gap: 2rem; } .floorplan-main { grid-template-columns: 250px 1fr auto; } .floorplan-details-content { grid-template-columns: 1fr; } .location-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .container { padding: 0 1rem; } .hero { padding-top: 80px; } .hero-actions { flex-direction: column; align-items: stretch; gap: 0.75rem; } .btn-request-info { justify-content: center; } .gallery-main { height: 250px; } .hero-info { flex-direction: column; } .hero-pricing { text-align: left; } .quick-stats { flex-wrap: wrap; gap: 1.5rem; } .sub-nav { overflow-x: auto; padding: 0 1rem; } .sub-nav-content { min-width: max-content; } .sub-nav-link { padding: 1rem; font-size: 0.85rem; } .quickbuy-banner { flex-direction: column; text-align: center; padding: 1.5rem; } .quickbuy-icon { margin: 0 auto; } .floorplan-main { grid-template-columns: 1fr; } .floorplan-image { height: 200px; } .floorplan-content { padding: 1.25rem; } .floorplan-action { padding: 0 1.25rem 1.25rem; } .floorplan-view-btn { width: 100%; } .map-header { flex-direction: column; align-items: flex-start; gap: 1rem; } .map-container iframe { height: 400px; } .cta-content h2 { font-size: 1.75rem; } .form-row { grid-template-columns: 1fr; } .details-actions { flex-direction: column; } .btn-floorplan, .btn-floorplan-outline { width: 100%; justify-content: center; } }
+        .floor-plan-card { border: 1px solid #e5e5e5; border-radius: 16px; overflow: hidden; transition: all 0.3s ease; }
+        .floor-plan-card:hover { border-color: #d4d4d4; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .floor-plan-expanded { background: #fafafa; }
+        .floor-plan-image-clickable { cursor: pointer; transition: transform 0.3s ease; border-radius: 12px; overflow: hidden; }
+        .floor-plan-image-clickable:hover { transform: scale(1.02); }
       `}</style>
 
-      <section className="hero">
-        <div className="container">
-          <div className="hero-actions">
-            <div><button className="btn-request-info" onClick={() => openModal('request')}>Request information</button></div>
-            <button className="btn-share" onClick={() => openModal('share')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
+      {/* Hero Header Actions */}
+      <section className="pt-[100px] bg-white pb-4">
+        <div className="max-w-[1200px] mx-auto px-8">
+          <div className="flex justify-between items-center mb-4">
+            <button onClick={() => openModal('request')} className="bg-black text-white px-8 py-4 rounded-full font-black text-[1rem] hover:bg-gray-800 transition-all shadow-lg active:scale-95">Request information</button>
+            <button onClick={() => openModal('share')} className="flex items-center gap-2 text-gray-700 font-bold hover:text-black transition-colors px-4 py-2 rounded-lg hover:bg-gray-50 active:scale-95"><Share2 size={22} /> Share</button>
           </div>
-          <div className="hero-gallery">
-            <div className="gallery-main" onClick={() => openLightbox(0)}><img src={galleryImages[0]} alt="Pinehurst Village Model Home" /></div>
-            <div className="gallery-grid">{[1,2,3,4].map(i => <div key={i} className="gallery-item" onClick={() => openLightbox(i)}><img src={galleryImages[i]} alt={`Gallery ${i}`} /></div>)}</div>
+
+          {/* Image Gallery Grid - CORRECTED: Logo LEFT, 2x2 grid RIGHT */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl overflow-hidden h-[450px]">
+            {/* LEFT: Community Logo */}
+            <div 
+              className="relative cursor-pointer overflow-hidden group bg-gray-50 flex items-center justify-center rounded-xl" 
+              onClick={() => openLightbox(0)}
+            >
+              <img 
+                src={community.gallery[0]} 
+                alt={`${community.name} Community Logo`} 
+                referrerPolicy="no-referrer"
+                className="max-w-[85%] max-h-[85%] object-contain transition-transform duration-300 group-hover:scale-[1.02]" 
+              />
+            </div>
+            
+            {/* RIGHT: 2x2 Photo Grid */}
+            <div className="grid grid-cols-2 grid-rows-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                community.gallery[i] && (
+                  <div 
+                    key={i} 
+                    className="relative overflow-hidden cursor-pointer group rounded-xl" 
+                    onClick={() => openLightbox(i)}
+                  >
+                    <img 
+                      src={community.gallery[i]} 
+                      alt={`Gallery View ${i}`} 
+                      referrerPolicy="no-referrer" 
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                    />
+                  </div>
+                )
+              ))}
+            </div>
           </div>
-          <div className="breadcrumb"><Link href="/new-construction">New Construction</Link><span>→</span><Link href="/available-communities">Communities</Link><span>→</span><strong>Pinehurst Village</strong></div>
-          <div className="hero-info">
-            <div className="hero-main">
-              <div className="community-status"><span className="status-dot"></span>Now Selling</div>
-              <h1 className="hero-title">Pinehurst Village</h1>
-              <div className="hero-location"><a href="https://maps.google.com/?q=25+Belfry+Dr,+Felton,+DE+19943" target="_blank" rel="noopener noreferrer">25 Belfry Dr, Felton, DE 19943</a></div>
-              <div className="quick-stats">
-                <div className="stat"><span className="stat-value">3 - 5</span><span className="stat-label">Bedrooms</span></div><div className="stat-divider"></div>
-                <div className="stat"><span className="stat-value">2 - 3.5</span><span className="stat-label">Bathrooms</span></div><div className="stat-divider"></div>
-                <div className="stat"><span className="stat-value">1,727 - 2,680</span><span className="stat-label">Sq. Ft.</span></div>
+
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-[0.85rem] text-gray-500 mt-6 pb-4 border-b border-gray-200">
+            <Link href="/new-construction" className="hover:text-black">New Construction</Link>
+            <span>→</span>
+            <Link href="/available-communities" className="hover:text-black">Communities</Link>
+            <span>→</span>
+            <strong className="text-black font-bold">{community.name}</strong>
+          </div>
+
+          {/* Hero Main Info */}
+          <div className="flex flex-col md:flex-row justify-between items-start py-8 gap-8">
+            <div className="flex-1">
+              <div className="inline-flex items-center gap-2 text-[0.75rem] font-bold uppercase tracking-widest text-gray-600 mb-3">
+                <span className="status-dot"></span>
+                {community.status}
+              </div>
+              <h1 className="text-[2.25rem] font-extrabold text-black leading-tight mb-2">{community.name}</h1>
+              <div className="flex items-center gap-2 text-[0.95rem] text-gray-600">
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(community.address)}`} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-black">
+                  {community.address}
+                </a>
+              </div>
+              <div className="flex flex-wrap gap-8 mt-6">
+                <div className="flex flex-col">
+                  <span className="text-[1.25rem] font-bold text-black">{community.bedrooms}</span>
+                  <span className="text-[0.8rem] text-gray-500 uppercase font-medium">Bedrooms</span>
+                </div>
+                <div className="w-[1px] bg-gray-200 hidden sm:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-[1.25rem] font-bold text-black">{community.bathrooms}</span>
+                  <span className="text-[0.8rem] text-gray-500 uppercase font-medium">Bathrooms</span>
+                </div>
+                <div className="w-[1px] bg-gray-200 hidden sm:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-[1.25rem] font-bold text-black">{community.garage}</span>
+                  <span className="text-[0.8rem] text-gray-500 uppercase font-medium">Garage</span>
+                </div>
+                <div className="w-[1px] bg-gray-200 hidden sm:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-[1.25rem] font-bold text-black">{community.stories}</span>
+                  <span className="text-[0.8rem] text-gray-500 uppercase font-medium">Stories</span>
+                </div>
+                <div className="w-[1px] bg-gray-200 hidden sm:block"></div>
+                <div className="flex flex-col">
+                  <span className="text-[1.25rem] font-bold text-black">{community.sqft}</span>
+                  <span className="text-[0.8rem] text-gray-500 uppercase font-medium">Sq. Ft.</span>
+                </div>
               </div>
             </div>
-            <div className="hero-pricing"><div className="price-label">Starting from</div><div className="price-value">$400,000</div><div className="price-sqft">Kent County, DE</div></div>
+            <div className="md:text-right">
+              <div className="text-[0.8rem] text-gray-500 uppercase tracking-widest font-bold mb-1">Starting From</div>
+              <div className="text-[2.25rem] font-black text-black">{community.price.replace('From ', '')}</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <nav className="sub-nav"><div className="sub-nav-content">
-        <a href="#about" className={`sub-nav-link ${activeSection === 'about' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'about')}>Overview</a>
-        <a href="#floorplans" className={`sub-nav-link ${activeSection === 'floorplans' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'floorplans')}>Floor Plans</a>
-        <a href="#map" className={`sub-nav-link ${activeSection === 'map' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'map')}>Site Map</a>
-        <a href="#location" className={`sub-nav-link ${activeSection === 'location' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'location')}>Location</a>
-      </div></nav>
+      {/* Sub-nav */}
+      <nav className="sub-nav">
+        <div className="max-w-[1200px] mx-auto flex px-8 overflow-x-auto whitespace-nowrap">
+          {['Overview', 'Floor Plans', 'Site Map', 'Location'].map((item) => (
+            <a 
+              key={item} 
+              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
+              onClick={(e) => scrollToSection(e, item.toLowerCase().replace(/\s+/g, '-'))} 
+              className="py-4 px-6 text-[0.9rem] font-bold transition-all border-b-[3px] border-transparent text-gray-500 hover:text-black"
+            >
+              {item}
+            </a>
+          ))}
+        </div>
+      </nav>
 
-      <section className="about-section" id="about"><div className="container"><div className="about-grid">
-        <div className="about-content">
-          <h2>About Pinehurst Village</h2>
-          <div className={`about-text ${isAboutCollapsed ? 'collapsed' : ''}`}>
-            <p>Pinehurst Village is a vibrant new community designed for active lifestyles in the heart of Felton. Featuring carriage style garage doors and expansive floor plans, this community is built for those who value both style and substance.</p>
-            <p>With 8&apos; unfinished basements standard and generous incentives, Pinehurst Village offers unparalleled value for Delaware homebuyers. Take advantage of the current 2025 incentive: 20% off design options!</p>
-          </div>
-          <button className={`read-more-btn ${!isAboutCollapsed ? 'expanded' : ''}`} onClick={() => setIsAboutCollapsed(!isAboutCollapsed)}>{isAboutCollapsed ? 'Read more' : 'Read less'}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg></button>
-          
-          <div className="quickbuy-banner">
-            <div className="quickbuy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <div className="quickbuy-content">
-              <h4>Need to sell your current home first?</h4>
-              <p>Ask about our <strong>RushHome QuickBuy Lock</strong> program. We&apos;ll give you a guaranteed backup offer so you can buy your next home today without a sale contingency. No stress, just certainty.</p>
+      {/* Overview Section */}
+      <section className="py-16" id="overview">
+        <div className="max-w-[1200px] mx-auto px-8 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-16">
+          <div>
+            <h2 className="text-[1.75rem] font-extrabold text-black mb-6">About {community.name}</h2>
+            <div 
+              ref={descriptionRef} 
+              className={`text-gray-600 text-[1rem] leading-[1.8] about-text ${canExpandAbout && isAboutCollapsed ? 'collapsed' : ''}`}
+            >
+              <p>{community.description}</p>
+              <p style={{marginTop: '1rem'}}>Ideally situated in Felton, Pinehurst Village offers a serene residential escape with easy access to all that Kent County has to offer. This community is perfectly positioned for those who enjoy the outdoors, with several parks and lake access nearby. Experience the quality and care of Village Builders in a neighborhood designed for real life.</p>
             </div>
-          </div>
+            {canExpandAbout && (
+              <button 
+                onClick={() => setIsAboutCollapsed(!isAboutCollapsed)} 
+                className="mt-4 flex items-center gap-2 font-bold text-black hover:opacity-70"
+              >
+                {isAboutCollapsed ? 'Read more' : 'Read less'} 
+                <ChevronDown size={18} className={`transition-transform ${isAboutCollapsed ? '' : 'rotate-180'}`} />
+              </button>
+            )}
 
-          <div className="builder-card">
-            <img src="https://drive.google.com/thumbnail?id=10oYf7kWSBirByVTWoVLr6aUFNuZ4Lpep&sz=w200" alt="Ashburn Homes" className="builder-logo-img" />
-            <div className="builder-info"><h4>Built by Ashburn Homes</h4><p>40+ years building quality homes in Delaware</p></div>
-          </div>
-        </div>
-        <div className="features-card">
-          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Standard Features</h3>
-          <div className="features-list">{['2025 Incentive: 20% OFF DESIGN OPTIONS','Carriage Style Garage Doors','42" Upper Cabinets Standard','Stainless Steel Appliances',"Unfinished 8' Basement Included",'3-Piece Under Slab Plumbing','Spacious Open-Concept Designs','Walking Trails & Playgrounds'].map((f,i)=><div key={i} className="feature-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg><span>{f}</span></div>)}</div>
-        </div>
-      </div></div></section>
-
-      <section className="floorplans-section" id="floorplans"><div className="container">
-        <div className="section-header"><h2>Floor plans in this community ({floorPlans.length})</h2></div>
-        <div className="floorplan-list">{floorPlans.map(plan => (
-          <div key={plan.id} className={`floorplan-card ${expandedFloorPlan === plan.id ? 'expanded' : ''}`}>
-            <div className="floorplan-main" onClick={() => setExpandedFloorPlan(expandedFloorPlan === plan.id ? null : plan.id)}>
-              <div className="floorplan-image"><img src={plan.img} alt={plan.name} /></div>
-              <div className="floorplan-content">
-                <h3 className="floorplan-name">{plan.name}</h3>
-                <div className="floorplan-price">Starting at {plan.price}</div>
-                <div className="floorplan-specs"><span>{plan.beds} Bed</span><span className="divider">|</span><span>{plan.baths} Bath</span><span className="divider">|</span><span>{plan.garage} Garage</span><span className="divider">|</span><span>{plan.stories} Story</span><span className="divider">|</span><span>{plan.sqft} Sq. Ft.</span></div>
+            {/* QuickBuy Lock Banner */}
+            <div className="guaranteed-sold-banner">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shrink-0">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
               </div>
-              <div className="floorplan-action"><button className="floorplan-view-btn">View Details</button></div>
+              <div>
+                <h4 className="text-[1.1rem] font-bold mb-1">Need to sell your current home first?</h4>
+                <p className="text-gray-400 text-[0.9rem] leading-relaxed">Ask about our <strong className="text-amber-400">RushHome QuickBuy Lock</strong>. We provide a guaranteed backup offer so you can buy your next home without a sale contingency.</p>
+              </div>
             </div>
-            <div className="floorplan-details"><div className="floorplan-details-content">
-              <div className="details-left">
-                <h4>About {plan.name}</h4><p>{plan.description}</p>
-                <h4>Other Images</h4>
-                <div className="elevation-options">{plan.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`} onClick={(e) => {e.stopPropagation(); openLightbox(i, plan.elevations);}}><img src={elev} alt={`${plan.name} view ${i + 1}`} /></div>)}</div>
-                <div className="details-actions">
-                  <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', plan.name);}}>Request Info</button>
-                  <button className="btn-floorplan-outline" onClick={(e) => {e.stopPropagation(); openLightbox(0, [plan.floorPlanImg]);}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Builder Card */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400 mb-4">Built By</div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://drive.google.com/thumbnail?id=1pN9qK8rL7mS6tO5vU4wX3yZ2aB1cD0eF&sz=w200" 
+                    alt="Village Builders" 
+                    className="w-full h-full object-contain p-2"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <div>
+                  <h4 className="font-bold text-black text-[1.1rem]">Village Builders</h4>
+                  <p className="text-gray-500 text-[0.85rem]">Kent County Builder</p>
                 </div>
               </div>
-              <div className="details-right"><div className="floorplan-diagram" onClick={(e) => {e.stopPropagation(); openLightbox(0, [plan.floorPlanImg]);}}><img src={plan.floorPlanImg} alt={`${plan.name} floor plan`} /></div></div>
-            </div></div>
-          </div>
-        ))}</div>
-      </div></section>
-
-      <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/RBmOqZ9Y0jZoy8VD/sales-map" title="Site Map" /></div></div></section>
-
-      <section className="location-section" id="location"><div className="container">
-        <div className="section-header"><h2>Explore the Area</h2></div>
-        <div className="location-grid">
-          <div className="location-card">
-            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>Lake Forest School District</h3>
-            <div className="school-list">
-              <div className="school-item"><div><div className="school-name">Lake Forest North Elementary</div><div className="school-grades">Grades: PK, K-3</div></div><div className="school-distance">1.1 mi</div></div>
-              <div className="school-item"><div><div className="school-name">Lake Forest Central Elementary</div><div className="school-grades">Grades: 4-5</div></div><div className="school-distance">2.5 mi</div></div>
-              <div className="school-item"><div><div className="school-name">W.T. Chipman Middle School</div><div className="school-grades">Grades: 6-8</div></div><div className="school-distance">2.8 mi</div></div>
-              <div className="school-item"><div><div className="school-name">Lake Forest High School</div><div className="school-grades">Grades: 9-12</div></div><div className="school-distance">3.1 mi</div></div>
+              <p className="text-gray-600 text-[0.9rem] leading-relaxed">Village Builders has been building quality homes in Delaware for over 20 years, known for exceptional craftsmanship and customer service.</p>
             </div>
-          </div>
-          <div className="location-card">
-            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Nearby Places</h3>
-            <div className="places-list">
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg></div><div className="place-info"><div className="place-name">Killens Pond State Park</div><div className="place-time">9 min drive</div></div></div>
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div><div className="place-info"><div className="place-name">Walmart Supercenter</div><div className="place-time">12 min drive</div></div></div>
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg></div><div className="place-info"><div className="place-name">Dover Air Force Base</div><div className="place-time">16 min drive</div></div></div>
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div className="place-info"><div className="place-name">Bayhealth Hospital</div><div className="place-time">18 min drive</div></div></div>
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div><div className="place-info"><div className="place-name">Dover Mall</div><div className="place-time">22 min drive</div></div></div>
-              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg></div><div className="place-info"><div className="place-name">Rehoboth Beach</div><div className="place-time">55 min drive</div></div></div>
+
+            {/* Standard Features Card */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-[0.9rem] font-bold uppercase tracking-wide">Standard Features</h4>
+                <span className="bg-amber-400 text-black text-[0.7rem] font-black px-3 py-1 rounded-full uppercase">20% Off Options</span>
+              </div>
+              <ul className="space-y-3">
+                {community.features.map((feature, i) => (
+                  <li key={i} className="flex gap-3 text-[0.9rem] text-gray-600">
+                    <Check size={18} className="text-green-500 shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
-      </div></section>
+      </section>
 
-      <section className="cta-section"><div className="container"><div className="cta-content">
-        <h2>Ready to Find Your Dream Home?</h2>
-        <p>Schedule a tour of Pinehurst Village and discover why families love living here.</p>
-        <div className="cta-buttons">
-          <button className="btn-cta btn-cta-primary" onClick={() => openModal('request')}>Schedule a Tour</button>
-          <a href="tel:+13025551234" className="btn-cta btn-cta-secondary">Call Us Now</a>
-        </div>
-      </div></div></section>
+      {/* Floor Plans Section */}
+      <section className="py-16 bg-gray-50" id="floor-plans">
+        <div className="max-w-[1200px] mx-auto px-8">
+          <h2 className="text-[1.75rem] font-extrabold text-black mb-8">Available Floor Plans</h2>
+          <div className="space-y-4">
+            {floorPlans.map((plan) => (
+              <div key={plan.id} className="floor-plan-card bg-white">
+                {/* Collapsed Header */}
+                <button 
+                  onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
+                  className="w-full p-6 flex items-center justify-between text-left"
+                >
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <h3 className="text-[1.25rem] font-bold text-black">{plan.name}</h3>
+                      <div className="flex items-center gap-4 text-[0.85rem] text-gray-500 mt-1">
+                        <span>{plan.beds} Bed</span>
+                        <span>•</span>
+                        <span>{plan.baths} Bath</span>
+                        <span>•</span>
+                        <span>{plan.sqft} Sq Ft</span>
+                        <span>•</span>
+                        <span>{plan.stories} Story</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <div className="text-[0.7rem] text-gray-400 uppercase font-bold">From</div>
+                      <div className="text-[1.25rem] font-black text-black">{plan.price}</div>
+                    </div>
+                    <ChevronDown 
+                      size={24} 
+                      className={`text-gray-400 transition-transform ${expandedPlan === plan.id ? 'rotate-180' : ''}`} 
+                    />
+                  </div>
+                </button>
 
-      {isShareModalOpen && <div className="modal-overlay" onClick={closeAllModals}><div className="modal share-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><h3>Share This Community</h3><p>Pinehurst Village</p></div>
-        <div className="modal-body">
-          <div className="share-options">
-            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} target="_blank" rel="noopener noreferrer" className="share-option"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg><span>Facebook</span></a>
-            <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=Check out Pinehurst Village!`} target="_blank" rel="noopener noreferrer" className="share-option"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>X</span></a>
-            <a href={`mailto:?subject=Check out Pinehurst Village&body=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} className="share-option"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>Email</span></a>
-            <a href={`sms:?body=Check out Pinehurst Village: ${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} className="share-option"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></a>
+                {/* Expanded Content */}
+                {expandedPlan === plan.id && (
+                  <div className="floor-plan-expanded p-6 pt-0">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div>
+                        <p className="text-gray-600 text-[0.95rem] leading-relaxed mb-6">{plan.description}</p>
+                        
+                        {/* Other Images */}
+                        <div className="mb-6">
+                          <h4 className="text-[0.8rem] font-bold uppercase tracking-wide text-gray-500 mb-3">Other Images</h4>
+                          <div className="flex gap-3">
+                            {plan.images.map((img, i) => (
+                              <div 
+                                key={i} 
+                                className="w-24 h-24 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => openPlanImagesLightbox(plan, i)}
+                              >
+                                <img 
+                                  src={img} 
+                                  alt={`${plan.name} view ${i + 1}`} 
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => openFloorPlanLightbox(plan)}
+                          className="bg-black text-white px-6 py-3 rounded-full font-bold text-[0.9rem] hover:bg-gray-800 transition-all inline-flex items-center gap-2"
+                        >
+                          View Floor Plan <ChevronRight size={18} />
+                        </button>
+                      </div>
+
+                      {/* Floor Plan Image */}
+                      <div 
+                        className="floor-plan-image-clickable bg-white p-4"
+                        onClick={() => openFloorPlanLightbox(plan)}
+                      >
+                        <img 
+                          src={plan.floorPlanImage} 
+                          alt={`${plan.name} floor plan`} 
+                          className="w-full h-auto"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          <div className="copy-link"><input type="text" value={typeof window !== 'undefined' ? window.location.href : ''} readOnly /><button onClick={copyLink}>{copiedLink ? 'Copied!' : 'Copy'}</button></div>
         </div>
-      </div></div>}
+      </section>
 
-      {isRequestModalOpen && <div className="modal-overlay" onClick={closeAllModals}><div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header"><h3>Request Information</h3><p>{requestSubtitle}</p></div>
-        <div className="modal-body"><form onSubmit={handleFormSubmit}>
-          <div className="form-row"><div className="form-group"><label htmlFor="firstName">First Name *</label><input type="text" id="firstName" required /></div><div className="form-group"><label htmlFor="lastName">Last Name *</label><input type="text" id="lastName" required /></div></div>
-          <div className="form-group"><label htmlFor="email">Email *</label><input type="email" id="email" required /></div>
-          <div className="form-group"><label htmlFor="phone">Phone *</label><input type="tel" id="phone" required /></div>
-          <div className="form-group"><label htmlFor="interest">I&apos;m Interested In</label><select id="interest"><option value="">Select an option</option><option value="tour">Scheduling a Tour</option><option value="floorplan">Floor Plan Information</option><option value="pricing">Current Pricing</option><option value="availability">Lot Availability</option></select></div>
-          <div className="form-group"><label htmlFor="message">Message</label><textarea id="message" placeholder="Tell us about your timeline, questions, or what you're looking for..."></textarea></div>
-          <button type="submit" className="form-submit">Submit Request</button>
-        </form></div>
-      </div></div>}
+      {/* Site Map Section */}
+      <section className="py-16" id="site-map">
+        <div className="max-w-[1200px] mx-auto px-8">
+          <h2 className="text-[1.75rem] font-extrabold text-black mb-8">Interactive Site Map</h2>
+          <div className="bg-gray-100 rounded-2xl overflow-hidden" style={{ height: '600px' }}>
+            <iframe 
+              src={community.higharc}
+              title="Pinehurst Village Site Map"
+              className="w-full h-full border-0"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
 
-      {isLightboxOpen && <div className="lightbox">
-        <button className="lightbox-close" onClick={closeAllModals}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-        {lightboxImages.length > 1 && <button className="lightbox-nav prev" onClick={prevLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
-        <div className="lightbox-content"><img src={lightboxImages[lightboxIndex]} alt={`Image ${lightboxIndex + 1}`} /></div>
-        {lightboxImages.length > 1 && <button className="lightbox-nav next" onClick={nextLightbox}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
-        {lightboxImages.length > 1 && <div className="lightbox-counter"><span>{lightboxIndex + 1}</span> / <span>{lightboxImages.length}</span></div>}
-      </div>}
+      {/* Location Section */}
+      <section className="py-16 bg-gray-50" id="location">
+        <div className="max-w-[1200px] mx-auto px-8">
+          <h2 className="text-[1.75rem] font-extrabold text-black mb-8">Location & Nearby</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Schools */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <GraduationCap size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-black">Lake Forest School District</h3>
+                  <p className="text-[0.8rem] text-gray-500">Assigned Schools</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {schools.map((school, i) => (
+                  <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                    <div>
+                      <div className="font-medium text-black text-[0.95rem]">{school.name}</div>
+                      <div className="text-[0.8rem] text-gray-500">{school.type}</div>
+                    </div>
+                    <div className="text-[0.85rem] text-gray-600 font-medium">{school.distance}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Nearby Places */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                  <MapPin size={20} className="text-green-600" />
+                </div>
+                <h3 className="font-bold text-black">Nearby Places</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {nearbyPlaces.map((place, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                    <place.icon size={18} className="text-gray-600" />
+                    <div>
+                      <div className="font-medium text-black text-[0.85rem]">{place.name}</div>
+                      <div className="text-[0.7rem] text-gray-500">{place.type}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-black text-center">
+        <div className="max-w-[700px] mx-auto px-8">
+          <h2 className="text-[2rem] font-extrabold text-white mb-4">Ready to Find Your New Home?</h2>
+          <p className="text-gray-400 text-[1.1rem] mb-8">Schedule a tour of Pinehurst Village and discover the perfect floor plan for your family.</p>
+          <button 
+            onClick={() => openModal('request')}
+            className="bg-white text-black px-10 py-4 rounded-full font-black text-[1rem] hover:bg-gray-100 transition-all inline-flex items-center gap-2"
+          >
+            Request Information <ChevronRight size={20} />
+          </button>
+        </div>
+      </section>
+
+      {/* Request Info Modal */}
+      {activeModal === 'request' && (
+        <div className="modal-overlay-custom" onClick={closeAllModals}>
+          <div className="request-modal-container" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={closeAllModals} 
+              className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-[1.5rem] font-extrabold text-black mb-2">Request Information</h3>
+            <p className="text-gray-500 text-[0.95rem] mb-6">Get details about {community.name} sent directly to your inbox.</p>
+            
+            <form className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="request-label">First Name</label>
+                  <input type="text" className="request-input" placeholder="John" />
+                </div>
+                <div>
+                  <label className="request-label">Last Name</label>
+                  <input type="text" className="request-input" placeholder="Smith" />
+                </div>
+              </div>
+              <div>
+                <label className="request-label">Email</label>
+                <input type="email" className="request-input" placeholder="john@example.com" />
+              </div>
+              <div>
+                <label className="request-label">Phone</label>
+                <input type="tel" className="request-input" placeholder="(302) 555-1234" />
+              </div>
+              <div>
+                <label className="request-label">I'm interested in</label>
+                <select className="request-input request-select">
+                  <option value="">Select an option</option>
+                  <option value="tour">Scheduling a Tour</option>
+                  <option value="pricing">Pricing & Availability</option>
+                  <option value="floor-plans">Floor Plan Details</option>
+                  <option value="financing">Financing Options</option>
+                  <option value="sell-first">Selling My Home First</option>
+                </select>
+              </div>
+              <div>
+                <label className="request-label">Message (Optional)</label>
+                <textarea 
+                  className="request-input" 
+                  rows={3} 
+                  placeholder="Tell us about your timeline or any questions..."
+                />
+              </div>
+              <button type="submit" className="submit-button-custom">
+                Send Request
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {activeModal === 'share' && (
+        <div className="modal-overlay-custom" onClick={closeAllModals}>
+          <div className="share-modal-container" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={closeAllModals} 
+              className="absolute top-6 right-6 text-gray-400 hover:text-black transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-[1.25rem] font-extrabold text-black mb-6">Share This Community</h3>
+            
+            <button className="share-option-btn">
+              <Facebook size={22} className="text-blue-600" />
+              <span>Share on Facebook</span>
+            </button>
+            <button className="share-option-btn">
+              <Twitter size={22} className="text-sky-500" />
+              <span>Share on Twitter</span>
+            </button>
+            <button className="share-option-btn">
+              <Linkedin size={22} className="text-blue-700" />
+              <span>Share on LinkedIn</span>
+            </button>
+            <button className="share-option-btn">
+              <Mail size={22} className="text-gray-600" />
+              <span>Share via Email</span>
+            </button>
+            
+            <button 
+              onClick={copyLink}
+              className={`copy-link-btn-custom ${linkCopied ? 'active' : ''}`}
+            >
+              {linkCopied ? (
+                <>
+                  <Check size={20} /> Link Copied!
+                </>
+              ) : (
+                <>
+                  <LinkIcon size={20} /> Copy Link
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {isLightboxOpen && (
+        <div className="lightbox-custom" onClick={closeAllModals}>
+          <button 
+            onClick={closeAllModals}
+            className="absolute top-6 right-6 text-white/80 hover:text-white z-10"
+          >
+            <X size={32} />
+          </button>
+          
+          {lightboxImages.length > 1 && (
+            <>
+              <button 
+                onClick={(e) => { e.stopPropagation(); prevLightbox(); }}
+                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all"
+              >
+                <ChevronDown size={28} className="rotate-90" />
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); nextLightbox(); }}
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all"
+              >
+                <ChevronDown size={28} className="-rotate-90" />
+              </button>
+            </>
+          )}
+          
+          <div className="max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={lightboxImages[lightboxIndex]} 
+              alt="Gallery view" 
+              className="max-w-full max-h-[90vh] object-contain"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          
+          {lightboxImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-[0.9rem] font-medium">
+              {lightboxIndex + 1} / {lightboxImages.length}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
