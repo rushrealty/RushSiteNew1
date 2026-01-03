@@ -686,43 +686,57 @@ const PinehurstVillageContent = () => {
         /* Location Section */
         .community-page .location-section { padding: 4rem 0; background: var(--white); }
         .community-page .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        .community-page .location-card { background: var(--gray-50); border-radius: 12px; padding: 1.75rem; }
+        .community-page .location-card { 
+            background: var(--gray-50); 
+            border-radius: 12px; 
+            padding: 2rem;
+            border: 1px solid var(--gray-100);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
         .community-page .location-card h3 {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--black);
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         .community-page .location-card h3 svg { width: 22px; height: 22px; color: var(--gold); }
-        .community-page .school-district-name { font-size: 0.95rem; color: var(--gray-600); margin-bottom: 1.25rem; }
+        .community-page .school-district-name { 
+            font-size: 0.95rem; 
+            color: var(--gray-600); 
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
         .community-page .school-list { list-style: none; }
         .community-page .school-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--gray-200);
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--gray-100);
         }
-        .community-page .school-item:last-child { border-bottom: none; }
-        .community-page .school-name { font-weight: 600; color: var(--black); font-size: 0.9rem; }
-        .community-page .school-grades { font-size: 0.8rem; color: var(--gray-500); }
-        .community-page .school-distance { font-size: 0.85rem; color: var(--gray-500); }
+        .community-page .school-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .community-page .school-name { font-weight: 700; color: var(--black); font-size: 0.9rem; }
+        .community-page .school-grades { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem; }
+        .community-page .school-distance { font-size: 0.85rem; color: var(--gray-400); font-weight: 700; }
 
-        .community-page .nearby-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .community-page .nearby-list { display: flex; flex-direction: column; gap: 0.5rem; }
         .community-page .nearby-item {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem;
+            padding: 1rem;
             background: var(--white);
             border-radius: 8px;
+            border: 1px solid var(--gray-100);
         }
-        .community-page .nearby-item svg { width: 18px; height: 18px; color: var(--gray-500); }
-        .community-page .nearby-item span { flex: 1; font-size: 0.9rem; color: var(--gray-700); }
-        .community-page .nearby-item .time { font-size: 0.8rem; color: var(--gray-400); }
+        .community-page .nearby-item svg { width: 18px; height: 18px; color: var(--gold); flex-shrink: 0; }
+        .community-page .nearby-item span { flex: 1; font-size: 0.9rem; color: var(--gray-700); font-weight: 500; }
+        .community-page .nearby-item .time { font-size: 0.8rem; color: var(--gray-400); font-weight: 700; flex: none; }
 
         /* CTA Section */
         .community-page .cta-section { padding: 5rem 0; background: var(--gray-900); text-align: center; }
@@ -1212,18 +1226,18 @@ const PinehurstVillageContent = () => {
         {/* Location Section */}
         <section className="location-section" id="location">
           <div className="container">
-            <div className="section-header"><h2>Location &amp; Schools</h2></div>
             <div className="location-grid">
               <div className="location-card">
                 <h3>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                   Schools
                 </h3>
                 <p className="school-district-name">Served by <strong>Lake Forest School District</strong></p>
                 <ul className="school-list">
-                  <li className="school-item"><div><div className="school-name">Lake Forest South Elementary</div><div className="school-grades">Grades K-4</div></div><span className="school-distance">2.1 mi</span></li>
-                  <li className="school-item"><div><div className="school-name">W.T. Chipman Middle School</div><div className="school-grades">Grades 5-8</div></div><span className="school-distance">5.8 mi</span></li>
-                  <li className="school-item"><div><div className="school-name">Lake Forest High School</div><div className="school-grades">Grades 9-12</div></div><span className="school-distance">5.2 mi</span></li>
+                  <li className="school-item"><div><div className="school-name">Lake Forest North Elementary</div><div className="school-grades">Grades PK, K-3</div></div><span className="school-distance">1.1 mi</span></li>
+                  <li className="school-item"><div><div className="school-name">Lake Forest Central Elementary</div><div className="school-grades">Grades 4-5</div></div><span className="school-distance">2.5 mi</span></li>
+                  <li className="school-item"><div><div className="school-name">W.T. Chipman Middle School</div><div className="school-grades">Grades 6-8</div></div><span className="school-distance">2.8 mi</span></li>
+                  <li className="school-item"><div><div className="school-name">Lake Forest High School</div><div className="school-grades">Grades 9-12</div></div><span className="school-distance">3.1 mi</span></li>
                 </ul>
               </div>
               <div className="location-card">
@@ -1232,11 +1246,34 @@ const PinehurstVillageContent = () => {
                   What&apos;s Nearby
                 </h3>
                 <div className="nearby-list">
-                  <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Killens Pond State Park</span><span className="time">8 min</span></div>
-                  <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span>Walmart &amp; Shopping</span><span className="time">12 min</span></div>
-                  <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Bayhealth Hospital</span><span className="time">15 min</span></div>
-                  <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span>Dover Mall &amp; Outlets</span><span className="time">18 min</span></div>
-                  <div className="nearby-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg><span>Delaware Beaches</span><span className="time">45 min</span></div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 20.5H7A2.5 2.5 0 0 1 4.5 18v-1.5A2.5 2.5 0 0 1 7 14h10a2.5 2.5 0 0 1 2.5 2.5V18a2.5 2.5 0 0 1-2.5 2.5Z"/><path d="M12 14V7.5"/><path d="M12 7.5c0-2.5 3-4 5-2.5"/><path d="M12 7.5c0-2.5-3-4-5-2.5"/></svg>
+                    <span>Killens Pond</span><span className="time">9 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 14l2 2 4-4"/></svg>
+                    <span>Walmart</span><span className="time">12 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                    <span>Dover Air Force Base</span><span className="time">16 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></svg>
+                    <span>Bayhealth Hospital</span><span className="time">18 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                    <span>Dover Mall</span><span className="time">22 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 20.5H7A2.5 2.5 0 0 1 4.5 18v-1.5A2.5 2.5 0 0 1 7 14h10a2.5 2.5 0 0 1 2.5 2.5V18a2.5 2.5 0 0 1-2.5 2.5Z"/><path d="M12 14V7.5"/><path d="M12 7.5c0-2.5 3-4 5-2.5"/><path d="M12 7.5c0-2.5-3-4-5-2.5"/></svg>
+                    <span>Rehoboth Beach</span><span className="time">55 min</span>
+                  </div>
+                  <div className="nearby-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>
+                    <span>Philadelphia Airport</span><span className="time">1 hr 15 min</span>
+                  </div>
                 </div>
               </div>
             </div>
