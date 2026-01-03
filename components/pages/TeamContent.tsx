@@ -491,7 +491,7 @@ const TeamContent: React.FC = () => {
             {/* 4. Chennita Crawford */}
             <div className="team-card">
               <div className="team-card-image">
-                <img src="https://drive.google.com/thumbnail?id=1WG2zpOKSeB5mgMTbc8kwmmAHU2UPhLNV&sz=w1000" alt="Chennita Crawford" referrerPolicy="no-referrer" />
+                <img src="https://drive.google.com/file/d/1bXeZp4PABTooYRe6_aF_HL5lDMuSM67n" alt="Chennita Crawford" referrerPolicy="no-referrer" />
               </div>
               <div className="team-card-content">
                 <h3>Chennita Crawford</h3>
@@ -531,7 +531,7 @@ const TeamContent: React.FC = () => {
             {/* 6. Landy Coulanges */}
             <div className="team-card">
               <div className="team-card-image">
-                <img src="https://drive.google.com/thumbnail?id=14DB0s18_DoxE_U-oyWzlVGQoSFjPhmnb&sz=w1000" alt="Landy Coulanges" referrerPolicy="no-referrer" />
+                <img src="https://drive.google.com/file/d/1POlWrPKU5QmGU7m_g7gze81Sol4syLV-" alt="Landy Coulanges" referrerPolicy="no-referrer" />
               </div>
               <div className="team-card-content">
                 <h3>Landy Coulanges</h3>
