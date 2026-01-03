@@ -21,87 +21,128 @@ const PinehurstVillageContent = () => {
     'https://drive.google.com/thumbnail?id=1R5e7im4F8KPd0cDkyZLoN2VLOAoOqG9G&sz=w1600',
   ];
 
-  // Floor plans data - sorted by price high to low per template
+  // Floor plans data - sorted by price low to high
   const floorPlans = [
     {
-      id: 'georgetown',
-      name: 'The Georgetown',
-      price: '$480,000',
-      beds: '5',
-      baths: '3.5',
-      garage: '2',
-      stories: '2',
-      sqft: '2,680',
-      description: 'The Georgetown is the flagship of the Pinehurst Village collection. This stunning two-story home offers maximum space and luxury with 5 bedrooms, 3.5 baths, and nearly 2,700 square feet of living space.',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600',
-    },
-    {
-      id: 'camden-grand',
-      name: 'The Camden Grand',
-      price: '$458,000',
-      beds: '5',
-      baths: '3',
-      garage: '2',
-      stories: '2',
-      sqft: '2,450',
-      description: 'The Camden Grand lives up to its name with impressive space and thoughtful design. This expansive two-story home offers 5 bedrooms and 3 full baths, perfect for larger families.',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600',
-    },
-    {
-      id: 'lewes',
-      name: 'The Lewes',
-      price: '$430,000',
-      beds: '4',
-      baths: '2.5',
-      garage: '2',
-      stories: '2',
-      sqft: '2,200',
-      description: 'The Lewes is designed for modern family living. This spacious two-story home features an inviting entry, open living spaces on the main level, and four generous bedrooms upstairs.',
-      image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600',
-    },
-    {
-      id: 'wyoming',
-      name: 'The Wyoming',
-      price: '$425,000',
-      beds: '4',
-      baths: '2.5',
-      garage: '2',
-      stories: '2',
-      sqft: '2,050',
-      description: 'The Wyoming combines classic design with modern amenities. This well-appointed two-story home features a welcoming front porch and open main level living.',
-      image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600',
-    },
-    {
-      id: 'livingston',
-      name: 'The Livingston',
-      price: '$420,000',
-      beds: '4',
-      baths: '2.5',
-      garage: '2',
-      stories: '2',
-      sqft: '2,100',
-      description: 'The Livingston offers the perfect balance of space and function. This two-story home features 4 bedrooms and an open-concept living area with a modern kitchen.',
-      image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600',
-    },
-    {
       id: 'windsor',
-      name: 'The Windsor',
+      name: 'Windsor',
       price: '$400,000',
       beds: '3',
       baths: '2',
       garage: '2',
       stories: '1',
       sqft: '1,727',
-      description: 'The beautiful Windsor provides a clean open floor plan with 3 bedrooms and 2 full baths. The kitchen overlooks the living room ensuring no one is left out.',
-      image: 'https://images.unsplash.com/photo-1600573472591-ee6981cf35b6?w=800',
-      floorplanImage: 'https://images.unsplash.com/photo-1600573472591-ee6981cf35b6?w=600',
+      description: 'The beautiful Windsor is a home that provides options. Looking for a nice size rancher that provides a clean open floor plan with 3 bedrooms and 2 full bath, then the Windsor is your home. Looking for a 2 story home that offers up to 5 bedrooms and over 2,300 sq ft, then the Windsor is your house. Either way you slice it, the Windsor is a dynamic home that is sure to please. The kitchen over looks the living room to provide an open floor plan that ensures no one is left out.',
+      image: 'https://drive.google.com/thumbnail?id=1Et6Pcx4lzk5tFD50-EmGQIhxiUqrmHZv&sz=w1000',
+      floorPlanImgs: ['https://drive.google.com/thumbnail?id=164XZLPqedjzRaDlSbtM6LYh1m-jcwHuS&sz=w1600'],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1Kc0MWxbFOo9YPJdPAVODzfEMvuFlU0zE&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1oIePo4rEDV8_Y57i3AppIJo5HyByd0wp&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1HLhNlUrQmyGrPRVNI_XeoO9sEzt1wifP&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1xe-HPh51RTLmQnm5U_iDuZ5b6_1v1wiF&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1b3dZ-kOdXWQCdBLitn_QLHXp4jj3J25c&sz=w1600'
+      ],
+    },
+    {
+      id: 'livingston',
+      name: 'Livingston',
+      price: '$420,000',
+      beds: '3',
+      baths: '2',
+      garage: '2',
+      stories: '1',
+      sqft: '1,854',
+      description: 'An open floor plan has never looked this good! The main floor hosts a 3 bedroom rancher with a split bedroom arrangement. With upgrades, the Livingston can host up to 5 bedrooms. The kitchen overlooks the open dining room and great room. There is space to put an optional 2nd floor with two bedrooms, a loft, and a full bath. Oversized windows in every room make this home bright!',
+      image: 'https://drive.google.com/thumbnail?id=1kq1cd8XgPpkT2l9c0nN7EhUVWRU8F4FT&sz=w1000',
+      floorPlanImgs: ['https://drive.google.com/thumbnail?id=1eIenSKLz4CRnf8x6oXqWBIEp7wLEmDiH&sz=w1600'],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=19E0JerP-nPbxDCMHV2mxbbw1oawNHEW2&sz=w1600',
+        'https://drive.google.com/thumbnail?id=10eAF0Qr8FOUbJvF9bqr_J_lw27YJ7mYQ&sz=w1600',
+        'https://drive.google.com/thumbnail?id=10WLqLktNIAm-MJVwMLKzIbtBjXY2pQ88&sz=w1600',
+        'https://drive.google.com/thumbnail?id=10rbsLU6W3KTN3C3iV5DA2PRCvoLjQOgT&sz=w1600'
+      ],
+    },
+    {
+      id: 'wyoming',
+      name: 'Wyoming',
+      price: '$425,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2',
+      stories: '2',
+      sqft: '2,379',
+      description: 'A classic 2-story design with expanded living areas. The Wyoming offers four spacious bedrooms on the upper level and a wide footprint for impressive curb appeal.',
+      image: 'https://drive.google.com/thumbnail?id=1geLCtkZfc68Zx6vzf2Do2u5uoY6P1XMo&sz=w1000',
+      floorPlanImgs: [],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1IrBgP92YYCxU8lfT1ffEyRlt_AEqLhOa&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoBkUpxy&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1gvFg6UlzyqEjJtbB3GA7JButrfZt8Dlm&sz=w1600'
+      ],
+    },
+    {
+      id: 'lewes',
+      name: 'Lewes',
+      price: '$430,000',
+      beds: '3',
+      baths: '2',
+      garage: '2',
+      stories: '1',
+      sqft: '2,022',
+      description: 'Spacious main-level living with a grand feel. The Lewes includes a large kitchen island, walk-in pantry, and a primary suite that feels like a private retreat.',
+      image: 'https://drive.google.com/thumbnail?id=10bJIxlQx0IyarO1ODmXDf59XW1rLNpIJ&sz=w1000',
+      floorPlanImgs: [],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1G21W80sdVTcQe1OM4TnJWpJN4j2FhR3F&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1o7UXDMiTJ7Cu9WhirIffRTcinhrlsXYc&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1nyaCrwAbnQRaXuU4DX11miwQSjyqg_MS&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1o4FpirFvnP7Q-e6whXfLEjUBcpL9KZb-&sz=w1600'
+      ],
+    },
+    {
+      id: 'camden-grand',
+      name: 'Camden Grand',
+      price: '$458,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2',
+      stories: '2',
+      sqft: '2,680',
+      description: 'Step into the Camden Grand, a breathtaking 2,680 sq. ft. home designed to impress at every turn. The soaring two-story family room floods the main level with natural light, creating an unforgettable space to gather and entertain. A chef-inspired kitchen with stainless steel appliances, a spacious island, and pantry flows seamlessly into the breakfast area and living space, while a formal dining room and private study add both elegance and versatility.',
+      image: 'https://drive.google.com/thumbnail?id=1GKgbkA-bZx8vLmMAr589Jo7bGt_8YWmC&sz=w1000',
+      floorPlanImgs: [],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=14yiXK5bTK_H1JBUkGELQHOupJDXwBxbd&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1RqKbtnPymNGs2drhqiQ1wSHGctEbezTr&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1-7bJhKbVZ9AHWXCBM6GOl_YfJHgWwMkJ&sz=w1600',
+        'https://drive.google.com/thumbnail?id=15nZ-4mph-4-2fr0HsPjqdnL9KToooWDj&sz=w1600'
+      ],
+    },
+    {
+      id: 'georgetown',
+      name: 'Georgetown',
+      price: '$480,000',
+      beds: '4',
+      baths: '2.5',
+      garage: '2',
+      stories: '2',
+      sqft: '2,513',
+      description: 'A sophisticated master-on-main design with extra bedrooms upstairs. The Georgetown offers the convenience of first-floor primary living with the space of a full 2-story home.',
+      image: 'https://drive.google.com/thumbnail?id=1OAAtpIBWc7fMvpVPiwtDHsasdWYa0LY2&sz=w1000',
+      floorPlanImgs: [],
+      elevations: [
+        'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1cy706xj69lA-TilGaypgyqrfdOcWtYBJ&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1chIFJtKPgIALLDgJ5AOeIlPbnkQLkUw0&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1cZ7booYQIkrjwY-omgah7J1XacwhSYXn&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1coAwMTJIlkAEY-RpbSUDqFiDcvdpSWzR&sz=w1600'
+      ],
     },
   ];
+
+  // State for viewing individual images
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
 
   const openModal = (type: string, subtitle?: string) => {
     setActiveModal(type);
@@ -111,6 +152,16 @@ const PinehurstVillageContent = () => {
 
   const closeModal = () => {
     setActiveModal(null);
+    document.body.style.overflow = '';
+  };
+
+  const openImageViewer = (imageUrl: string) => {
+    setViewingImage(imageUrl);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeImageViewer = () => {
+    setViewingImage(null);
     document.body.style.overflow = '';
   };
 
@@ -619,20 +670,34 @@ const PinehurstVillageContent = () => {
         .community-page .details-left h4 { font-size: 1rem; font-weight: 700; color: var(--black); margin-bottom: 1rem; }
         .community-page .details-left p { font-size: 0.95rem; color: var(--gray-600); line-height: 1.7; margin-bottom: 1.5rem; }
 
-        .community-page .elevation-options { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+        .community-page .elevation-options { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .community-page .elevation-thumb {
             width: 80px;
             height: 60px;
             border-radius: 8px;
             overflow: hidden;
-            border: 2px solid transparent;
+            border: 2px solid var(--gray-200);
             cursor: pointer;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease;
         }
-        .community-page .elevation-thumb:hover, .community-page .elevation-thumb.active { border-color: var(--black); }
+        .community-page .elevation-thumb:hover { 
+            border-color: var(--black); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
         .community-page .elevation-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-        .community-page .details-actions { display: flex; gap: 1rem; }
+        .community-page .floorplan-diagram-placeholder {
+            width: 100%;
+            max-width: 400px;
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .community-page .details-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
         .community-page .btn-floorplan {
             display: inline-flex;
             align-items: center;
@@ -1165,7 +1230,7 @@ const PinehurstVillageContent = () => {
                 <div key={plan.id} className={`floorplan-card ${expandedPlan === plan.id ? 'expanded' : ''}`} id={`floorplan-${plan.id}`}>
                   <div className="floorplan-main" onClick={() => toggleFloorplan(plan.id)}>
                     <div className="floorplan-image">
-                      <img src={plan.image} alt={plan.name} />
+                      <img src={plan.image} alt={plan.name} referrerPolicy="no-referrer" />
                     </div>
                     <div className="floorplan-content">
                       <h3 className="floorplan-name">{plan.name}</h3>
@@ -1187,21 +1252,42 @@ const PinehurstVillageContent = () => {
                       <div className="details-left">
                         <h4>About {plan.name}</h4>
                         <p>{plan.description}</p>
-                        <h4>Elevation Options</h4>
-                        <div className="elevation-options">
-                          <div className="elevation-thumb active"><img src={plan.image} alt="Elevation A" /></div>
-                          <div className="elevation-thumb"><img src={plan.floorplanImage} alt="Elevation B" /></div>
-                        </div>
+                        {plan.elevations && plan.elevations.length > 0 && (
+                          <>
+                            <h4>Other Images</h4>
+                            <div className="elevation-options">
+                              {plan.elevations.slice(0, 5).map((elev, i) => (
+                                <div 
+                                  key={i} 
+                                  className="elevation-thumb" 
+                                  onClick={(e) => { e.stopPropagation(); openImageViewer(elev); }}
+                                >
+                                  <img src={elev.replace('w1600', 'w200')} alt={`Image ${i + 1}`} referrerPolicy="no-referrer" />
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
                         <div className="details-actions">
-                          <button className="btn-floorplan" onClick={() => openModal('request', plan.name)}>Request Info</button>
-                          <button className="btn-floorplan-outline">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                            View Floor Plan
-                          </button>
+                          <button className="btn-floorplan" onClick={(e) => { e.stopPropagation(); openModal('request', plan.name); }}>Request Info</button>
+                          {plan.floorPlanImgs && plan.floorPlanImgs.length > 0 && (
+                            <button className="btn-floorplan-outline" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs[0]); }}>
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              View Floor Plan
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="details-right">
-                        <div className="floorplan-diagram"><img src={plan.floorplanImage} alt={`${plan.name} Floor Plan`} /></div>
+                        {plan.floorPlanImgs && plan.floorPlanImgs.length > 0 ? (
+                          <div className="floorplan-diagram" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs[0]); }} style={{cursor: 'pointer'}}>
+                            <img src={plan.floorPlanImgs[0].replace('w1600', 'w600')} alt={`${plan.name} Floor Plan`} referrerPolicy="no-referrer" />
+                          </div>
+                        ) : (
+                          <div className="floorplan-diagram-placeholder">
+                            <p>Floor plan coming soon</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1388,6 +1474,18 @@ const PinehurstVillageContent = () => {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
             </button>
             <div className="lightbox-counter"><span>{lightboxIndex + 1}</span> / <span>{galleryImages.length}</span></div>
+          </div>
+        )}
+
+        {/* Single Image Viewer */}
+        {viewingImage && (
+          <div className="lightbox" onClick={closeImageViewer}>
+            <button className="lightbox-close" onClick={closeImageViewer}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+              <img src={viewingImage} alt="" referrerPolicy="no-referrer" />
+            </div>
           </div>
         )}
       </div>
