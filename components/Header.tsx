@@ -1,13 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Logo from './Logo';
 
-export default function Header() {
+const MENU_ITEMS = [
+  {
+    title: 'Buy',
+    items: [
+      { label: 'Search Homes', href: '/buy' },
+      { label: 'How to buy a home', href: '/how-to-buy' },
+      { label: 'Mortgage 101', href: '/mortgage-101' },
+    ]
+  },
+  {
+    title: 'Sell',
+    items: [
+      { label: 'Get your Offer', href: '/get-offer' },
+      { label: 'How to sell your home', href: '/sell' },
+    ]
+  },
+  {
+    title: 'New Construction',
+    items: [
+      { label: 'Available Communities', href: '/available-communities' },
+      { label: 'New Construction Process', href: '/new-construction' },
+    ]
+  }
+];
+
+const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,16 +46,11 @@ export default function Header() {
     document.body.style.overflow = !isMobileMenuOpen ? 'hidden' : '';
   };
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-    document.body.style.overflow = '';
-  };
-
   return (
     <>
-      <style jsx>{`
+      <style jsx global>{`
         /* ═══════════════════════════════════════
-           NAVIGATION - Original Rush Home Styling
+           NAVIGATION
         ═══════════════════════════════════════ */
         .nav {
           position: fixed;
@@ -52,23 +71,11 @@ export default function Header() {
           box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
         }
 
-        .logo {
+        .nav-logo-link {
           display: flex;
           align-items: center;
           text-decoration: none;
           flex: 1;
-        }
-
-        .logo-text {
-          font-size: 1.25rem;
-          font-weight: 300;
-          letter-spacing: 0.2em;
-          color: #000;
-          text-decoration: none;
-        }
-
-        .logo-text span {
-          font-weight: 500;
         }
 
         /* Center Navigation Menu */
@@ -81,11 +88,11 @@ export default function Header() {
           transform: translateX(-50%);
         }
 
-        .nav-dropdown {
+        .nav-menu-item {
           position: relative;
         }
 
-        .nav-dropdown-trigger {
+        .nav-menu-link {
           color: #404040;
           text-decoration: none;
           font-weight: 500;
@@ -94,30 +101,15 @@ export default function Header() {
           border-radius: 8px;
           transition: all 0.2s ease;
           cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: none;
-          border: none;
-          font-family: inherit;
+          display: block;
         }
 
-        .nav-dropdown-trigger:hover {
+        .nav-menu-link:hover {
           color: #000;
           background: #f5f5f5;
         }
 
-        .nav-dropdown-trigger svg {
-          width: 12px;
-          height: 12px;
-          transition: transform 0.2s ease;
-        }
-
-        .nav-dropdown:hover .nav-dropdown-trigger svg {
-          transform: rotate(180deg);
-        }
-
-        .nav-dropdown-menu {
+        .nav-dropdown {
           position: absolute;
           top: 100%;
           left: 0;
@@ -132,13 +124,13 @@ export default function Header() {
           transition: all 0.2s ease;
         }
 
-        .nav-dropdown:hover .nav-dropdown-menu {
+        .nav-menu-item:hover .nav-dropdown {
           opacity: 1;
           visibility: visible;
           transform: translateY(0);
         }
 
-        .nav-dropdown-menu a {
+        .nav-dropdown-item {
           display: block;
           padding: 0.75rem 1rem;
           font-size: 0.9rem;
@@ -147,24 +139,9 @@ export default function Header() {
           text-decoration: none;
         }
 
-        .nav-dropdown-menu a:hover {
+        .nav-dropdown-item:hover {
           background: #f5f5f5;
           color: #000;
-        }
-
-        .nav-link {
-          color: #404040;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          padding: 0.625rem 1.25rem;
-          border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .nav-link:hover {
-          color: #000;
-          background: #f5f5f5;
         }
 
         /* Right Side Actions */
@@ -174,21 +151,6 @@ export default function Header() {
           gap: 1.5rem;
           flex: 1;
           justify-content: flex-end;
-        }
-
-        .nav-signin {
-          color: #404040;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.9rem;
-          padding: 0.625rem 1rem;
-          border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .nav-signin:hover {
-          color: #000;
-          background: #f5f5f5;
         }
 
         .nav-cta {
@@ -216,8 +178,6 @@ export default function Header() {
           cursor: pointer;
           padding: 0.5rem;
           margin-left: 1rem;
-          background: none;
-          border: none;
         }
 
         .nav-toggle span {
@@ -245,88 +205,13 @@ export default function Header() {
           opacity: 0;
           transform: translateY(-20px);
           transition: all 0.3s ease;
+          overflow-y: auto;
         }
 
         .mobile-menu.active {
           display: flex;
           opacity: 1;
           transform: translateY(0);
-        }
-
-        .mobile-menu-section {
-          width: 100%;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .mobile-menu-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem 0;
-          font-weight: 600;
-          font-size: 1.1rem;
-          cursor: pointer;
-          color: #171717;
-        }
-
-        .mobile-menu-header svg {
-          width: 20px;
-          height: 20px;
-          transition: transform 0.2s ease;
-        }
-
-        .mobile-menu-header.open svg {
-          transform: rotate(180deg);
-        }
-
-        .mobile-menu-items {
-          display: none;
-          padding-bottom: 1rem;
-        }
-
-        .mobile-menu-items.open {
-          display: block;
-        }
-
-        .mobile-menu-items a {
-          display: block;
-          padding: 0.75rem 1rem;
-          color: #525252;
-          text-decoration: none;
-          font-size: 1rem;
-          border-radius: 8px;
-        }
-
-        .mobile-menu-items a:hover {
-          background: #f5f5f5;
-          color: #000;
-        }
-
-        .mobile-menu a.standalone {
-          color: #171717;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1.1rem;
-          padding: 1rem 0;
-          width: 100%;
-          text-align: left;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .mobile-menu .mobile-cta {
-          background: #000;
-          color: #fff;
-          margin-top: 1.5rem;
-          font-weight: 600;
-          padding: 1rem 2rem;
-          border-radius: 8px;
-          text-decoration: none;
-          width: 100%;
-          text-align: center;
-        }
-
-        .mobile-menu .mobile-cta:hover {
-          background: #262626;
         }
 
         .mobile-menu-close {
@@ -341,8 +226,6 @@ export default function Header() {
           cursor: pointer;
           border-radius: 8px;
           transition: background 0.2s ease;
-          background: none;
-          border: none;
         }
 
         .mobile-menu-close:hover {
@@ -355,6 +238,54 @@ export default function Header() {
           stroke: #000;
         }
 
+        .mobile-group-title {
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: #737373;
+          width: 100%;
+          padding: 1.5rem 0 0.5rem;
+          border-top: 1px solid #e5e5e5;
+          margin-top: 0.5rem;
+        }
+
+        .mobile-group-title:first-of-type {
+          border-top: none;
+          margin-top: 0;
+        }
+
+        .mobile-menu-link {
+          color: #404040;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 1.1rem;
+          padding: 0.75rem 0;
+          width: 100%;
+          text-align: left;
+          transition: all 0.2s ease;
+        }
+
+        .mobile-menu-link:hover {
+          color: #000;
+        }
+
+        .mobile-cta {
+          background: #000;
+          color: #fff;
+          margin-top: 2rem;
+          font-weight: 600;
+          padding: 1rem 2rem;
+          border-radius: 8px;
+          text-decoration: none;
+          width: 100%;
+          text-align: center;
+        }
+
+        .mobile-cta:hover {
+          background: #262626;
+        }
+
         /* ═══════════════════════════════════════
            RESPONSIVE - Tablet & Mobile
         ═══════════════════════════════════════ */
@@ -364,10 +295,6 @@ export default function Header() {
           }
 
           .nav-menu {
-            display: none;
-          }
-
-          .nav-signin {
             display: none;
           }
 
@@ -389,135 +316,58 @@ export default function Header() {
       `}</style>
 
       <nav className={`nav ${isScrolled ? 'scrolled' : ''}`}>
-        <Link href="/" className="logo">
-          <span className="logo-text">RUSH<span>HOME</span></span>
+        <Link href="/" className="nav-logo-link">
+          <Logo theme="dark" />
         </Link>
-
+        
         <div className="nav-menu">
-          {/* Buy Dropdown */}
-          <div className="nav-dropdown">
-            <button className="nav-dropdown-trigger">
-              Buy
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div className="nav-dropdown-menu">
-              <Link href="/search">Search Homes</Link>
-              <Link href="/how-to-buy">How to Buy a Home</Link>
-              <Link href="/mortgage-101">Mortgage 101</Link>
-              <Link href="/new-construction">New Construction</Link>
+          {MENU_ITEMS.map((menu, idx) => (
+            <div key={idx} className="nav-menu-item">
+              <span className="nav-menu-link">{menu.title}</span>
+              <div className="nav-dropdown">
+                {menu.items.map((item, i) => (
+                  <Link key={i} href={item.href} className="nav-dropdown-item">
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Sell Dropdown */}
-          <div className="nav-dropdown">
-            <button className="nav-dropdown-trigger">
-              Sell
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div className="nav-dropdown-menu">
-              <Link href="/get-your-offer">Get Your Offer</Link>
-              <Link href="/home-valuation">Home Valuation</Link>
-              <Link href="/how-to-sell">How to Sell Your Home</Link>
-            </div>
-          </div>
-
-          {/* Resources Dropdown */}
-          <div className="nav-dropdown">
-            <button className="nav-dropdown-trigger">
-              Resources
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div className="nav-dropdown-menu">
-              <Link href="/mortgage-calculator">Mortgage Calculator</Link>
-              <Link href="/articles">Articles</Link>
-            </div>
-          </div>
-
-          <Link href="/about" className="nav-link">About</Link>
+          ))}
         </div>
 
         <div className="nav-right">
-          <Link href="/get-your-offer" className="nav-cta">GET MY OFFER</Link>
-          <button className="nav-toggle" onClick={toggleMobileMenu} aria-label="Toggle menu">
+          <Link href="/get-offer" className="nav-cta">Get My Offer</Link>
+          <div className="nav-toggle" onClick={toggleMobileMenu}>
             <span></span>
             <span></span>
             <span></span>
-          </button>
+          </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <div className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
-        <button className="mobile-menu-close" onClick={closeMobileMenu} aria-label="Close menu">
+        <div className="mobile-menu-close" onClick={toggleMobileMenu}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
-        </button>
-
-        <div className="mobile-menu-section">
-          <div 
-            className={`mobile-menu-header ${openDropdown === 'buy' ? 'open' : ''}`}
-            onClick={() => setOpenDropdown(openDropdown === 'buy' ? null : 'buy')}
-          >
-            Buy
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div className={`mobile-menu-items ${openDropdown === 'buy' ? 'open' : ''}`}>
-            <Link href="/search" onClick={closeMobileMenu}>Search Homes</Link>
-            <Link href="/how-to-buy" onClick={closeMobileMenu}>How to Buy a Home</Link>
-            <Link href="/mortgage-101" onClick={closeMobileMenu}>Mortgage 101</Link>
-            <Link href="/new-construction" onClick={closeMobileMenu}>New Construction</Link>
-          </div>
         </div>
 
-        <div className="mobile-menu-section">
-          <div 
-            className={`mobile-menu-header ${openDropdown === 'sell' ? 'open' : ''}`}
-            onClick={() => setOpenDropdown(openDropdown === 'sell' ? null : 'sell')}
-          >
-            Sell
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div className={`mobile-menu-items ${openDropdown === 'sell' ? 'open' : ''}`}>
-            <Link href="/get-your-offer" onClick={closeMobileMenu}>Get Your Offer</Link>
-            <Link href="/home-valuation" onClick={closeMobileMenu}>Home Valuation</Link>
-            <Link href="/how-to-sell" onClick={closeMobileMenu}>How to Sell Your Home</Link>
-          </div>
-        </div>
+        {MENU_ITEMS.map((menu, idx) => (
+          <React.Fragment key={idx}>
+            <div className="mobile-group-title">{menu.title}</div>
+            {menu.items.map((item, i) => (
+              <Link key={i} href={item.href} className="mobile-menu-link" onClick={toggleMobileMenu}>
+                {item.label}
+              </Link>
+            ))}
+          </React.Fragment>
+        ))}
 
-        <div className="mobile-menu-section">
-          <div 
-            className={`mobile-menu-header ${openDropdown === 'resources' ? 'open' : ''}`}
-            onClick={() => setOpenDropdown(openDropdown === 'resources' ? null : 'resources')}
-          >
-            Resources
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <div className={`mobile-menu-items ${openDropdown === 'resources' ? 'open' : ''}`}>
-            <Link href="/mortgage-calculator" onClick={closeMobileMenu}>Mortgage Calculator</Link>
-            <Link href="/articles" onClick={closeMobileMenu}>Articles</Link>
-          </div>
-        </div>
-
-        <Link href="/about" className="standalone" onClick={closeMobileMenu}>About</Link>
-
-        <Link href="/get-your-offer" className="mobile-cta" onClick={closeMobileMenu}>
-          GET MY OFFER
-        </Link>
+        <Link href="/get-offer" className="mobile-cta" onClick={toggleMobileMenu}>Get My Offer</Link>
       </div>
     </>
   );
-}
+};
+
+export default Header;
