@@ -130,12 +130,12 @@ const HomeContent: React.FC = () => {
           max-width: 520px;
         }
 
-        /* QuickBuy Widget Styling */
+        /* QuickBuy Widget Styling - Slimmer Version */
         .guaranteed-sale-page .ilist-content {
           background: var(--white);
           border: 1px solid var(--gray-300);
           border-radius: 60px;
-          padding: 0.375rem;
+          padding: 0.25rem;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
           transition: all 0.3s ease;
         }
@@ -151,7 +151,7 @@ const HomeContent: React.FC = () => {
         .guaranteed-sale-page .ilist-content .btn,
         .guaranteed-sale-page .ilist-content [class*="button"],
         .guaranteed-sale-page .ilist-content [class*="btn"] {
-          padding: 1rem 1.75rem !important;
+          padding: 0.75rem 1.5rem !important;
           background: var(--gray-900) !important;
           background-color: var(--gray-900) !important;
           color: var(--white) !important;
@@ -182,7 +182,7 @@ const HomeContent: React.FC = () => {
           outline: none !important;
           font-size: 1rem !important;
           font-family: inherit !important;
-          padding: 0.875rem 0 0.875rem 1.125rem !important;
+          padding: 0.625rem 0 0.625rem 1.125rem !important;
           background: transparent !important;
           color: var(--gray-900) !important;
         }
