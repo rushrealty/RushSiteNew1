@@ -25,7 +25,7 @@ const PinehurstVillageContent: React.FC = () => {
 
   const floorPlans = [
     { id: 'windsor', name: 'Windsor', price: '$400,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '1,727',
-      description: 'The beautiful Windsor is a home that provides options. Looking for a nice size rancher that provides a clean open floor plan with 3 bedrooms and 2 full bath, then the Windsor is your home. Looking for a 2 story home that offers up to 5 bedrooms and over 2,300 sq ft, then the Windsor is your house. Either way you slice it, the Windsor is a dynamic home that is sure to please.',
+      description: 'The beautiful Windsor is a home that provides options. Looking for a nice size rancher that provides a clean open floor plan with 3 bedrooms and 2 full bath, then the Windsor is your home. Looking for a 2 story home that offers up to 5 bedrooms and over 2,300 sq ft, then the Windsor is your house. Either way you slice it, the Windsor is a dynamic home that is sure to please. The kitchen overlooks the living room to provide an open floor plan that ensures no one is left out.',
       img: 'https://drive.google.com/thumbnail?id=1Et6Pcx4lzk5tFD50-EmGQIhxiUqrmHZv&sz=w1000',
       floorPlanImg: 'https://drive.google.com/thumbnail?id=164XZLPqedjzRaDlSbtM6LYh1m-jcwHuS&sz=w1000',
       elevations: [
@@ -35,7 +35,7 @@ const PinehurstVillageContent: React.FC = () => {
         'https://drive.google.com/thumbnail?id=1xe-HPh51RTLmQnm5U_iDuZ5b6_1v1wiF&sz=w1000'
       ] },
     { id: 'livingston', name: 'Livingston', price: '$420,000', beds: '3', baths: '2', garage: '2', stories: '1', sqft: '1,854',
-      description: 'An open floor plan has never looked this good! The main floor hosts a 3 bedroom rancher with a split bedroom arrangement. With upgrades, the Livingston can host up to 5 bedrooms. The kitchen overlooks the open dining room and great room. There is space to put an optional 2nd floor with two bedrooms, a loft, and a full bath.',
+      description: 'An open floor plan has never looked this good! The main floor hosts a 3 bedroom rancher with a split bedroom arrangement. With upgrades, the Livingston can host up to 5 bedrooms. The kitchen overlooks the open dining room and great room. There is space to put an optional 2nd floor with two bedrooms, a loft, and a full bath. Oversized windows in every room make this home bright!',
       img: 'https://drive.google.com/thumbnail?id=1kq1cd8XgPpkT2l9c0nN7EhUVWRU8F4FT&sz=w1000',
       floorPlanImg: 'https://drive.google.com/thumbnail?id=1eIenSKLz4CRnf8x6oXqWBIEp7wLEmDiH&sz=w1000',
       elevations: [
@@ -65,7 +65,7 @@ const PinehurstVillageContent: React.FC = () => {
         'https://drive.google.com/thumbnail?id=1gvFg6UlzyqEjJtbB3GA7JButrfZt8Dlm&sz=w1000'
       ] },
     { id: 'camden-grand', name: 'Camden Grand', price: '$458,000', beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,680',
-      description: 'Step into the Camden Grand, a breathtaking 2,680 sq. ft. home designed to impress at every turn. The soaring two-story family room floods the main level with natural light, creating an unforgettable space to gather and entertain. A chef-inspired kitchen with stainless steel appliances, a spacious island, and pantry flows seamlessly into the breakfast area.',
+      description: 'Step into the Camden Grand, a breathtaking 2,680 sq. ft. home designed to impress at every turn. The soaring two-story family room floods the main level with natural light, creating an unforgettable space to gather and entertain. A chef-inspired kitchen with stainless steel appliances, a spacious island, and pantry flows seamlessly into the breakfast area and living space, while a formal dining room and private study add both elegance and versatility.',
       img: 'https://drive.google.com/thumbnail?id=1GKgbkA-bZx8vLmMAr589Jo7bGt_8YWmC&sz=w1000',
       floorPlanImg: 'https://drive.google.com/thumbnail?id=1GKgbkA-bZx8vLmMAr589Jo7bGt_8YWmC&sz=w1000',
       elevations: [
@@ -477,6 +477,7 @@ const PinehurstVillageContent: React.FC = () => {
               <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg></div><div className="place-info"><div className="place-name">Dover Air Force Base</div><div className="place-time">16 min drive</div></div></div>
               <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div className="place-info"><div className="place-name">Bayhealth Hospital</div><div className="place-time">18 min drive</div></div></div>
               <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div><div className="place-info"><div className="place-name">Dover Mall</div><div className="place-time">22 min drive</div></div></div>
+              <div className="place-item"><div className="place-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg></div><div className="place-info"><div className="place-name">Rehoboth Beach</div><div className="place-time">55 min drive</div></div></div>
             </div>
           </div>
         </div>
