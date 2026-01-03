@@ -73,10 +73,10 @@ const PinehurstVillageContent = () => {
       sqft: '2,379',
       description: 'A classic 2-story design with expanded living areas. The Wyoming offers four spacious bedrooms on the upper level and a wide footprint for impressive curb appeal.',
       image: 'https://drive.google.com/thumbnail?id=1geLCtkZfc68Zx6vzf2Do2u5uoY6P1XMo&sz=w1000',
-      floorPlanImgs: [],
+      floorPlanImgs: ['https://drive.google.com/thumbnail?id=1UjKll52BEBh9XQUxpmPGxSYMrrHFPWcM&sz=w1600'],
       elevations: [
         'https://drive.google.com/thumbnail?id=1IrBgP92YYCxU8lfT1ffEyRlt_AEqLhOa&sz=w1600',
-        'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoBkUpxy&sz=w1600',
+        'https://drive.google.com/thumbnail?id=1h3WX0I5b3bi0JLou-1rTwgVRoqBkUpxy&sz=w1600',
         'https://drive.google.com/thumbnail?id=1h5WI3H0eARReGf8b-OO1rzSudxsupZ6K&sz=w1600',
         'https://drive.google.com/thumbnail?id=1gvFg6UlzyqEjJtbB3GA7JButrfZt8Dlm&sz=w1600'
       ],
@@ -92,7 +92,7 @@ const PinehurstVillageContent = () => {
       sqft: '2,022',
       description: 'Spacious main-level living with a grand feel. The Lewes includes a large kitchen island, walk-in pantry, and a primary suite that feels like a private retreat.',
       image: 'https://drive.google.com/thumbnail?id=10bJIxlQx0IyarO1ODmXDf59XW1rLNpIJ&sz=w1000',
-      floorPlanImgs: [],
+      floorPlanImgs: ['https://drive.google.com/thumbnail?id=149HSk6Sgzg61xLuyYlemVjz06Oo6d_E2&sz=w1600'],
       elevations: [
         'https://drive.google.com/thumbnail?id=1G21W80sdVTcQe1OM4TnJWpJN4j2FhR3F&sz=w1600',
         'https://drive.google.com/thumbnail?id=1o7UXDMiTJ7Cu9WhirIffRTcinhrlsXYc&sz=w1600',
@@ -130,7 +130,7 @@ const PinehurstVillageContent = () => {
       sqft: '2,513',
       description: 'A sophisticated master-on-main design with extra bedrooms upstairs. The Georgetown offers the convenience of first-floor primary living with the space of a full 2-story home.',
       image: 'https://drive.google.com/thumbnail?id=1OAAtpIBWc7fMvpVPiwtDHsasdWYa0LY2&sz=w1000',
-      floorPlanImgs: [],
+      floorPlanImgs: ['https://drive.google.com/thumbnail?id=15hUnb4K6LyT7wdwgeovl7NU0Wj5nhw7a&sz=w1600'],
       elevations: [
         'https://drive.google.com/thumbnail?id=1cGvfb3LriU0loB1e-LtB2umqwUDH9LU9&sz=w1600',
         'https://drive.google.com/thumbnail?id=1cy706xj69lA-TilGaypgyqrfdOcWtYBJ&sz=w1600',
@@ -141,8 +141,9 @@ const PinehurstVillageContent = () => {
     },
   ];
 
-  // State for viewing individual images
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  // State for viewing images with navigation
+  const [viewingImages, setViewingImages] = useState<string[]>([]);
+  const [viewingIndex, setViewingIndex] = useState(0);
 
   const openModal = (type: string, subtitle?: string) => {
     setActiveModal(type);
@@ -155,14 +156,24 @@ const PinehurstVillageContent = () => {
     document.body.style.overflow = '';
   };
 
-  const openImageViewer = (imageUrl: string) => {
-    setViewingImage(imageUrl);
+  const openImageViewer = (images: string[], startIndex: number = 0) => {
+    setViewingImages(images);
+    setViewingIndex(startIndex);
     document.body.style.overflow = 'hidden';
   };
 
   const closeImageViewer = () => {
-    setViewingImage(null);
+    setViewingImages([]);
+    setViewingIndex(0);
     document.body.style.overflow = '';
+  };
+
+  const prevViewingImage = () => {
+    setViewingIndex((prev) => (prev === 0 ? viewingImages.length - 1 : prev - 1));
+  };
+
+  const nextViewingImage = () => {
+    setViewingIndex((prev) => (prev === viewingImages.length - 1 ? 0 : prev + 1));
   };
 
   const openLightbox = (index: number) => {
@@ -805,14 +816,17 @@ const PinehurstVillageContent = () => {
 
         /* CTA Section */
         .community-page .cta-section { padding: 5rem 0; background: var(--gray-900); text-align: center; }
+        .community-page .cta-content { 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         .community-page .cta-content h2 { font-size: 2.25rem; font-weight: 700; color: var(--white); margin-bottom: 1rem; }
         .community-page .cta-content p {
             font-size: 1.1rem;
             color: rgba(255,255,255,0.7);
             margin-bottom: 2rem;
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
         }
         .community-page .cta-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 
@@ -1260,7 +1274,7 @@ const PinehurstVillageContent = () => {
                                 <div 
                                   key={i} 
                                   className="elevation-thumb" 
-                                  onClick={(e) => { e.stopPropagation(); openImageViewer(elev); }}
+                                  onClick={(e) => { e.stopPropagation(); openImageViewer(plan.elevations, i); }}
                                 >
                                   <img src={elev.replace('w1600', 'w200')} alt={`Image ${i + 1}`} referrerPolicy="no-referrer" />
                                 </div>
@@ -1271,7 +1285,7 @@ const PinehurstVillageContent = () => {
                         <div className="details-actions">
                           <button className="btn-floorplan" onClick={(e) => { e.stopPropagation(); openModal('request', plan.name); }}>Request Info</button>
                           {plan.floorPlanImgs && plan.floorPlanImgs.length > 0 && (
-                            <button className="btn-floorplan-outline" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs[0]); }}>
+                            <button className="btn-floorplan-outline" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs, 0); }}>
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                               View Floor Plan
                             </button>
@@ -1280,7 +1294,7 @@ const PinehurstVillageContent = () => {
                       </div>
                       <div className="details-right">
                         {plan.floorPlanImgs && plan.floorPlanImgs.length > 0 ? (
-                          <div className="floorplan-diagram" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs[0]); }} style={{cursor: 'pointer'}}>
+                          <div className="floorplan-diagram" onClick={(e) => { e.stopPropagation(); openImageViewer(plan.floorPlanImgs, 0); }} style={{cursor: 'pointer'}}>
                             <img src={plan.floorPlanImgs[0].replace('w1600', 'w600')} alt={`${plan.name} Floor Plan`} referrerPolicy="no-referrer" />
                           </div>
                         ) : (
@@ -1477,15 +1491,28 @@ const PinehurstVillageContent = () => {
           </div>
         )}
 
-        {/* Single Image Viewer */}
-        {viewingImage && (
+        {/* Image Viewer with Navigation */}
+        {viewingImages.length > 0 && (
           <div className="lightbox" onClick={closeImageViewer}>
             <button className="lightbox-close" onClick={closeImageViewer}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
+            {viewingImages.length > 1 && (
+              <button className="lightbox-nav prev" onClick={(e) => { e.stopPropagation(); prevViewingImage(); }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+            )}
             <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
-              <img src={viewingImage} alt="" referrerPolicy="no-referrer" />
+              <img src={viewingImages[viewingIndex]} alt="" referrerPolicy="no-referrer" />
             </div>
+            {viewingImages.length > 1 && (
+              <button className="lightbox-nav next" onClick={(e) => { e.stopPropagation(); nextViewingImage(); }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            )}
+            {viewingImages.length > 1 && (
+              <div className="lightbox-counter"><span>{viewingIndex + 1}</span> / <span>{viewingImages.length}</span></div>
+            )}
           </div>
         )}
       </div>
