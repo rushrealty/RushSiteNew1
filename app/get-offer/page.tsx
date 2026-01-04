@@ -588,10 +588,12 @@ export default function GetYourOfferPage() {
             color: var(--black);
         }
 
+        /* FIXED: Checkmarks in a row */
         .get-offer-page .lock-benefits {
             display: flex;
-            flex-wrap: wrap;
-            gap: 1rem 2rem;
+            flex-wrap: nowrap;
+            justify-content: space-between;
+            gap: 1.5rem;
             padding-top: 1.5rem;
             border-top: 1px solid var(--gray-200);
         }
@@ -609,6 +611,7 @@ export default function GetYourOfferPage() {
             width: 18px;
             height: 18px;
             color: var(--success);
+            flex-shrink: 0;
         }
 
         /* ═══════════════════════════════════════
@@ -732,6 +735,7 @@ export default function GetYourOfferPage() {
 
             .get-offer-page .lock-benefits {
                 justify-content: center;
+                flex-wrap: wrap;
             }
 
             .get-offer-page .choice-grid-3 {
