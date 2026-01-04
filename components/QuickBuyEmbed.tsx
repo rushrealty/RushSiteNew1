@@ -31,29 +31,26 @@ const QuickBuyEmbed: React.FC = () => {
             background: transparent;
           }
 
-          /* 2. THE NUCLEAR RESET */
-          /* Kill margins on EVERYTHING inside the widget to prevent hidden wrapper gaps */
-          .ilist-content * {
-             margin: 0;
-             padding: 0;
-             box-sizing: border-box;
-          }
-
-          /* 3. THE CONTAINER (Font Size 0 Trick) */
-          .ilist-content, 
-          .ilist-content form,
-          .ilist-content > div {
+          /* 2. THE MAIN FLEX CONTAINER */
+          /* We force the Form to be the master controller */
+          .ilist-content form {
              display: flex !important;
              flex-direction: row !important;
-             flex-wrap: nowrap !important;
-             align-items: center !important;
+             align-items: stretch !important; /* Stretch height to match */
              justify-content: center !important; 
-             gap: 0 !important;
              width: 100% !important;
-             
-             /* This kills the 'ghost' whitespace characters between elements */
-             font-size: 0 !important; 
-             line-height: 0 !important;
+             gap: 0 !important;
+             margin: 0 !important;
+             padding: 0 !important;
+          }
+
+          /* 3. THE MAGIC FIX: UNWRAP EVERYTHING */
+          /* This tells the browser to IGNORE any divs/labels/spans the script injects. 
+             It treats the Input and Button as direct children of the Flex Form. */
+          .ilist-content div, 
+          .ilist-content label, 
+          .ilist-content span {
+             display: contents !important; 
           }
 
           /* 4. Hide Disruptive Elements */
@@ -65,52 +62,49 @@ const QuickBuyEmbed: React.FC = () => {
           /* 5. Input Styling (Left Side) */
           .ilist-content input[type="text"],
           .ilist-content input:not([type="submit"]) {
-             flex-grow: 1 !important;
-             flex-shrink: 1 !important;
+             /* Now this will actually work because the parent wrapper is gone */
+             flex: 1 1 auto !important; 
              width: auto !important;
+             min-width: 0 !important; /* Prevents flexbox overflow issues */
              height: 50px !important;
              
-             /* Restore Font Size here */
-             font-size: 16px !important; 
-             line-height: normal !important;
-             
-             border-radius: 4px 0 0 4px !important; 
-             border: 1px solid #ccc !important;
-             border-right: none !important; 
+             margin: 0 !important;
              padding: 0 16px !important;
+             font-size: 16px !important;
+             
+             border: 1px solid #ccc !important;
+             border-right: none !important; /* Remove right border */
+             border-radius: 4px 0 0 4px !important; 
              outline: none !important;     
-             display: inline-block !important; /* Ensures it sits on the line */
+             background: #fff !important;
           }
 
           /* 6. Button Styling (Right Side) */
           .ilist-content button,
           .ilist-content input[type="button"],
           .ilist-content input[type="submit"] {
-             flex-grow: 0 !important;
-             flex-shrink: 0 !important;
-             width: auto !important;
+             flex: 0 0 auto !important; /* Don't grow, don't shrink */
              height: 50px !important;
              
-             /* Restore Font Size here */
-             font-size: 16px !important;
-             line-height: normal !important;
-
-             /* Force negative margin to ensure overlap */
-             margin-left: -1px !important; 
-             
-             border-radius: 0 4px 4px 0 !important; 
-             white-space: nowrap !important;
-             cursor: pointer !important;
+             margin: 0 !important;
              padding: 0 24px !important;
+             font-size: 16px !important;
+             font-weight: 600 !important;
+             white-space: nowrap !important;
+
              background-color: #000 !important;
              color: #fff !important;
              border: 1px solid #000 !important;
-             font-weight: 600 !important;
-             display: inline-block !important;
+             border-radius: 0 4px 4px 0 !important; 
+             cursor: pointer !important;
           }
 
           /* 7. Mobile Responsiveness */
           @media (max-width: 480px) {
+            /* On mobile, we turn OFF the unwrap so we can stack them again */
+            .ilist-content div, .ilist-content label {
+               display: block !important; 
+            }
             .ilist-content form {
                flex-direction: column !important;
             }
@@ -118,8 +112,7 @@ const QuickBuyEmbed: React.FC = () => {
             .ilist-content button {
                width: 100% !important;
                border-radius: 4px !important;
-               margin-bottom: 10px !important; /* Manual spacing for stack */
-               margin-left: 0 !important; /* Remove negative margin on mobile */
+               margin-bottom: 10px !important; 
                border-right: 1px solid #ccc !important; 
             }
           }
