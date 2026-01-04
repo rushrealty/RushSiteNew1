@@ -1369,7 +1369,7 @@ const HomeContent: React.FC = () => {
         <div className="cta-content">
           <h2>Ready to get started?</h2>
           <p>Get your no-obligation cash offer in 48 hours.</p>
-          <a href="/get-my-offer" className="cta-button">Get My Offer</a>
+          <a href="/get-offer" className="cta-button">Get My Offer</a>
         </div>
       </section>
 
