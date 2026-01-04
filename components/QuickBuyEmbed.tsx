@@ -35,8 +35,7 @@ const QuickBuyEmbed: React.FC = () => {
           .ilist-content,
           .ilist-content form,
           .ilist-content div,
-          .ilist-content label,
-          .ilist-content span {
+          .ilist-content label {
              display: flex !important;
              flex-direction: column !important;
              align-items: stretch !important;
@@ -46,9 +45,17 @@ const QuickBuyEmbed: React.FC = () => {
              padding: 0 !important;
           }
 
-          /* 3. Hide Disruptive Elements */
+          /* 3. Hide Disruptive Elements AND Validation Messages */
           .ilist-content br, 
-          .ilist-content hr {
+          .ilist-content hr,
+          .ilist-content span,
+          .ilist-content p,
+          .ilist-content .error,
+          .ilist-content .validation,
+          .ilist-content .message,
+          .ilist-content [class*="error"],
+          .ilist-content [class*="valid"],
+          .ilist-content [class*="message"] {
             display: none !important;
           }
 
