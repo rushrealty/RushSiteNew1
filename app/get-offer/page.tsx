@@ -1,83 +1,97 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function GetYourOfferPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  
+  // Use refs to strictly track if the containers are ready
+  const heroContainerRef = useRef<HTMLDivElement>(null);
+  const ctaContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  // Load QuickBuy script dynamically and handle cleanup
+  // Load QuickBuy script dynamically with ref-based approach
   useEffect(() => {
     let scriptTag: HTMLScriptElement | null = null;
-    let buttonInterval: NodeJS.Timeout;
-    let loadTimer: NodeJS.Timeout;
+    let buttonObserver: MutationObserver | null = null;
 
     const loadScript = () => {
-      // 1. Clean up any leftover scripts from previous navigations
-      // We do this aggressively to ensure no duplicates exist
-      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
+      // 1. SAFETY CHECK: Ensure at least one container exists before doing anything
+      if (!heroContainerRef.current && !ctaContainerRef.current) return;
 
-      // 2. Clear Global Variables (Attempt to reset script state)
-      // These are common variable names used by such widgets. 
-      // Clearing them forces the script to re-initialize.
+      // 2. Aggressive Cleanup
+      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
       // @ts-ignore
       delete window.QuickBuy;
       // @ts-ignore
-      delete window.Falcon;
+      delete window.Falcon; 
       // @ts-ignore
       delete window.autoAddress;
+      
+      // Clear the specific container refs
+      if (heroContainerRef.current) heroContainerRef.current.innerHTML = '';
+      if (ctaContainerRef.current) ctaContainerRef.current.innerHTML = '';
 
-      // 3. Reset the container
-      const containers = document.querySelectorAll('.ilist-content');
-      containers.forEach(container => {
-        container.innerHTML = '';
-      });
-
-      // 4. Create the new script
+      // 3. Create Script
       scriptTag = document.createElement('script');
-      // Timestamp ensures browser doesn't use cached version
-      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
+      // Add a 'random' param to bust internal script caching if they use it
+      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&cb=${Date.now()}`;
       scriptTag.async = true;
 
-      // 5. THE MAGIC FIX: Manually trigger events when script loads
       scriptTag.onload = () => {
-        // Many legacy scripts wait for 'load' or 'DOMContentLoaded'.
-        // Since Next.js navigation doesn't fire these, we fire them manually
-        // specifically for this script to catch.
-        window.dispatchEvent(new Event('load'));
-        window.dispatchEvent(new Event('DOMContentLoaded'));
+        // Trigger events slightly delayed to ensure script execution context is ready
+        setTimeout(() => {
+          window.dispatchEvent(new Event('load'));
+          window.dispatchEvent(new Event('DOMContentLoaded'));
+        }, 50);
       };
 
       document.body.appendChild(scriptTag);
     };
 
-    // 6. Delay slightly to ensure the <div> is painted in the DOM
-    // Increased to 300ms to be safe against slower renders
-    loadTimer = setTimeout(loadScript, 300);
+    // 4. ELIMINATE TIMEOUT: Run immediately if ref is ready
+    if (heroContainerRef.current || ctaContainerRef.current) {
+      loadScript();
+    } else {
+      // Fallback (rare in useEffect)
+      setTimeout(loadScript, 100);
+    }
 
-    // 7. Button Text Updater (Preserved from your original code)
-    const updateButtonText = () => {
-      const buttons = document.querySelectorAll('.ilist-content button');
-      buttons.forEach(button => {
-        if (button.textContent?.includes('Get Value')) {
-          button.textContent = 'Get Offer';
-        }
+    // 5. OBSERVER (Better than setInterval for button text)
+    // This watches the DOM for changes and updates the button instantly
+    const setupObserver = (container: HTMLDivElement | null) => {
+      if (!container) return null;
+      
+      const observer = new MutationObserver((mutations) => {
+        const buttons = container.querySelectorAll('button');
+        buttons.forEach(btn => {
+          if (btn.textContent?.includes('Get Value')) {
+            btn.textContent = 'Get Offer';
+          }
+        });
       });
+      
+      observer.observe(container, { 
+        childList: true, 
+        subtree: true 
+      });
+      
+      return observer;
     };
 
-    buttonInterval = setInterval(updateButtonText, 500);
-    setTimeout(() => clearInterval(buttonInterval), 15000);
+    const heroObserver = setupObserver(heroContainerRef.current);
+    const ctaObserver = setupObserver(ctaContainerRef.current);
 
-    // 8. CLEANUP: Only remove the specific script we added
     return () => {
-      clearTimeout(loadTimer);
-      clearInterval(buttonInterval);
-      if (scriptTag) {
-        scriptTag.remove();
-      }
+      if (scriptTag) scriptTag.remove();
+      if (heroObserver) heroObserver.disconnect();
+      if (ctaObserver) ctaObserver.disconnect();
+      // Wipe the containers on unmount to prevent ghost elements
+      if (heroContainerRef.current) heroContainerRef.current.innerHTML = '';
+      if (ctaContainerRef.current) ctaContainerRef.current.innerHTML = '';
     };
   }, []);
 
@@ -887,7 +901,7 @@ export default function GetYourOfferPage() {
             
             <div className="address-form-container" id="addressForm">
               {/* QuickBuy Address Search Widget */}
-              <div className="ilist-content"></div>
+              <div ref={heroContainerRef} className="ilist-content" id="ilist-content-hero"></div>
               
               <div className="form-helper">
                 <div className="form-helper-item">
@@ -1257,7 +1271,7 @@ export default function GetYourOfferPage() {
               <h2>Ready to See Your Offer?</h2>
               <p>Get a no-obligation cash offer on your Delaware home in minutes. No commitment required.</p>
               {/* QuickBuy Address Search Widget */}
-              <div className="ilist-content"></div>
+              <div ref={ctaContainerRef} className="ilist-content" id="ilist-content-cta"></div>
             </div>
           </div>
         </section>
