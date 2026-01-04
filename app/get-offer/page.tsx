@@ -12,6 +12,36 @@ export default function GetYourOfferPage() {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
+  // Change QuickBuy button text from "Get Value" to "Get Offer"
+  useEffect(() => {
+    const updateButtonText = () => {
+      const buttons = document.querySelectorAll('.ilist-content button');
+      buttons.forEach(button => {
+        if (button.textContent?.includes('Get Value')) {
+          button.textContent = 'Get Offer';
+        }
+      });
+    };
+
+    // Run immediately and also observe for changes
+    updateButtonText();
+    
+    const observer = new MutationObserver(updateButtonText);
+    const containers = document.querySelectorAll('.ilist-content');
+    containers.forEach(container => {
+      observer.observe(container, { childList: true, subtree: true });
+    });
+
+    // Also run on interval briefly to catch late-loading content
+    const interval = setInterval(updateButtonText, 500);
+    setTimeout(() => clearInterval(interval), 5000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <>
       <style jsx global>{`
@@ -104,41 +134,20 @@ export default function GetYourOfferPage() {
             margin: 0 auto;
         }
 
-        /* QuickBuy Widget Styling */
-        .get-offer-page .address-form-container .ilist-content,
-        .get-offer-page .cta-box .ilist-content {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 8px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        /* QuickBuy Widget Styling - Simple overrides */
+        .get-offer-page .ilist-content {
+            border-radius: 12px;
+            overflow: hidden;
         }
 
-        .get-offer-page .cta-box .ilist-content {
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        .get-offer-page .ilist-content button {
+            background: #000000 !important;
+            background-color: #000000 !important;
         }
 
-        /* Override QuickBuy widget button to match site styling */
-        .get-offer-page .ilist-content button,
-        .get-offer-page .ilist-content input[type="submit"],
-        .get-offer-page .ilist-content .btn,
-        .get-offer-page .ilist-content [class*="button"],
-        .get-offer-page .ilist-content [class*="btn"] {
-            background: var(--black) !important;
-            background-color: var(--black) !important;
-            color: var(--white) !important;
-            border: none !important;
-            border-radius: 12px !important;
-            font-weight: 700 !important;
-            transition: all 0.3s ease !important;
-        }
-
-        .get-offer-page .ilist-content button:hover,
-        .get-offer-page .ilist-content input[type="submit"]:hover,
-        .get-offer-page .ilist-content .btn:hover,
-        .get-offer-page .ilist-content [class*="button"]:hover,
-        .get-offer-page .ilist-content [class*="btn"]:hover {
-            background: var(--gray-800) !important;
-            background-color: var(--gray-800) !important;
+        .get-offer-page .ilist-content button:hover {
+            background: #262626 !important;
+            background-color: #262626 !important;
         }
 
         .get-offer-page .form-helper {
@@ -1317,7 +1326,7 @@ export default function GetYourOfferPage() {
       {/* QuickBuy Address Search Integration */}
       <Script 
         src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="lazyOnload"
+        strategy="afterInteractive"
       />
     </>
   );
