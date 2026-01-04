@@ -131,31 +131,37 @@ const HomeContent: React.FC = () => {
         }
 
         /* ═══════════════════════════════════════
-           QUICKBUY WIDGET STYLING - EXACT MATCH TO GET-OFFER PAGE
+           QUICKBUY WIDGET STYLING - COMPACT VERSION
         ═══════════════════════════════════════ */
         .guaranteed-sale-page .ilist-content {
           background: var(--white) !important;
-          border-radius: 16px !important;
-          padding: 8px !important;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+          border-radius: 12px !important;
+          padding: 5px !important;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
           border: 1px solid var(--gray-200) !important;
+          max-height: 56px !important;
+          display: flex !important;
+          align-items: center !important;
         }
 
-        /* Target the inner form wrapper */
+        /* Target all inner containers */
+        .guaranteed-sale-page .ilist-content * {
+          box-sizing: border-box !important;
+        }
+
         .guaranteed-sale-page .ilist-content form,
         .guaranteed-sale-page .ilist-content > div,
-        .guaranteed-sale-page .ilist-content > div > div {
+        .guaranteed-sale-page .ilist-content > div > div,
+        .guaranteed-sale-page .ilist-content > form > div {
           margin: 0 !important;
           padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          width: 100% !important;
+          height: 100% !important;
         }
 
-        /* Target flex container inside widget */
-        .guaranteed-sale-page .ilist-content [style*="display: flex"],
-        .guaranteed-sale-page .ilist-content [style*="display:flex"] {
-          gap: 8px !important;
-        }
-
-        /* Override QuickBuy widget button */
+        /* Override QuickBuy widget button - COMPACT */
         .guaranteed-sale-page .ilist-content button,
         .guaranteed-sale-page .ilist-content input[type="submit"],
         .guaranteed-sale-page .ilist-content .btn,
@@ -166,14 +172,16 @@ const HomeContent: React.FC = () => {
           background-color: var(--black) !important;
           color: var(--white) !important;
           border: none !important;
-          border-radius: 12px !important;
-          font-weight: 700 !important;
-          font-size: 14px !important;
-          padding: 12px 20px !important;
-          min-height: auto !important;
-          height: auto !important;
-          line-height: 1.4 !important;
+          border-radius: 8px !important;
+          font-weight: 600 !important;
+          font-size: 13px !important;
+          padding: 10px 16px !important;
+          min-height: 40px !important;
+          max-height: 40px !important;
+          height: 40px !important;
+          line-height: 1 !important;
           transition: all 0.3s ease !important;
+          white-space: nowrap !important;
         }
 
         .guaranteed-sale-page .ilist-content button:hover,
@@ -186,7 +194,7 @@ const HomeContent: React.FC = () => {
           background-color: var(--gray-800) !important;
         }
 
-        /* Override QuickBuy input styling */
+        /* Override QuickBuy input styling - COMPACT */
         .guaranteed-sale-page .ilist-content input[type="text"],
         .guaranteed-sale-page .ilist-content input[type="search"],
         .guaranteed-sale-page .ilist-content input:not([type="submit"]):not([type="button"]) {
@@ -194,23 +202,20 @@ const HomeContent: React.FC = () => {
           outline: none !important;
           font-size: 14px !important;
           font-family: inherit !important;
-          padding: 12px 16px !important;
+          padding: 8px 12px !important;
           background: transparent !important;
           color: var(--gray-900) !important;
-          min-height: auto !important;
-          height: auto !important;
-          line-height: 1.4 !important;
+          min-height: 40px !important;
+          max-height: 40px !important;
+          height: 40px !important;
+          line-height: 1 !important;
           box-shadow: none !important;
+          flex: 1 !important;
         }
 
         .guaranteed-sale-page .ilist-content input::placeholder {
           color: var(--gray-400) !important;
           font-size: 14px !important;
-        }
-
-        /* Reset any wrapper padding/margins */
-        .guaranteed-sale-page .ilist-content * {
-          box-sizing: border-box !important;
         }
 
         .guaranteed-sale-page .hero-benefits {
@@ -1111,6 +1116,12 @@ const HomeContent: React.FC = () => {
         }
       `}</style>
 
+      {/* QuickBuy Address Search Script - Load early for immediate display */}
+      <Script 
+        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
+        strategy="afterInteractive"
+      />
+
       {/* Hero Section */}
       <section className="hero" id="get-offer">
         <div className="hero-container">
@@ -1473,12 +1484,6 @@ const HomeContent: React.FC = () => {
           </form>
         </div>
       </div>
-
-      {/* QuickBuy Address Search Integration */}
-      <Script 
-        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="lazyOnload"
-      />
     </div>
   );
 };
