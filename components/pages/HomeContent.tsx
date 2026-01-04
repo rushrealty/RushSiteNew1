@@ -2,18 +2,38 @@
 
 import React, { useState, useEffect } from 'react';
 import QuickBuyEmbed from '@/components/QuickBuyEmbed';
+import FAQ from '@/components/FAQ';
+
+// FAQ Data for Home page
+const homePageFaqs = [
+  {
+    question: "How does Rush Home determine my offer price?",
+    answer: "We analyze recent comparable sales, current market conditions, your home's condition, and location factors to provide a competitive, market-based offer. Our pricing is transparent—we'll walk through exactly how we arrived at your number."
+  },
+  {
+    question: "What types of homes qualify?",
+    answer: "We work with single-family homes, townhouses, and condos throughout Delaware's Kent, New Castle, and Sussex counties. Most homes in typical condition qualify. Enter your address above and we'll confirm eligibility within 48 hours."
+  },
+  {
+    question: "Can I list my home traditionally?",
+    answer: "Absolutely. Both Rush Home Flex and Rush Home Advantage allow you to list your home on the open market while keeping our guaranteed backup offer in your pocket. If your home sells traditionally, you keep the higher proceeds."
+  },
+  {
+    question: "How does the \"buy before you sell\" program work?",
+    answer: "With Rush Flex, we provide a guaranteed backup contract on your current home. This allows lenders to exclude your current mortgage from debt-to-income calculations, enabling you to qualify for and purchase your new home without waiting to sell first. The backup offer is valid for 150 days."
+  },
+  {
+    question: "Am I obligated to accept the offer?",
+    answer: "No. Our offer is completely no-obligation. Get your guaranteed cash offer, compare it to your options, and decide what's best for your family. No pressure, no commitment unless you choose to move forward."
+  }
+];
 
 const HomeContent: React.FC = () => {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
 
   const closeModal = () => {
     setShowModal(false);
@@ -573,72 +593,6 @@ const HomeContent: React.FC = () => {
         }
 
         /* ═══════════════════════════════════════
-           FAQ
-        ═══════════════════════════════════════ */
-        .guaranteed-sale-page .faq {
-          padding: 7rem 4rem;
-          background: var(--gray-50);
-        }
-
-        .guaranteed-sale-page .faq-grid {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .guaranteed-sale-page .faq-item {
-          background: var(--white);
-          border-radius: 12px;
-          margin-bottom: 1rem;
-          overflow: hidden;
-        }
-
-        .guaranteed-sale-page .faq-question {
-          width: 100%;
-          padding: 1.5rem;
-          background: none;
-          border: none;
-          text-align: left;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-family: inherit;
-          color: var(--gray-900);
-        }
-
-        .guaranteed-sale-page .faq-question:hover {
-          background: var(--gray-50);
-        }
-
-        .guaranteed-sale-page .faq-icon {
-          font-size: 1.25rem;
-          color: var(--gray-400);
-          transition: transform 0.3s ease;
-        }
-
-        .guaranteed-sale-page .faq-item.active .faq-icon {
-          transform: rotate(45deg);
-        }
-
-        .guaranteed-sale-page .faq-answer {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.3s ease;
-        }
-
-        .guaranteed-sale-page .faq-item.active .faq-answer {
-          max-height: 500px;
-        }
-
-        .guaranteed-sale-page .faq-answer-content {
-          padding: 0 1.5rem 1.5rem;
-          color: var(--gray-600);
-          line-height: 1.8;
-        }
-
-        /* ═══════════════════════════════════════
            CTA SECTION
         ═══════════════════════════════════════ */
         .guaranteed-sale-page .cta-section {
@@ -947,8 +901,7 @@ const HomeContent: React.FC = () => {
 
           .guaranteed-sale-page .benefits,
           .guaranteed-sale-page .comparison,
-          .guaranteed-sale-page .testimonials,
-          .guaranteed-sale-page .faq {
+          .guaranteed-sale-page .testimonials {
             padding: 4rem 1.5rem;
           }
 
@@ -1282,33 +1235,12 @@ const HomeContent: React.FC = () => {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="faq">
-        <div className="section-header">
-          <div className="section-label">FAQ</div>
-          <h2 className="section-title">Common Questions</h2>
-        </div>
-
-        <div className="faq-grid">
-          {[
-            { q: "How does Rush Home determine my offer price?", a: "We analyze recent comparable sales, current market conditions, your home's condition, and location factors to provide a competitive, market-based offer. Our pricing is transparent—we'll walk through exactly how we arrived at your number." },
-            { q: "What types of homes qualify?", a: "We work with single-family homes, townhouses, and condos throughout Delaware's Kent, New Castle, and Sussex counties. Most homes in typical condition qualify. Enter your address above and we'll confirm eligibility within 48 hours." },
-            { q: "Can I list my home traditionally?", a: "Absolutely. Both Rush Home Flex and Rush Home Advantage allow you to list your home on the open market while keeping our guaranteed backup offer in your pocket. If your home sells traditionally, you keep the higher proceeds." },
-            { q: "How does the \"buy before you sell\" program work?", a: "With Rush Flex, we provide a guaranteed backup contract on your current home. This allows lenders to exclude your current mortgage from debt-to-income calculations, enabling you to qualify for and purchase your new home without waiting to sell first. The backup offer is valid for 150 days." },
-            { q: "Am I obligated to accept the offer?", a: "No. Our offer is completely no-obligation. Get your guaranteed cash offer, compare it to your options, and decide what's best for your family. No pressure, no commitment unless you choose to move forward." }
-          ].map((faq, idx) => (
-            <div key={idx} className={`faq-item ${activeFaq === idx ? 'active' : ''}`}>
-              <button className="faq-question" onClick={() => toggleFaq(idx)}>
-                {faq.q}
-                <span className="faq-icon">+</span>
-              </button>
-              <div className="faq-answer">
-                <div className="faq-answer-content">{faq.a}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="FAQ"
+        title="Common Questions"
+        faqs={homePageFaqs}
+      />
 
       {/* CTA Section */}
       <section className="cta-section">
