@@ -1,99 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import QuickBuyEmbed from '@/components/QuickBuyEmbed';
 
 export default function GetYourOfferPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  
-  // Use refs to strictly track if the containers are ready
-  const heroContainerRef = useRef<HTMLDivElement>(null);
-  const ctaContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
-
-  // Load QuickBuy script dynamically with ref-based approach
-  useEffect(() => {
-    let scriptTag: HTMLScriptElement | null = null;
-    let buttonObserver: MutationObserver | null = null;
-
-    const loadScript = () => {
-      // 1. SAFETY CHECK: Ensure at least one container exists before doing anything
-      if (!heroContainerRef.current && !ctaContainerRef.current) return;
-
-      // 2. Aggressive Cleanup
-      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
-      // @ts-ignore
-      delete window.QuickBuy;
-      // @ts-ignore
-      delete window.Falcon; 
-      // @ts-ignore
-      delete window.autoAddress;
-      
-      // Clear the specific container refs
-      if (heroContainerRef.current) heroContainerRef.current.innerHTML = '';
-      if (ctaContainerRef.current) ctaContainerRef.current.innerHTML = '';
-
-      // 3. Create Script
-      scriptTag = document.createElement('script');
-      // Add a 'random' param to bust internal script caching if they use it
-      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&cb=${Date.now()}`;
-      scriptTag.async = true;
-
-      scriptTag.onload = () => {
-        // Trigger events slightly delayed to ensure script execution context is ready
-        setTimeout(() => {
-          window.dispatchEvent(new Event('load'));
-          window.dispatchEvent(new Event('DOMContentLoaded'));
-        }, 50);
-      };
-
-      document.body.appendChild(scriptTag);
-    };
-
-    // 4. ELIMINATE TIMEOUT: Run immediately if ref is ready
-    if (heroContainerRef.current || ctaContainerRef.current) {
-      loadScript();
-    } else {
-      // Fallback (rare in useEffect)
-      setTimeout(loadScript, 100);
-    }
-
-    // 5. OBSERVER (Better than setInterval for button text)
-    // This watches the DOM for changes and updates the button instantly
-    const setupObserver = (container: HTMLDivElement | null) => {
-      if (!container) return null;
-      
-      const observer = new MutationObserver((mutations) => {
-        const buttons = container.querySelectorAll('button');
-        buttons.forEach(btn => {
-          if (btn.textContent?.includes('Get Value')) {
-            btn.textContent = 'Get Offer';
-          }
-        });
-      });
-      
-      observer.observe(container, { 
-        childList: true, 
-        subtree: true 
-      });
-      
-      return observer;
-    };
-
-    const heroObserver = setupObserver(heroContainerRef.current);
-    const ctaObserver = setupObserver(ctaContainerRef.current);
-
-    return () => {
-      if (scriptTag) scriptTag.remove();
-      if (heroObserver) heroObserver.disconnect();
-      if (ctaObserver) ctaObserver.disconnect();
-      // Wipe the containers on unmount to prevent ghost elements
-      if (heroContainerRef.current) heroContainerRef.current.innerHTML = '';
-      if (ctaContainerRef.current) ctaContainerRef.current.innerHTML = '';
-    };
-  }, []);
 
   return (
     <>
@@ -901,7 +816,7 @@ export default function GetYourOfferPage() {
             
             <div className="address-form-container" id="addressForm">
               {/* QuickBuy Address Search Widget */}
-              <div ref={heroContainerRef} className="ilist-content" id="ilist-content-hero"></div>
+              <QuickBuyEmbed />
               
               <div className="form-helper">
                 <div className="form-helper-item">
@@ -1271,7 +1186,7 @@ export default function GetYourOfferPage() {
               <h2>Ready to See Your Offer?</h2>
               <p>Get a no-obligation cash offer on your Delaware home in minutes. No commitment required.</p>
               {/* QuickBuy Address Search Widget */}
-              <div ref={ctaContainerRef} className="ilist-content" id="ilist-content-cta"></div>
+              <QuickBuyEmbed />
             </div>
           </div>
         </section>
