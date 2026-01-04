@@ -3,13 +3,11 @@
 import React, { useEffect, useState } from 'react';
 
 const QuickBuyEmbed: React.FC = () => {
-  // Reduced default height since we want a single row now
   const [iframeHeight, setIframeHeight] = useState(100); 
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'QUICKBUY_RESIZE') {
-        // Add a little buffer (10px) to prevent scrollbars
         setIframeHeight(event.data.height + 10);
       }
     };
@@ -33,56 +31,59 @@ const QuickBuyEmbed: React.FC = () => {
             background: transparent;
           }
 
-          /* 2. THE FLEXBOX FIX */
-          /* Target every potential wrapper the script might create */
+          /* 2. THE CONTAINER */
           .ilist-content, 
           .ilist-content form,
           .ilist-content > div {
              display: flex !important;
-             flex-direction: row !important; /* Force side-by-side */
-             flex-wrap: nowrap !important;   /* FORBID wrapping */
-             align-items: center !important; /* Vertically center */
-             gap: 0 !important;              /* We manage spacing via margins */
+             flex-direction: row !important;
+             flex-wrap: nowrap !important;
+             align-items: center !important;
+             justify-content: center !important; /* Centers the bar if it doesn't hit 100% width */
+             gap: 0 !important;              /* Force zero gap */
              width: 100% !important;
              box-sizing: border-box !important;
           }
 
           /* 3. Hide Disruptive Elements */
-          /* Scripts often sneak in <br> tags or empty divs that break layout */
           .ilist-content br, 
           .ilist-content hr {
             display: none !important;
           }
 
-          /* 4. Input Styling (The Address Bar) */
+          /* 4. Input Styling (Left Side) */
           .ilist-content input[type="text"],
           .ilist-content input:not([type="submit"]) {
-             flex-grow: 1 !important;    /* Take up all remaining space */
-             flex-shrink: 1 !important;  /* Allow shrinking if needed */
-             width: auto !important;     /* Override specific widths */
-             margin: 0 !important;
-             height: 50px !important;    /* Enforce a nice clickable height */
-             border-radius: 4px 0 0 4px !important; /* Round left corners only */
+             flex-grow: 1 !important;
+             flex-shrink: 1 !important;
+             width: auto !important;
+             margin: 0 !important;         /* CRITICAL: No margin */
+             height: 50px !important;
+             border-radius: 4px 0 0 4px !important; /* Square off the right side */
              border: 1px solid #ccc !important;
-             border-right: none !important; /* Merge visually with button */
+             border-right: none !important; /* Remove right border so it merges */
              padding: 0 16px !important;
              font-size: 16px !important;
+             outline: none !important;     /* Removes blue glow on click (optional) */
           }
 
-          /* 5. Button Styling */
+          /* 5. Button Styling (Right Side) */
           .ilist-content button,
           .ilist-content input[type="button"],
           .ilist-content input[type="submit"] {
-             flex-grow: 0 !important;        /* Do not stretch width */
-             flex-shrink: 0 !important;      /* Do not squish */
+             flex-grow: 0 !important;
+             flex-shrink: 0 !important;
              width: auto !important;
-             margin: 0 !important;
-             height: 50px !important;        /* Match input height */
-             border-radius: 0 4px 4px 0 !important; /* Round right corners only */
-             white-space: nowrap !important; /* Keep text on one line */
+             
+             /* THE FIX: Negative margin pulls it 1px left to overlap properly */
+             margin: 0 0 0 -1px !important; 
+             
+             height: 50px !important;
+             border-radius: 0 4px 4px 0 !important; /* Square off the left side */
+             white-space: nowrap !important;
              cursor: pointer !important;
              padding: 0 24px !important;
-             background-color: #000 !important; /* Force black background */
+             background-color: #000 !important;
              color: #fff !important;
              border: 1px solid #000 !important;
              font-weight: 600 !important;
@@ -97,8 +98,8 @@ const QuickBuyEmbed: React.FC = () => {
             .ilist-content button {
                width: 100% !important;
                border-radius: 4px !important;
-               border-right: 1px solid #ccc !important;
-               margin-bottom: 10px !important;
+               margin: 0 0 10px 0 !important; /* Add space back for mobile stack */
+               border-right: 1px solid #ccc !important; /* Add border back */
             }
           }
         </style>
@@ -114,7 +115,6 @@ const QuickBuyEmbed: React.FC = () => {
           setInterval(() => {
             const buttons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
             buttons.forEach(btn => {
-              // Check textContent (buttons) or value (input buttons)
               const text = btn.textContent || btn.value || '';
               if (text.includes('Get Value')) {
                 if (btn.tagName === 'INPUT') {
@@ -128,7 +128,6 @@ const QuickBuyEmbed: React.FC = () => {
 
           // Resize Logic
           const sendHeight = () => {
-            // We calculate height based on the form, not just body, to be more precise
             const form = document.querySelector('form') || document.body;
             const height = form.scrollHeight;
             window.parent.postMessage({ type: 'QUICKBUY_RESIZE', height: height }, '*');
