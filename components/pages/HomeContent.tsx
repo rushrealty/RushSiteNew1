@@ -12,22 +12,28 @@ const HomeContent: React.FC = () => {
 
   // Load QuickBuy script dynamically and change button text
   useEffect(() => {
-    const loadQuickBuyScript = () => {
-      // Remove any existing QuickBuy script to force reload
-      const existingScript = document.querySelector('script[src*="quickbuyoffer.com"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
+    let mounted = true;
+    let interval: NodeJS.Timeout;
 
-      // Create and append new script
+    const initQuickBuy = () => {
+      if (!mounted) return;
+
+      // Remove any existing QuickBuy scripts
+      const existingScripts = document.querySelectorAll('script[src*="quickbuyoffer.com"]');
+      existingScripts.forEach(script => script.remove());
+
+      // Clear any existing widget content to force re-initialization
+      const containers = document.querySelectorAll('.ilist-content');
+      containers.forEach(container => {
+        container.innerHTML = '';
+      });
+
+      // Create and append new script with cache-busting timestamp
       const script = document.createElement('script');
-      script.src = 'https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01';
+      script.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
       script.async = true;
       document.body.appendChild(script);
     };
-
-    // Load script after a short delay to ensure DOM is ready
-    const timer = setTimeout(loadQuickBuyScript, 100);
 
     // Change button text from "Get Value" to "Get Offer"
     const updateButtonText = () => {
@@ -39,12 +45,22 @@ const HomeContent: React.FC = () => {
       });
     };
 
-    // Run button text update on interval to catch when widget loads
-    const interval = setInterval(updateButtonText, 500);
-    setTimeout(() => clearInterval(interval), 10000);
+    // Wait for window to be fully loaded, or run immediately if already loaded
+    if (document.readyState === 'complete') {
+      // Small delay to ensure React hydration is complete
+      setTimeout(initQuickBuy, 300);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(initQuickBuy, 300);
+      });
+    }
+
+    // Run button text update on interval
+    interval = setInterval(updateButtonText, 500);
+    setTimeout(() => clearInterval(interval), 15000);
 
     return () => {
-      clearTimeout(timer);
+      mounted = false;
       clearInterval(interval);
     };
   }, []);
