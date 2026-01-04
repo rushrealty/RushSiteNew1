@@ -1,52 +1,48 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import FAQ from '@/components/FAQ';
+
+// FAQ Data for Mortgage 101 page
+const mortgage101Faqs = [
+  {
+    question: "How much should I save for a down payment?",
+    answer: "It depends on your loan type. Conventional loans require as little as 3% for first-time buyers, FHA requires 3.5%, while VA and USDA loans offer zero-down options for eligible buyers. Putting down 20% on a conventional loan eliminates PMI, but it's not required."
+  },
+  {
+    question: "What credit score do I need to buy a home?",
+    answer: "Generally, a score of 620 or higher is preferred for conventional loans. FHA loans may accept scores as low as 580 with 3.5% down (or 500 with 10% down). VA and USDA loans don't have government-set minimums, but lenders typically require 620+. We can connect you with lenders who specialize in various credit profiles."
+  },
+  {
+    question: "What's the difference between pre-qualification and pre-approval?",
+    answer: "Pre-qualification is an informal estimate based on self-reported information. Pre-approval is a formal process where the lender verifies your income, assets, and credit. Pre-approval carries more weight with sellers because it shows you're a serious, qualified buyer."
+  },
+  {
+    question: "How long does the mortgage process take?",
+    answer: "From application to closing, the mortgage process typically takes 30–45 days. Having your documents ready, responding quickly to lender requests, and avoiding major financial changes can help keep the timeline on track."
+  },
+  {
+    question: "Should I choose a 15-year or 30-year mortgage?",
+    answer: "A 15-year mortgage has higher monthly payments but saves significantly on total interest and builds equity faster. A 30-year mortgage offers lower monthly payments and more flexibility. The right choice depends on your budget, goals, and how long you plan to stay in the home."
+  },
+  {
+    question: "What happens if my appraisal comes in low?",
+    answer: "If the appraisal is lower than your offer price, you have options: negotiate with the seller to lower the price, make up the difference in cash, dispute the appraisal with additional comparable sales, or walk away if you have an appraisal contingency. We'll help you navigate this situation."
+  },
+  {
+    question: "Can I buy a home if I'm self-employed?",
+    answer: "Yes, self-employed buyers can qualify for mortgages. You'll typically need two years of tax returns and may need to show consistent or increasing income. Some lenders offer bank statement loans that look at deposits rather than tax returns. We can connect you with lenders experienced in working with self-employed borrowers."
+  },
+  {
+    question: "Am I eligible for a VA or USDA loan?",
+    answer: "VA loans are available to active-duty service members, veterans, reservists, National Guard members, and some surviving spouses. You'll need a Certificate of Eligibility (COE). USDA loans are for properties in eligible rural areas with income limits based on your county and household size. Many areas of Delaware qualify—we can help you check eligibility."
+  }
+];
 
 export default function Mortgage101Content() {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const faqs = [
-    {
-      question: "How much should I save for a down payment?",
-      answer: "It depends on your loan type. Conventional loans require as little as 3% for first-time buyers, FHA requires 3.5%, while VA and USDA loans offer zero-down options for eligible buyers. Putting down 20% on a conventional loan eliminates PMI, but it's not required."
-    },
-    {
-      question: "What credit score do I need to buy a home?",
-      answer: "Generally, a score of 620 or higher is preferred for conventional loans. FHA loans may accept scores as low as 580 with 3.5% down (or 500 with 10% down). VA and USDA loans don't have government-set minimums, but lenders typically require 620+. We can connect you with lenders who specialize in various credit profiles."
-    },
-    {
-      question: "What's the difference between pre-qualification and pre-approval?",
-      answer: "Pre-qualification is an informal estimate based on self-reported information. Pre-approval is a formal process where the lender verifies your income, assets, and credit. Pre-approval carries more weight with sellers because it shows you're a serious, qualified buyer."
-    },
-    {
-      question: "How long does the mortgage process take?",
-      answer: "From application to closing, the mortgage process typically takes 30–45 days. Having your documents ready, responding quickly to lender requests, and avoiding major financial changes can help keep the timeline on track."
-    },
-    {
-      question: "Should I choose a 15-year or 30-year mortgage?",
-      answer: "A 15-year mortgage has higher monthly payments but saves significantly on total interest and builds equity faster. A 30-year mortgage offers lower monthly payments and more flexibility. The right choice depends on your budget, goals, and how long you plan to stay in the home."
-    },
-    {
-      question: "What happens if my appraisal comes in low?",
-      answer: "If the appraisal is lower than your offer price, you have options: negotiate with the seller to lower the price, make up the difference in cash, dispute the appraisal with additional comparable sales, or walk away if you have an appraisal contingency. We'll help you navigate this situation."
-    },
-    {
-      question: "Can I buy a home if I'm self-employed?",
-      answer: "Yes, self-employed buyers can qualify for mortgages. You'll typically need two years of tax returns and may need to show consistent or increasing income. Some lenders offer bank statement loans that look at deposits rather than tax returns. We can connect you with lenders experienced in working with self-employed borrowers."
-    },
-    {
-      question: "Am I eligible for a VA or USDA loan?",
-      answer: "VA loans are available to active-duty service members, veterans, reservists, National Guard members, and some surviving spouses. You'll need a Certificate of Eligibility (COE). USDA loans are for properties in eligible rural areas with income limits based on your county and household size. Many areas of Delaware qualify—we can help you check eligibility."
-    }
-  ];
 
   return (
     <div className="mortgage-101-page">
@@ -744,93 +740,6 @@ export default function Mortgage101Content() {
         }
 
         /* ═══════════════════════════════════════
-           FAQ SECTION
-        ═══════════════════════════════════════ */
-        .mortgage-101-page .faq-section {
-          padding: 4rem 2rem;
-          background: var(--white);
-        }
-
-        .mortgage-101-page .faq-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .mortgage-101-page .faq-header {
-          text-align: center;
-          margin-bottom: 3rem;
-        }
-
-        .mortgage-101-page .faq-header h2 {
-          font-size: 2rem;
-          font-weight: 700;
-          color: var(--black);
-          margin-bottom: 0.5rem;
-        }
-
-        .mortgage-101-page .faq-header p {
-          color: var(--gray-600);
-        }
-
-        .mortgage-101-page .faq-item {
-          background: var(--gray-50);
-          border-radius: 12px;
-          margin-bottom: 1rem;
-          overflow: hidden;
-        }
-
-        .mortgage-101-page .faq-question {
-          width: 100%;
-          padding: 1.25rem 1.5rem;
-          font-weight: 600;
-          color: var(--black);
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: background 0.2s ease;
-          background: none;
-          border: none;
-          text-align: left;
-          font-family: inherit;
-          font-size: 1rem;
-        }
-
-        .mortgage-101-page .faq-question:hover {
-          background: var(--gray-100);
-        }
-
-        .mortgage-101-page .faq-question svg {
-          width: 20px;
-          height: 20px;
-          color: var(--gray-500);
-          transition: transform 0.3s ease;
-          flex-shrink: 0;
-        }
-
-        .mortgage-101-page .faq-item.active .faq-question svg {
-          transform: rotate(180deg);
-        }
-
-        .mortgage-101-page .faq-answer {
-          padding: 0 1.5rem;
-          max-height: 0;
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .mortgage-101-page .faq-item.active .faq-answer {
-          padding: 0 1.5rem 1.25rem;
-          max-height: 500px;
-        }
-
-        .mortgage-101-page .faq-answer p {
-          color: var(--gray-600);
-          font-size: 0.95rem;
-          line-height: 1.7;
-        }
-
-        /* ═══════════════════════════════════════
            CTA SECTION
         ═══════════════════════════════════════ */
         .mortgage-101-page .cta-section {
@@ -1489,27 +1398,13 @@ export default function Mortgage101Content() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="faq-section" id="faq">
-        <div className="faq-container">
-          <div className="faq-header">
-            <h2>Frequently Asked Questions</h2>
-            <p>Common questions about mortgages and home financing</p>
-          </div>
-
-          {faqs.map((faq, index) => (
-            <div key={index} className={`faq-item ${activeFaq === index ? 'active' : ''}`}>
-              <button className="faq-question" onClick={() => toggleFaq(index)}>
-                <span>{faq.question}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <div className="faq-answer">
-                <p>{faq.answer}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="Questions"
+        title="Frequently Asked Questions"
+        subtitle="Common questions about mortgages and home financing"
+        faqs={mortgage101Faqs}
+      />
 
       {/* CTA Section */}
       <section className="cta-section">
