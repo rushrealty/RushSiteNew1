@@ -1,20 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Script from 'next/script';
+import FAQ from '@/components/FAQ';
 
 export default function GetYourOfferContent() {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const faqs = [
+  // FAQ Data
+  const getOfferFaqs = [
     {
       question: "How is my offer calculated?",
       answer: "Your offer is based on comparable home sales in your area, current market conditions, and your property's condition. QuickBuy uses the same data real estate professionals use to determine fair market value, then provides a competitive cash offer."
@@ -676,73 +673,6 @@ export default function GetYourOfferContent() {
         }
 
         /* ═══════════════════════════════════════
-           FAQ SECTION
-        ═══════════════════════════════════════ */
-        .get-offer-page .faq-section {
-          padding: 100px 2rem;
-          background: var(--white);
-        }
-
-        .get-offer-page .faq-grid {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .get-offer-page .faq-item {
-          border-bottom: 1px solid var(--gray-200);
-        }
-
-        .get-offer-page .faq-question {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1.5rem 0;
-          cursor: pointer;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: var(--black);
-          transition: all 0.3s ease;
-          background: none;
-          border: none;
-          text-align: left;
-          font-family: inherit;
-        }
-
-        .get-offer-page .faq-question:hover {
-          color: var(--gray-600);
-        }
-
-        .get-offer-page .faq-question svg {
-          width: 24px;
-          height: 24px;
-          transition: transform 0.3s ease;
-          flex-shrink: 0;
-          margin-left: 1rem;
-        }
-
-        .get-offer-page .faq-item.active .faq-question svg {
-          transform: rotate(180deg);
-        }
-
-        .get-offer-page .faq-answer {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.3s ease;
-        }
-
-        .get-offer-page .faq-item.active .faq-answer {
-          max-height: 500px;
-        }
-
-        .get-offer-page .faq-answer-content {
-          padding-bottom: 1.5rem;
-          font-size: 1rem;
-          color: var(--gray-600);
-          line-height: 1.8;
-        }
-
-        /* ═══════════════════════════════════════
            QUICKBUY WIDGET STYLING
         ═══════════════════════════════════════ */
         .get-offer-page :global(.ilist-content) {
@@ -854,8 +784,7 @@ export default function GetYourOfferContent() {
 
           .get-offer-page .value-section,
           .get-offer-page .how-it-works,
-          .get-offer-page .options-section,
-          .get-offer-page .faq-section {
+          .get-offer-page .options-section {
             padding: 60px 1.5rem;
           }
         }
@@ -1252,31 +1181,12 @@ export default function GetYourOfferContent() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="faq-section">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-label">Questions</span>
-            <h2 className="section-title">Frequently Asked Questions</h2>
-          </div>
-
-          <div className="faq-grid">
-            {faqs.map((faq, index) => (
-              <div key={index} className={`faq-item ${activeFaq === index ? 'active' : ''}`}>
-                <button className="faq-question" onClick={() => toggleFaq(index)}>
-                  <span>{faq.question}</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-                <div className="faq-answer">
-                  <div className="faq-answer-content">{faq.answer}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="Questions"
+        title="Frequently Asked Questions"
+        faqs={getOfferFaqs}
+      />
 
       {/* QuickBuy Address Search Script */}
       <Script
