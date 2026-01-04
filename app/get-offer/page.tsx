@@ -9,32 +9,35 @@ export default function GetYourOfferPage() {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  // Load QuickBuy script dynamically and change button text
+  // Load QuickBuy script dynamically and handle cleanup
   useEffect(() => {
-    let mounted = true;
     let interval: NodeJS.Timeout;
+    let timer: NodeJS.Timeout;
 
-    const initQuickBuy = () => {
-      if (!mounted) return;
-
-      // Remove any existing QuickBuy scripts
+    const loadScript = () => {
+      // 1. Aggressive Cleanup: Remove any old instances of the script
       const existingScripts = document.querySelectorAll('script[src*="quickbuyoffer.com"]');
       existingScripts.forEach(script => script.remove());
 
-      // Clear any existing widget content to force re-initialization
+      // 2. Reset the container to ensure a clean slate
       const containers = document.querySelectorAll('.ilist-content');
       containers.forEach(container => {
         container.innerHTML = '';
       });
 
-      // Create and append new script with cache-busting timestamp
+      // 3. Create and append the new script
       const script = document.createElement('script');
+      // Adding a timestamp (t=...) forces the browser to treat this as a NEW request
       script.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
       script.async = true;
       document.body.appendChild(script);
     };
 
-    // Change button text from "Get Value" to "Get Offer"
+    // 4. Run immediately after mount (with a slight delay for DOM painting)
+    // We do NOT wait for 'window.load' because in Next.js navigation, that event has already passed.
+    timer = setTimeout(loadScript, 100);
+
+    // 5. Button Text Updater
     const updateButtonText = () => {
       const buttons = document.querySelectorAll('.ilist-content button');
       buttons.forEach(button => {
@@ -44,23 +47,18 @@ export default function GetYourOfferPage() {
       });
     };
 
-    // Wait for window to be fully loaded, or run immediately if already loaded
-    if (document.readyState === 'complete') {
-      // Small delay to ensure React hydration is complete
-      setTimeout(initQuickBuy, 300);
-    } else {
-      window.addEventListener('load', () => {
-        setTimeout(initQuickBuy, 300);
-      });
-    }
-
     // Run button text update on interval
     interval = setInterval(updateButtonText, 500);
+    
+    // Stop the text updater after 15 seconds to save resources
     setTimeout(() => clearInterval(interval), 15000);
 
+    // 6. CRITICAL CLEANUP: When the user leaves this page, delete the script.
     return () => {
-      mounted = false;
+      clearTimeout(timer);
       clearInterval(interval);
+      const scripts = document.querySelectorAll('script[src*="quickbuyoffer.com"]');
+      scripts.forEach(script => script.remove());
     };
   }, []);
 
