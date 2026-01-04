@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 const QuickBuyEmbed: React.FC = () => {
-  const [iframeHeight, setIframeHeight] = useState(100); 
+  const [iframeHeight, setIframeHeight] = useState(140); 
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -26,95 +26,71 @@ const QuickBuyEmbed: React.FC = () => {
           body { 
             margin: 0; 
             padding: 0; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow: hidden; 
             background: transparent;
           }
 
-          /* 2. THE MAIN FLEX CONTAINER */
-          /* We force the Form to be the master controller */
-          .ilist-content form {
+          /* 2. STACKED LAYOUT - Everything vertical */
+          .ilist-content,
+          .ilist-content form,
+          .ilist-content div,
+          .ilist-content label,
+          .ilist-content span {
              display: flex !important;
-             flex-direction: row !important;
-             align-items: stretch !important; /* Stretch height to match */
-             justify-content: center !important; 
+             flex-direction: column !important;
+             align-items: stretch !important;
              width: 100% !important;
              gap: 0 !important;
              margin: 0 !important;
              padding: 0 !important;
           }
 
-          /* 3. THE MAGIC FIX: UNWRAP EVERYTHING */
-          /* This tells the browser to IGNORE any divs/labels/spans the script injects. 
-             It treats the Input and Button as direct children of the Flex Form. */
-          .ilist-content div, 
-          .ilist-content label, 
-          .ilist-content span {
-             display: contents !important; 
-          }
-
-          /* 4. Hide Disruptive Elements */
+          /* 3. Hide Disruptive Elements */
           .ilist-content br, 
           .ilist-content hr {
             display: none !important;
           }
 
-          /* 5. Input Styling (Left Side) */
+          /* 4. Input Styling - Full Width */
           .ilist-content input[type="text"],
-          .ilist-content input:not([type="submit"]) {
-             /* Now this will actually work because the parent wrapper is gone */
-             flex: 1 1 auto !important; 
-             width: auto !important;
-             min-width: 0 !important; /* Prevents flexbox overflow issues */
+          .ilist-content input:not([type="submit"]):not([type="button"]) {
+             width: 100% !important;
              height: 50px !important;
-             
              margin: 0 !important;
              padding: 0 16px !important;
              font-size: 16px !important;
-             
+             font-family: inherit !important;
              border: 1px solid #ccc !important;
-             border-right: none !important; /* Remove right border */
-             border-radius: 4px 0 0 4px !important; 
-             outline: none !important;     
+             border-radius: 4px !important;
+             outline: none !important;
              background: #fff !important;
+             box-sizing: border-box !important;
           }
 
-          /* 6. Button Styling (Right Side) */
+          /* 5. Button Styling - Full Width, below input */
           .ilist-content button,
           .ilist-content input[type="button"],
           .ilist-content input[type="submit"] {
-             flex: 0 0 auto !important; /* Don't grow, don't shrink */
+             width: 100% !important;
              height: 50px !important;
-             
-             margin: 0 !important;
+             margin-top: 12px !important;
              padding: 0 24px !important;
              font-size: 16px !important;
              font-weight: 600 !important;
+             font-family: inherit !important;
              white-space: nowrap !important;
-
              background-color: #000 !important;
              color: #fff !important;
-             border: 1px solid #000 !important;
-             border-radius: 0 4px 4px 0 !important; 
+             border: none !important;
+             border-radius: 4px !important;
              cursor: pointer !important;
+             box-sizing: border-box !important;
           }
 
-          /* 7. Mobile Responsiveness */
-          @media (max-width: 480px) {
-            /* On mobile, we turn OFF the unwrap so we can stack them again */
-            .ilist-content div, .ilist-content label {
-               display: block !important; 
-            }
-            .ilist-content form {
-               flex-direction: column !important;
-            }
-            .ilist-content input, 
-            .ilist-content button {
-               width: 100% !important;
-               border-radius: 4px !important;
-               margin-bottom: 10px !important; 
-               border-right: 1px solid #ccc !important; 
-            }
+          .ilist-content button:hover,
+          .ilist-content input[type="submit"]:hover {
+             background-color: #262626 !important;
           }
         </style>
       </head>
@@ -142,8 +118,8 @@ const QuickBuyEmbed: React.FC = () => {
 
           // Resize Logic
           const sendHeight = () => {
-            const form = document.querySelector('form') || document.body;
-            const height = form.scrollHeight;
+            const container = document.querySelector('.ilist-content') || document.body;
+            const height = container.scrollHeight;
             window.parent.postMessage({ type: 'QUICKBUY_RESIZE', height: height }, '*');
           };
           window.addEventListener('load', sendHeight);
@@ -156,7 +132,7 @@ const QuickBuyEmbed: React.FC = () => {
   `;
 
   return (
-    <div style={{ width: '100%', minHeight: '80px' }}>
+    <div style={{ width: '100%', minHeight: '120px' }}>
       <iframe
         srcDoc={iframeHtml}
         title="QuickBuy Offer Widget"
