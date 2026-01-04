@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
+import FAQ from '@/components/FAQ';
 
 const AssuranceContent: React.FC = () => {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -24,7 +24,7 @@ const AssuranceContent: React.FC = () => {
         });
     }, observerOptions);
 
-    const animatedElements = document.querySelectorAll('.benefit-card, .step-row, .seller-benefit, .terms-card, .faq-item');
+    const animatedElements = document.querySelectorAll('.benefit-card, .step-row, .seller-benefit, .terms-card');
     animatedElements.forEach(el => {
         (el as HTMLElement).style.opacity = '0';
         (el as HTMLElement).style.transform = 'translateY(20px)';
@@ -35,9 +35,33 @@ const AssuranceContent: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
+  // FAQ Data
+  const assuranceFaqs = [
+    { 
+      question: "How is this different from regular pre-approval?", 
+      answer: "Standard pre-qualification is often just an estimate based on what you tell the lender. Our verified pre-approval process actually reviews your income documentation, verifies your assets, and confirms your credit—upfront. This means sellers can trust that your financing is solid, not just hopeful." 
+    },
+    { 
+      question: "Do I have to use a specific lender?", 
+      answer: "No. You maintain full choice of lender. We work with multiple lenders including Rocket Mortgage and can connect you with options that fit your situation, but the final lender choice is always yours. The guarantee applies regardless of which lender you ultimately choose." 
+    },
+    { 
+      question: "What if my financing falls through?", 
+      answer: "If you've been qualified through our verified pre-approval process and your purchase fails to close due to financing issues, Rush Home Team pays the seller $1,000 directly—within 10 business days of confirmed closing failure. This protects the seller and demonstrates our confidence in our approval process." 
+    },
+    { 
+      question: "Does this cost me anything?", 
+      answer: "No. The Assurance Guarantee is provided by Rush Home Team at no additional cost to you. It's part of our commitment to helping you win in competitive markets and close with confidence." 
+    },
+    { 
+      question: "How do sellers know about the guarantee?", 
+      answer: "When you make an offer as a Rush Home buyer, we include documentation of the Assurance Guarantee with your offer package. Listing agents know that Rush Home buyers are verified and backed—it's part of what makes your offer more competitive." 
+    },
+    { 
+      question: "What financing options are available?", 
+      answer: "Our buyers have access to comprehensive financing solutions including down payment assistance programs, verified approval processes, and fast-close capabilities. We provide information about various financing options as a service—helping you find the right fit for your situation." 
+    }
+  ];
 
   return (
     <div className="assurance-design-wrapper">
@@ -773,86 +797,6 @@ const AssuranceContent: React.FC = () => {
         }
 
         /* ═══════════════════════════════════════
-           FAQ SECTION
-        ═══════════════════════════════════════ */
-        .assurance-faq-section {
-            padding: 100px 0;
-            background: var(--gray-50);
-        }
-
-        .assurance-faq-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 16px;
-            margin-bottom: 1.25rem;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
-        }
-
-        .faq-item:hover {
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            border-color: var(--gray-300);
-        }
-
-        .assurance-faq-question {
-            padding: 1.5rem 2rem;
-            font-weight: 700;
-            color: var(--black);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s ease;
-            width: 100%;
-            text-align: left;
-            border: none;
-            background: none;
-            font-family: inherit;
-            font-size: 1.1rem;
-        }
-
-        .assurance-faq-question:hover {
-            background: rgba(0,0,0,0.005);
-        }
-
-        .assurance-faq-question svg {
-            width: 24px;
-            height: 24px;
-            color: var(--gray-400);
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-            margin-left: 1rem;
-        }
-
-        .faq-item.active .assurance-faq-question svg {
-            transform: rotate(180deg);
-        }
-
-        .assurance-faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .faq-item.active .assurance-faq-answer {
-            max-height: 500px;
-        }
-
-        .assurance-faq-answer-content {
-            padding: 0 2rem 1.5rem;
-            font-size: 0.95rem;
-            color: var(--gray-600);
-            line-height: 1.8;
-            text-align: left;
-        }
-
-        /* ═══════════════════════════════════════
            CTA SECTION
         ═══════════════════════════════════════ */
         .assurance-cta-section {
@@ -1430,38 +1374,12 @@ const AssuranceContent: React.FC = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="assurance-faq-section">
-        <div className="assurance-container">
-            <div className="assurance-section-header">
-                <span className="assurance-section-label">Questions</span>
-                <h2 className="assurance-section-title">Frequently Asked Questions</h2>
-            </div>
-
-            <div className="assurance-faq-container">
-                {[
-                  { q: "How is this different from regular pre-approval?", a: "Standard pre-qualification is often just an estimate based on what you tell the lender. Our verified pre-approval process actually reviews your income documentation, verifies your assets, and confirms your credit—upfront. This means sellers can trust that your financing is solid, not just hopeful." },
-                  { q: "Do I have to use a specific lender?", a: "No. You maintain full choice of lender. We work with multiple lenders including Rocket Mortgage and can connect you with options that fit your situation, but the final lender choice is always yours. The guarantee applies regardless of which lender you ultimately choose." },
-                  { q: "What if my financing falls through?", a: "If you've been qualified through our verified pre-approval process and your purchase fails to close due to financing issues, Rush Home Team pays the seller $1,000 directly—within 10 business days of confirmed closing failure. This protects the seller and demonstrates our confidence in our approval process." },
-                  { q: "Does this cost me anything?", a: "No. The Assurance Guarantee is provided by Rush Home Team at no additional cost to you. It's part of our commitment to helping you win in competitive markets and close with confidence." },
-                  { q: "How do sellers know about the guarantee?", a: "When you make an offer as a Rush Home buyer, we include documentation of the Assurance Guarantee with your offer package. Listing agents know that Rush Home buyers are verified and backed—it's part of what makes your offer more competitive." },
-                  { q: "What financing options are available?", a: "Our buyers have access to comprehensive financing solutions including down payment assistance programs, verified approval processes, and fast-close capabilities. We provide information about various financing options as a service—helping you find the right fit for your situation." }
-                ].map((item, idx) => (
-                  <div key={idx} className={`faq-item ${activeFaq === idx ? 'active' : ''}`}>
-                    <button className="assurance-faq-question" onClick={() => toggleFaq(idx)}>
-                        {item.q}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </button>
-                    <div className="assurance-faq-answer">
-                        <div className="assurance-faq-answer-content">{item.a}</div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="Questions"
+        title="Frequently Asked Questions"
+        faqs={assuranceFaqs}
+      />
 
       {/* CTA Section */}
       <section className="assurance-cta-section">
