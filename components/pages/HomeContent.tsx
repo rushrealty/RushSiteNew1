@@ -1,88 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import QuickBuyEmbed from '@/components/QuickBuyEmbed';
 
 const HomeContent: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
-  
-  // Use a ref to strictly track if the container is ready
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
-
-  // Load QuickBuy script dynamically with ref-based approach
-  useEffect(() => {
-    let scriptTag: HTMLScriptElement | null = null;
-    let buttonObserver: MutationObserver | null = null;
-
-    const loadScript = () => {
-      // 1. SAFETY CHECK: Ensure container exists before doing anything
-      if (!containerRef.current) return;
-
-      // 2. Aggressive Cleanup
-      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
-      // @ts-ignore
-      delete window.QuickBuy;
-      // @ts-ignore
-      delete window.Falcon; 
-      // @ts-ignore
-      delete window.autoAddress;
-      
-      // Clear the specific container ref, not just querySelector
-      containerRef.current.innerHTML = '';
-
-      // 3. Create Script
-      scriptTag = document.createElement('script');
-      // Add a 'random' param to bust internal script caching if they use it
-      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&cb=${Date.now()}`;
-      scriptTag.async = true;
-
-      scriptTag.onload = () => {
-        // Trigger events slightly delayed to ensure script execution context is ready
-        setTimeout(() => {
-          window.dispatchEvent(new Event('load'));
-          window.dispatchEvent(new Event('DOMContentLoaded'));
-        }, 50);
-      };
-
-      document.body.appendChild(scriptTag);
-    };
-
-    // 4. ELIMINATE TIMEOUT: Run immediately if ref is ready
-    if (containerRef.current) {
-      loadScript();
-    } else {
-      // Fallback (rare in useEffect)
-      setTimeout(loadScript, 100);
-    }
-
-    // 5. OBSERVER (Better than setInterval for button text)
-    // This watches the DOM for changes and updates the button instantly
-    if (containerRef.current) {
-      buttonObserver = new MutationObserver((mutations) => {
-        const buttons = containerRef.current?.querySelectorAll('button');
-        buttons?.forEach(btn => {
-          if (btn.textContent?.includes('Get Value')) {
-            btn.textContent = 'Get Offer';
-          }
-        });
-      });
-      
-      buttonObserver.observe(containerRef.current, { 
-        childList: true, 
-        subtree: true 
-      });
-    }
-
-    return () => {
-      if (scriptTag) scriptTag.remove();
-      if (buttonObserver) buttonObserver.disconnect();
-      // Wipe the container on unmount to prevent ghost elements
-      if (containerRef.current) containerRef.current.innerHTML = '';
-    };
   }, []);
 
   const toggleFaq = (index: number) => {
@@ -1088,8 +1014,8 @@ const HomeContent: React.FC = () => {
             <p className="hero-subtitle">Get a no-obligation cash offer in 48 hours. Skip the showings, repairs, and uncertainty. Close on your timeline.</p>
 
             <div className="address-search-form">
-              {/* QuickBuy Address Search Widget - Default styling */}
-              <div ref={containerRef} className="ilist-content" id="ilist-content"></div>
+              {/* QuickBuy Address Search Widget */}
+              <QuickBuyEmbed />
             </div>
 
             <div className="hero-benefits">
