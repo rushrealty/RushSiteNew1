@@ -12,33 +12,54 @@ const HomeContent: React.FC = () => {
 
   // Load QuickBuy script dynamically and handle cleanup
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    let timer: NodeJS.Timeout;
+    let scriptTag: HTMLScriptElement | null = null;
+    let buttonInterval: NodeJS.Timeout;
+    let loadTimer: NodeJS.Timeout;
 
     const loadScript = () => {
-      // 1. Aggressive Cleanup: Remove any old instances of the script
-      const existingScripts = document.querySelectorAll('script[src*="quickbuyoffer.com"]');
-      existingScripts.forEach(script => script.remove());
+      // 1. Clean up any leftover scripts from previous navigations
+      // We do this aggressively to ensure no duplicates exist
+      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
 
-      // 2. Reset the container to ensure a clean slate
+      // 2. Clear Global Variables (Attempt to reset script state)
+      // These are common variable names used by such widgets. 
+      // Clearing them forces the script to re-initialize.
+      // @ts-ignore
+      delete window.QuickBuy;
+      // @ts-ignore
+      delete window.Falcon;
+      // @ts-ignore
+      delete window.autoAddress;
+
+      // 3. Reset the container
       const containers = document.querySelectorAll('.ilist-content');
       containers.forEach(container => {
         container.innerHTML = '';
       });
 
-      // 3. Create and append the new script
-      const script = document.createElement('script');
-      // Adding a timestamp (t=...) forces the browser to treat this as a NEW request
-      script.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
-      script.async = true;
-      document.body.appendChild(script);
+      // 4. Create the new script
+      scriptTag = document.createElement('script');
+      // Timestamp ensures browser doesn't use cached version
+      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
+      scriptTag.async = true;
+
+      // 5. THE MAGIC FIX: Manually trigger events when script loads
+      scriptTag.onload = () => {
+        // Many legacy scripts wait for 'load' or 'DOMContentLoaded'.
+        // Since Next.js navigation doesn't fire these, we fire them manually
+        // specifically for this script to catch.
+        window.dispatchEvent(new Event('load'));
+        window.dispatchEvent(new Event('DOMContentLoaded'));
+      };
+
+      document.body.appendChild(scriptTag);
     };
 
-    // 4. Run immediately after mount (with a slight delay for DOM painting)
-    // We do NOT wait for 'window.load' because in Next.js navigation, that event has already passed.
-    timer = setTimeout(loadScript, 100);
+    // 6. Delay slightly to ensure the <div> is painted in the DOM
+    // Increased to 300ms to be safe against slower renders
+    loadTimer = setTimeout(loadScript, 300);
 
-    // 5. Button Text Updater
+    // 7. Button Text Updater (Preserved from your original code)
     const updateButtonText = () => {
       const buttons = document.querySelectorAll('.ilist-content button');
       buttons.forEach(button => {
@@ -48,18 +69,16 @@ const HomeContent: React.FC = () => {
       });
     };
 
-    // Run button text update on interval
-    interval = setInterval(updateButtonText, 500);
-    
-    // Stop the text updater after 15 seconds to save resources
-    setTimeout(() => clearInterval(interval), 15000);
+    buttonInterval = setInterval(updateButtonText, 500);
+    setTimeout(() => clearInterval(buttonInterval), 15000);
 
-    // 6. CRITICAL CLEANUP: When the user leaves this page, delete the script.
+    // 8. CLEANUP: Only remove the specific script we added
     return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-      const scripts = document.querySelectorAll('script[src*="quickbuyoffer.com"]');
-      scripts.forEach(script => script.remove());
+      clearTimeout(loadTimer);
+      clearInterval(buttonInterval);
+      if (scriptTag) {
+        scriptTag.remove();
+      }
     };
   }, []);
 
