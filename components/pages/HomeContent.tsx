@@ -1,84 +1,87 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const HomeContent: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  
+  // Use a ref to strictly track if the container is ready
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Load QuickBuy script dynamically and handle cleanup
+  // Load QuickBuy script dynamically with ref-based approach
   useEffect(() => {
     let scriptTag: HTMLScriptElement | null = null;
-    let buttonInterval: NodeJS.Timeout;
-    let loadTimer: NodeJS.Timeout;
+    let buttonObserver: MutationObserver | null = null;
 
     const loadScript = () => {
-      // 1. Clean up any leftover scripts from previous navigations
-      // We do this aggressively to ensure no duplicates exist
-      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
+      // 1. SAFETY CHECK: Ensure container exists before doing anything
+      if (!containerRef.current) return;
 
-      // 2. Clear Global Variables (Attempt to reset script state)
-      // These are common variable names used by such widgets. 
-      // Clearing them forces the script to re-initialize.
+      // 2. Aggressive Cleanup
+      document.querySelectorAll('script[src*="quickbuyoffer.com"]').forEach(s => s.remove());
       // @ts-ignore
       delete window.QuickBuy;
       // @ts-ignore
-      delete window.Falcon;
+      delete window.Falcon; 
       // @ts-ignore
       delete window.autoAddress;
+      
+      // Clear the specific container ref, not just querySelector
+      containerRef.current.innerHTML = '';
 
-      // 3. Reset the container
-      const containers = document.querySelectorAll('.ilist-content');
-      containers.forEach(container => {
-        container.innerHTML = '';
-      });
-
-      // 4. Create the new script
+      // 3. Create Script
       scriptTag = document.createElement('script');
-      // Timestamp ensures browser doesn't use cached version
-      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&t=${Date.now()}`;
+      // Add a 'random' param to bust internal script caching if they use it
+      scriptTag.src = `https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01&cb=${Date.now()}`;
       scriptTag.async = true;
 
-      // 5. THE MAGIC FIX: Manually trigger events when script loads
       scriptTag.onload = () => {
-        // Many legacy scripts wait for 'load' or 'DOMContentLoaded'.
-        // Since Next.js navigation doesn't fire these, we fire them manually
-        // specifically for this script to catch.
-        window.dispatchEvent(new Event('load'));
-        window.dispatchEvent(new Event('DOMContentLoaded'));
+        // Trigger events slightly delayed to ensure script execution context is ready
+        setTimeout(() => {
+          window.dispatchEvent(new Event('load'));
+          window.dispatchEvent(new Event('DOMContentLoaded'));
+        }, 50);
       };
 
       document.body.appendChild(scriptTag);
     };
 
-    // 6. Delay slightly to ensure the <div> is painted in the DOM
-    // Increased to 300ms to be safe against slower renders
-    loadTimer = setTimeout(loadScript, 300);
+    // 4. ELIMINATE TIMEOUT: Run immediately if ref is ready
+    if (containerRef.current) {
+      loadScript();
+    } else {
+      // Fallback (rare in useEffect)
+      setTimeout(loadScript, 100);
+    }
 
-    // 7. Button Text Updater (Preserved from your original code)
-    const updateButtonText = () => {
-      const buttons = document.querySelectorAll('.ilist-content button');
-      buttons.forEach(button => {
-        if (button.textContent?.includes('Get Value')) {
-          button.textContent = 'Get Offer';
-        }
+    // 5. OBSERVER (Better than setInterval for button text)
+    // This watches the DOM for changes and updates the button instantly
+    if (containerRef.current) {
+      buttonObserver = new MutationObserver((mutations) => {
+        const buttons = containerRef.current?.querySelectorAll('button');
+        buttons?.forEach(btn => {
+          if (btn.textContent?.includes('Get Value')) {
+            btn.textContent = 'Get Offer';
+          }
+        });
       });
-    };
+      
+      buttonObserver.observe(containerRef.current, { 
+        childList: true, 
+        subtree: true 
+      });
+    }
 
-    buttonInterval = setInterval(updateButtonText, 500);
-    setTimeout(() => clearInterval(buttonInterval), 15000);
-
-    // 8. CLEANUP: Only remove the specific script we added
     return () => {
-      clearTimeout(loadTimer);
-      clearInterval(buttonInterval);
-      if (scriptTag) {
-        scriptTag.remove();
-      }
+      if (scriptTag) scriptTag.remove();
+      if (buttonObserver) buttonObserver.disconnect();
+      // Wipe the container on unmount to prevent ghost elements
+      if (containerRef.current) containerRef.current.innerHTML = '';
     };
   }, []);
 
@@ -1086,7 +1089,7 @@ const HomeContent: React.FC = () => {
 
             <div className="address-search-form">
               {/* QuickBuy Address Search Widget - Default styling */}
-              <div className="ilist-content"></div>
+              <div ref={containerRef} className="ilist-content" id="ilist-content"></div>
             </div>
 
             <div className="hero-benefits">
