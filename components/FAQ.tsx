@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Script from 'next/script';
 
 interface FAQItem {
   question: string;
@@ -13,17 +14,61 @@ interface FAQProps {
   subtitle?: string;
   faqs: FAQItem[];
   className?: string;
+  /** Set to true to include JSON-LD structured data for SEO */
+  includeSchema?: boolean;
 }
 
-const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs, className = '' }) => {
+const FAQ: React.FC<FAQProps> = ({ 
+  label, 
+  title, 
+  subtitle, 
+  faqs, 
+  className = '',
+  includeSchema = true 
+}) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
     setActiveIndex(activeIndex === index ? null : index);
   };
 
+  // Generate JSON-LD structured data for FAQPage schema
+  const generateFAQSchema = () => {
+    // Only include text answers in schema (not React nodes)
+    const schemaFaqs = faqs.filter(faq => typeof faq.answer === 'string');
+    
+    if (schemaFaqs.length === 0) return null;
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": schemaFaqs.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    };
+
+    return JSON.stringify(schema);
+  };
+
+  const schemaJson = includeSchema ? generateFAQSchema() : null;
+
   return (
     <>
+      {/* JSON-LD Structured Data for SEO */}
+      {schemaJson && (
+        <Script
+          id="faq-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: schemaJson }}
+          strategy="afterInteractive"
+        />
+      )}
+
       <style jsx>{`
         /* ═══════════════════════════════════════
            FAQ SECTION - CONSISTENT STYLING
