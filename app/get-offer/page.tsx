@@ -69,7 +69,7 @@ export default function GetYourOfferPage() {
            HERO SECTION WITH ADDRESS FORM
         ═══════════════════════════════════════ */
         .get-offer-page .hero {
-            padding: 120px 2rem 80px;
+            padding: 60px 2rem 40px;
             background: linear-gradient(180deg, var(--black) 0%, var(--gray-800) 100%);
             color: var(--white);
             text-align: center;
@@ -103,7 +103,7 @@ export default function GetYourOfferPage() {
             font-size: 0.75rem;
             font-weight: 700;
             color: var(--accent-gold);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             text-transform: uppercase;
             letter-spacing: 0.15em;
         }
@@ -113,7 +113,8 @@ export default function GetYourOfferPage() {
             font-weight: 900;
             letter-spacing: -0.03em;
             line-height: 1.1;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            color: white;
         }
 
         .get-offer-page .hero h1 .gold {
@@ -124,7 +125,7 @@ export default function GetYourOfferPage() {
             font-size: 1.25rem;
             color: var(--gray-400);
             max-width: 600px;
-            margin: 0 auto 2.5rem;
+            margin: 0 auto 1.5rem;
             line-height: 1.6;
         }
 
@@ -778,7 +779,7 @@ export default function GetYourOfferPage() {
 
         @media (max-width: 768px) {
             .get-offer-page .hero {
-                padding: 100px 1rem 60px;
+                padding: 50px 1rem 30px;
             }
 
             .get-offer-page .form-helper {
