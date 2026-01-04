@@ -964,7 +964,7 @@ const HomeContent: React.FC = () => {
               Serving Delaware Homeowners
             </div>
             <h1>Your home. Sold. Guaranteed.</h1>
-            <p className="hero-subtitle">Get a no-obligation cash offer in 48 hours. Skip the showings, repairs, and uncertainty. Close on your timeline.</p>
+            <p className="hero-subtitle">Get an instant cash offer. Skip the showings, repairs, and uncertainty. Close on your timeline.</p>
 
             <div className="address-search-form">
               {/* QuickBuy Address Search Widget */}
