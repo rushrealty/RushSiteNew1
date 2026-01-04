@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import FAQ from '@/components/FAQ';
+import { newConstructionFaqs } from '@/data/faqData';
 
 const NewConstructionProcessContent: React.FC = () => {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -16,37 +17,6 @@ const NewConstructionProcessContent: React.FC = () => {
       });
     }
   };
-
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const faqs = [
-    {
-      question: 'How long does it take to build a new construction home?',
-      answer: 'It depends on the type of home. Production homes (builder models) typically take 5-6 months. Custom homes take 8-12 months or longer. Factors like weather, permits, subcontractor availability, and your decision-making speed can all affect the timeline.'
-    },
-    {
-      question: 'Do I need a real estate agent for new construction?',
-      answer: "Yes! Having an experienced agent who specializes in new construction is invaluable. We help you navigate builder contracts, negotiate on your behalf, ensure timelines are met, and advocate for your interests throughout the process. The builder pays our commission, so our services cost you nothing."
-    },
-    {
-      question: "What's the difference between a production home and a custom home?",
-      answer: 'Production homes are built from pre-designed floor plans with limited customization options—the builder constructs similar models throughout the development. Custom homes are built from scratch to your specifications, offering complete flexibility in design, layout, and finishes.'
-    },
-    {
-      question: 'Can I make changes after construction starts?',
-      answer: 'Some changes are possible, but they become increasingly difficult and expensive as construction progresses. Structural changes must be made before framing; finish selections before installation. Making decisions early and sticking to them helps avoid delays and additional costs.'
-    },
-    {
-      question: 'What should I expect at the final walkthrough?',
-      answer: "The final walkthrough is your opportunity to inspect the home before closing. Your construction manager will demonstrate how systems work and point out maintenance requirements. You'll create a \"punch list\" of any items that need attention. Don't sign closing documents until you're satisfied everything is complete."
-    },
-    {
-      question: 'What if I need to sell my current home first?',
-      answer: 'We can help! Our Rush Home programs provide guaranteed backup offers on your current home, allowing you to move forward with your new construction purchase without a sale contingency. This gives you a competitive advantage and peace of mind knowing your current home will sell.'
-    }
-  ];
 
   return (
     <>
@@ -690,78 +660,6 @@ const NewConstructionProcessContent: React.FC = () => {
           color: var(--gray-600);
           margin: 0;
           line-height: 1.6;
-        }
-
-        /* FAQ Section */
-        .nc-faq-section {
-          padding: 4rem 2rem;
-          background: var(--gray-50);
-        }
-
-        .nc-faq-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .nc-faq-title {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: var(--black);
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .nc-faq-item {
-          background: var(--white);
-          border: 1px solid var(--gray-200);
-          border-radius: 12px;
-          margin-bottom: 1rem;
-          overflow: hidden;
-        }
-
-        .nc-faq-question {
-          padding: 1.25rem 1.5rem;
-          font-weight: 600;
-          color: var(--black);
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: background 0.2s ease;
-        }
-
-        .nc-faq-question:hover {
-          background: var(--gray-50);
-        }
-
-        .nc-faq-question svg {
-          width: 20px;
-          height: 20px;
-          color: var(--gray-500);
-          transition: transform 0.3s ease;
-          flex-shrink: 0;
-        }
-
-        .nc-faq-item.active .nc-faq-question svg {
-          transform: rotate(180deg);
-        }
-
-        .nc-faq-answer {
-          padding: 0 1.5rem;
-          max-height: 0;
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .nc-faq-item.active .nc-faq-answer {
-          padding: 0 1.5rem 1.25rem;
-          max-height: 500px;
-        }
-
-        .nc-faq-answer p {
-          color: var(--gray-600);
-          font-size: 0.95rem;
-          margin: 0;
         }
 
         /* CTA Section */
@@ -1594,26 +1492,13 @@ const NewConstructionProcessContent: React.FC = () => {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="nc-faq-section">
-          <div className="nc-faq-container">
-            <h2 className="nc-faq-title">Frequently Asked Questions</h2>
-
-            {faqs.map((faq, index) => (
-              <div key={index} className={`nc-faq-item ${activeFaq === index ? 'active' : ''}`}>
-                <div className="nc-faq-question" onClick={() => toggleFaq(index)}>
-                  {faq.question}
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 9l6 6 6-6"/>
-                  </svg>
-                </div>
-                <div className="nc-faq-answer">
-                  <p>{faq.answer}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* FAQ Section - Using Reusable Component */}
+        <FAQ 
+          label="Questions"
+          title="Frequently Asked Questions"
+          subtitle="Common questions about new construction homes"
+          faqs={newConstructionFaqs}
+        />
 
         {/* CTA Section */}
         <section className="nc-cta-section">
