@@ -1,19 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Script from 'next/script';
 
 const HomeContent: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState({
-    formatted: '',
-    street: '',
-    city: '',
-    state: '',
-    zip: ''
-  });
   const [showModal, setShowModal] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -126,104 +118,12 @@ const HomeContent: React.FC = () => {
           max-width: 480px;
         }
 
-        /* ═══════════════════════════════════════
-           ADDRESS SEARCH FORM - CUSTOM WRAPPER
-        ═══════════════════════════════════════ */
         .guaranteed-sale-page .address-search-form {
           margin-bottom: 1.5rem;
           max-width: 520px;
         }
 
-        .guaranteed-sale-page .address-search-wrapper {
-          display: flex;
-          align-items: center;
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-radius: 50px;
-          padding: 6px;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-          transition: all 0.3s ease;
-        }
-
-        .guaranteed-sale-page .address-search-wrapper:focus-within {
-          border-color: var(--gray-900);
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-        }
-
-        .guaranteed-sale-page .address-input-container {
-          flex: 1;
-          min-width: 0;
-        }
-
-        /* Style the QuickBuy injected content - make it flex row */
-        .guaranteed-sale-page .address-input-container .ilist-content {
-          background: transparent !important;
-          border: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          border-radius: 0 !important;
-          display: flex !important;
-          flex-direction: row !important;
-          align-items: center !important;
-          gap: 8px !important;
-        }
-
-        .guaranteed-sale-page .address-input-container .ilist-content > *,
-        .guaranteed-sale-page .address-input-container .ilist-content form,
-        .guaranteed-sale-page .address-input-container .ilist-content > div,
-        .guaranteed-sale-page .address-input-container .ilist-content form > div {
-          display: flex !important;
-          flex-direction: row !important;
-          align-items: center !important;
-          width: 100% !important;
-          gap: 8px !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
-
-        .guaranteed-sale-page .address-input-container input {
-          width: 100%;
-          border: none !important;
-          outline: none !important;
-          background: transparent !important;
-          font-size: 1rem;
-          font-family: inherit;
-          padding: 0.75rem 1rem;
-          color: var(--gray-900);
-          box-shadow: none !important;
-        }
-
-        .guaranteed-sale-page .address-input-container input::placeholder {
-          color: var(--gray-400);
-        }
-
-        /* Style QuickBuy's button to match our design */
-        .guaranteed-sale-page .address-input-container button,
-        .guaranteed-sale-page .address-input-container input[type="submit"],
-        .guaranteed-sale-page .address-input-container [type="button"],
-        .guaranteed-sale-page .address-search-btn {
-          flex: none !important;
-          background: var(--gray-900) !important;
-          background-color: var(--gray-900) !important;
-          color: var(--white) !important;
-          border: none !important;
-          border-radius: 50px !important;
-          font-weight: 600 !important;
-          font-size: 0.95rem !important;
-          padding: 0.75rem 1.5rem !important;
-          cursor: pointer !important;
-          transition: all 0.3s ease !important;
-          white-space: nowrap !important;
-          font-family: inherit !important;
-        }
-
-        .guaranteed-sale-page .address-input-container button:hover,
-        .guaranteed-sale-page .address-input-container input[type="submit"]:hover,
-        .guaranteed-sale-page .address-search-btn:hover {
-          background: var(--black) !important;
-          background-color: var(--black) !important;
-        }
+        /* NO QUICKBUY STYLING - Using default widget appearance */
 
         .guaranteed-sale-page .hero-benefits {
           display: flex;
@@ -273,41 +173,6 @@ const HomeContent: React.FC = () => {
           height: 100%;
           object-fit: cover;
           min-height: 560px;
-        }
-
-        .guaranteed-sale-page .hero-image-badge {
-          position: absolute;
-          bottom: 2rem;
-          left: 2rem;
-          background: var(--white);
-          padding: 1rem 1.5rem;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .guaranteed-sale-page .hero-badge-icon {
-          width: 40px;
-          height: 40px;
-          background: var(--gray-100);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.25rem;
-        }
-
-        .guaranteed-sale-page .hero-badge-text {
-          font-size: 0.8rem;
-          color: var(--gray-500);
-        }
-
-        .guaranteed-sale-page .hero-badge-value {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: var(--gray-900);
         }
 
         /* ═══════════════════════════════════════
@@ -1048,34 +913,6 @@ const HomeContent: React.FC = () => {
             max-width: 100%;
           }
 
-          .guaranteed-sale-page .address-search-wrapper {
-            flex-direction: column;
-            border-radius: 16px;
-            padding: 12px;
-            gap: 8px;
-          }
-
-          .guaranteed-sale-page .address-input-container {
-            width: 100%;
-          }
-
-          .guaranteed-sale-page .address-input-container .ilist-content,
-          .guaranteed-sale-page .address-input-container .ilist-content > *,
-          .guaranteed-sale-page .address-input-container .ilist-content form,
-          .guaranteed-sale-page .address-input-container .ilist-content > div,
-          .guaranteed-sale-page .address-input-container .ilist-content form > div {
-            flex-direction: column !important;
-          }
-
-          .guaranteed-sale-page .address-input-container input {
-            text-align: center !important;
-            width: 100% !important;
-          }
-
-          .guaranteed-sale-page .address-input-container button {
-            width: 100% !important;
-          }
-
           .guaranteed-sale-page .hero-benefits {
             flex-direction: column;
             align-items: center;
@@ -1151,12 +988,6 @@ const HomeContent: React.FC = () => {
         }
       `}</style>
 
-      {/* QuickBuy Address Search Script - Load immediately */}
-      <Script 
-        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="afterInteractive"
-      />
-
       {/* Hero Section */}
       <section className="hero" id="get-offer">
         <div className="hero-container">
@@ -1169,11 +1000,8 @@ const HomeContent: React.FC = () => {
             <p className="hero-subtitle">Get a no-obligation cash offer in 48 hours. Skip the showings, repairs, and uncertainty. Close on your timeline.</p>
 
             <div className="address-search-form">
-              <div className="address-search-wrapper">
-                <div ref={containerRef} className="address-input-container">
-                  <div className="ilist-content"></div>
-                </div>
-              </div>
+              {/* QuickBuy Address Search Widget - Default styling */}
+              <div className="ilist-content"></div>
             </div>
 
             <div className="hero-benefits">
@@ -1485,7 +1313,7 @@ const HomeContent: React.FC = () => {
           <p className="modal-subtitle">Tell us how to reach you with your offer.</p>
           <div className="modal-address">
             <span>📍</span>
-            <span>{selectedAddress.formatted || '123 Main Street, Dover, DE'}</span>
+            <span>123 Main Street, Dover, DE</span>
           </div>
           <form onSubmit={handleContactSubmit}>
             <div className="form-row">
@@ -1522,6 +1350,12 @@ const HomeContent: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {/* QuickBuy Address Search Script - placed at end per QuickBuy docs */}
+      <Script 
+        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
+        strategy="afterInteractive"
+      />
     </div>
   );
 };
