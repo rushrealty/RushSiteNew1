@@ -33,11 +33,6 @@ const HomeContent: React.FC = () => {
     closeModal();
   };
 
-  const handleGetOffer = (e: React.FormEvent) => {
-    e.preventDefault();
-    // QuickBuy handles the form submission
-  };
-
   return (
     <div className="guaranteed-sale-page">
       <style>{`
@@ -160,7 +155,7 @@ const HomeContent: React.FC = () => {
           min-width: 0;
         }
 
-        /* Style the QuickBuy injected content */
+        /* Style the QuickBuy injected content - make it flex row */
         .guaranteed-sale-page .address-input-container .ilist-content {
           background: transparent !important;
           border: none !important;
@@ -168,6 +163,23 @@ const HomeContent: React.FC = () => {
           padding: 0 !important;
           margin: 0 !important;
           border-radius: 0 !important;
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          gap: 8px !important;
+        }
+
+        .guaranteed-sale-page .address-input-container .ilist-content > *,
+        .guaranteed-sale-page .address-input-container .ilist-content form,
+        .guaranteed-sale-page .address-input-container .ilist-content > div,
+        .guaranteed-sale-page .address-input-container .ilist-content form > div {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          width: 100% !important;
+          gap: 8px !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
         .guaranteed-sale-page .address-input-container input {
@@ -186,30 +198,31 @@ const HomeContent: React.FC = () => {
           color: var(--gray-400);
         }
 
-        /* Hide QuickBuy's default button */
+        /* Style QuickBuy's button to match our design */
         .guaranteed-sale-page .address-input-container button,
         .guaranteed-sale-page .address-input-container input[type="submit"],
-        .guaranteed-sale-page .address-input-container [type="button"] {
-          display: none !important;
-        }
-
+        .guaranteed-sale-page .address-input-container [type="button"],
         .guaranteed-sale-page .address-search-btn {
-          flex: none;
-          background: var(--gray-900);
-          color: var(--white);
-          border: none;
-          border-radius: 50px;
-          font-weight: 600;
-          font-size: 0.95rem;
-          padding: 0.75rem 1.5rem;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          white-space: nowrap;
-          font-family: inherit;
+          flex: none !important;
+          background: var(--gray-900) !important;
+          background-color: var(--gray-900) !important;
+          color: var(--white) !important;
+          border: none !important;
+          border-radius: 50px !important;
+          font-weight: 600 !important;
+          font-size: 0.95rem !important;
+          padding: 0.75rem 1.5rem !important;
+          cursor: pointer !important;
+          transition: all 0.3s ease !important;
+          white-space: nowrap !important;
+          font-family: inherit !important;
         }
 
+        .guaranteed-sale-page .address-input-container button:hover,
+        .guaranteed-sale-page .address-input-container input[type="submit"]:hover,
         .guaranteed-sale-page .address-search-btn:hover {
-          background: var(--black);
+          background: var(--black) !important;
+          background-color: var(--black) !important;
         }
 
         .guaranteed-sale-page .hero-benefits {
@@ -1046,12 +1059,21 @@ const HomeContent: React.FC = () => {
             width: 100%;
           }
 
-          .guaranteed-sale-page .address-input-container input {
-            text-align: center;
+          .guaranteed-sale-page .address-input-container .ilist-content,
+          .guaranteed-sale-page .address-input-container .ilist-content > *,
+          .guaranteed-sale-page .address-input-container .ilist-content form,
+          .guaranteed-sale-page .address-input-container .ilist-content > div,
+          .guaranteed-sale-page .address-input-container .ilist-content form > div {
+            flex-direction: column !important;
           }
 
-          .guaranteed-sale-page .address-search-btn {
-            width: 100%;
+          .guaranteed-sale-page .address-input-container input {
+            text-align: center !important;
+            width: 100% !important;
+          }
+
+          .guaranteed-sale-page .address-input-container button {
+            width: 100% !important;
           }
 
           .guaranteed-sale-page .hero-benefits {
@@ -1147,14 +1169,11 @@ const HomeContent: React.FC = () => {
             <p className="hero-subtitle">Get a no-obligation cash offer in 48 hours. Skip the showings, repairs, and uncertainty. Close on your timeline.</p>
 
             <div className="address-search-form">
-              <form onSubmit={handleGetOffer} className="address-search-wrapper">
+              <div className="address-search-wrapper">
                 <div ref={containerRef} className="address-input-container">
                   <div className="ilist-content"></div>
                 </div>
-                <button type="submit" className="address-search-btn">
-                  Get My Offer
-                </button>
-              </form>
+              </div>
             </div>
 
             <div className="hero-benefits">
