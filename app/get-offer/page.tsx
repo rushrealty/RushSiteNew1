@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import Script from 'next/script';
 
 export default function GetYourOfferPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -12,8 +11,26 @@ export default function GetYourOfferPage() {
     setActiveFaq(activeFaq === index ? null : index);
   };
 
-  // Change QuickBuy button text from "Get Value" to "Get Offer"
+  // Load QuickBuy script dynamically and change button text
   useEffect(() => {
+    const loadQuickBuyScript = () => {
+      // Remove any existing QuickBuy script to force reload
+      const existingScript = document.querySelector('script[src*="quickbuyoffer.com"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Create and append new script
+      const script = document.createElement('script');
+      script.src = 'https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01';
+      script.async = true;
+      document.body.appendChild(script);
+    };
+
+    // Load script after a short delay to ensure DOM is ready
+    const timer = setTimeout(loadQuickBuyScript, 100);
+
+    // Change button text from "Get Value" to "Get Offer"
     const updateButtonText = () => {
       const buttons = document.querySelectorAll('.ilist-content button');
       buttons.forEach(button => {
@@ -23,21 +40,12 @@ export default function GetYourOfferPage() {
       });
     };
 
-    // Run immediately and also observe for changes
-    updateButtonText();
-    
-    const observer = new MutationObserver(updateButtonText);
-    const containers = document.querySelectorAll('.ilist-content');
-    containers.forEach(container => {
-      observer.observe(container, { childList: true, subtree: true });
-    });
-
-    // Also run on interval briefly to catch late-loading content
+    // Run button text update on interval to catch when widget loads
     const interval = setInterval(updateButtonText, 500);
-    setTimeout(() => clearInterval(interval), 5000);
+    setTimeout(() => clearInterval(interval), 10000);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
       clearInterval(interval);
     };
   }, []);
@@ -1323,12 +1331,6 @@ export default function GetYourOfferPage() {
       </main>
 
       <Footer />
-
-      {/* QuickBuy Address Search Integration */}
-      <Script 
-        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="afterInteractive"
-      />
     </>
   );
 }
