@@ -1,36 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import FAQ from '@/components/FAQ';
+import { howToBuyFaqs } from '@/data/faqData';
 
 export default function HowToBuyContent() {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
-
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const faqItems = [
-    {
-      question: "How long does buying a house take from start to finish?",
-      answer: "Most buyers close within 30-45 days after signing a purchase contract. However, the entire process—including house hunting and getting pre-approved—may take 2-6 months depending on market conditions, your preparation level, and how quickly you find the right home."
-    },
-    {
-      question: "What credit score do I need to buy a house?",
-      answer: "It depends on the loan type. Conventional loans typically require 620+, FHA loans work with scores as low as 580, and VA loans have flexible requirements for veterans. If your score needs improvement, ask about our Credit Upgrade program."
-    },
-    {
-      question: "How much money do I need to buy a house in Delaware?",
-      answer: "With available programs, some buyers purchase with as little as 1-3.5% down. Factor in closing costs (typically 2-4% of purchase price) and reserves. Many buyers qualify for assistance programs that can significantly reduce out-of-pocket costs—some first-time buyers close with less than $5,000 total."
-    },
-    {
-      question: "What happens if the house appraises for less than the purchase price?",
-      answer: "If you have an appraisal contingency, you can negotiate with the seller to reduce the price, bring extra cash to cover the difference, or cancel the contract and recover your earnest money. We'll guide you through the best approach based on your situation."
-    },
-    {
-      question: "Can I buy a new home before selling my current one?",
-      answer: "Yes! Our QuickBuy program provides a guaranteed backup offer on your current home, which allows you to exclude your current mortgage from debt-to-income calculations and make competitive, non-contingent offers on your next home. Ask us about buy-before-you-sell options."
-    }
-  ];
 
   return (
     <>
@@ -494,80 +467,6 @@ export default function HowToBuyContent() {
           font-size: 0.85rem;
           font-weight: 600;
           color: #037f4c;
-        }
-
-        /* FAQ Section */
-        .htb-faq-section {
-          padding: 4rem 2rem;
-          background: #fafafa;
-        }
-
-        .htb-faq-container {
-          max-width: 800px;
-          margin: 0 auto;
-        }
-
-        .htb-faq-title {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #000000;
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .htb-faq-item {
-          background: #ffffff;
-          border: 1px solid #e9e6dd;
-          border-radius: 12px;
-          margin-bottom: 1rem;
-          overflow: hidden;
-        }
-
-        .htb-faq-question {
-          padding: 1.25rem 1.5rem;
-          font-weight: 600;
-          color: #000000;
-          cursor: pointer;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          transition: background 0.2s ease;
-        }
-
-        .htb-faq-question:hover {
-          background: #fafafa;
-        }
-
-        .htb-faq-question svg {
-          width: 20px;
-          height: 20px;
-          color: #838789;
-          transition: transform 0.3s ease;
-          flex-shrink: 0;
-          margin-left: 1rem;
-        }
-
-        .htb-faq-item.active .htb-faq-question svg {
-          transform: rotate(180deg);
-        }
-
-        .htb-faq-answer {
-          padding: 0 1.5rem;
-          max-height: 0;
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-
-        .htb-faq-item.active .htb-faq-answer {
-          padding: 0 1.5rem 1.25rem;
-          max-height: 500px;
-        }
-
-        .htb-faq-answer p {
-          color: #6b6b6b;
-          font-size: 0.95rem;
-          line-height: 1.6;
-          margin: 0;
         }
 
         /* CTA Section */
@@ -1322,32 +1221,13 @@ export default function HowToBuyContent() {
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="htb-faq-section">
-        <div className="htb-faq-container">
-          <h2 className="htb-faq-title">Frequently Asked Questions</h2>
-
-          {faqItems.map((item, index) => (
-            <div 
-              key={index} 
-              className={`htb-faq-item ${activeFaq === index ? 'active' : ''}`}
-            >
-              <div 
-                className="htb-faq-question" 
-                onClick={() => toggleFaq(index)}
-              >
-                {item.question}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-              </div>
-              <div className="htb-faq-answer">
-                <p>{item.answer}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="FAQ"
+        title="Frequently Asked Questions"
+        subtitle="Common questions about buying a home"
+        faqs={howToBuyFaqs}
+      />
 
       {/* CTA Section */}
       <section className="htb-cta-section">
