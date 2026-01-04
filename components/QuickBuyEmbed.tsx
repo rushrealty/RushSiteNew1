@@ -23,83 +23,117 @@ const QuickBuyEmbed: React.FC = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           /* 1. Base Reset */
+          * {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+          }
+          
           body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow: hidden; 
             background: transparent;
           }
 
-          /* 2. THE CONTAINER */
-          .ilist-content, 
-          .ilist-content form,
-          .ilist-content > div {
+          /* 2. THE OUTER CONTAINER - This holds the border */
+          .ilist-content {
              display: flex !important;
              flex-direction: row !important;
              flex-wrap: nowrap !important;
-             align-items: center !important;
-             justify-content: center !important; /* Centers the bar if it doesn't hit 100% width */
-             gap: 0 !important;              /* Force zero gap */
+             align-items: stretch !important;
+             gap: 0 !important;
              width: 100% !important;
-             box-sizing: border-box !important;
+             border: 1px solid #ccc !important;
+             border-radius: 4px !important;
+             overflow: hidden !important; /* Clips children to rounded corners */
+             background: #fff !important;
           }
 
-          /* 3. Hide Disruptive Elements */
+          /* 3. Force all inner wrappers to be flex row with no gaps */
+          .ilist-content form,
+          .ilist-content > div,
+          .ilist-content > div > div,
+          .ilist-content form > div,
+          .ilist-content form > div > div {
+             display: flex !important;
+             flex-direction: row !important;
+             flex-wrap: nowrap !important;
+             align-items: stretch !important;
+             gap: 0 !important;
+             width: 100% !important;
+             margin: 0 !important;
+             padding: 0 !important;
+             border: none !important;
+             background: transparent !important;
+          }
+
+          /* 4. Hide Disruptive Elements */
           .ilist-content br, 
-          .ilist-content hr {
+          .ilist-content hr,
+          .ilist-content span:empty {
             display: none !important;
           }
 
-          /* 4. Input Styling (Left Side) */
+          /* 5. Input Styling - NO BORDER (container has it) */
           .ilist-content input[type="text"],
-          .ilist-content input:not([type="submit"]) {
-             flex-grow: 1 !important;
-             flex-shrink: 1 !important;
+          .ilist-content input:not([type="submit"]):not([type="button"]) {
+             flex: 1 1 auto !important;
+             min-width: 0 !important;
              width: auto !important;
-             margin: 0 !important;         /* CRITICAL: No margin */
-             height: 50px !important;
-             border-radius: 4px 0 0 4px !important; /* Square off the right side */
-             border: 1px solid #ccc !important;
-             border-right: none !important; /* Remove right border so it merges */
+             margin: 0 !important;
              padding: 0 16px !important;
+             height: 50px !important;
+             border: none !important;        /* NO BORDER - container has it */
+             border-radius: 0 !important;
+             background: transparent !important;
              font-size: 16px !important;
-             outline: none !important;     /* Removes blue glow on click (optional) */
+             font-family: inherit !important;
+             outline: none !important;
           }
 
-          /* 5. Button Styling (Right Side) */
+          /* 6. Button Styling - NO BORDER on left side */
           .ilist-content button,
           .ilist-content input[type="button"],
           .ilist-content input[type="submit"] {
-             flex-grow: 0 !important;
-             flex-shrink: 0 !important;
+             flex: 0 0 auto !important;
              width: auto !important;
-             
-             /* THE FIX: Negative margin pulls it 1px left to overlap properly */
-             margin: 0 0 0 -1px !important; 
-             
+             margin: 0 !important;
+             padding: 0 24px !important;
              height: 50px !important;
-             border-radius: 0 4px 4px 0 !important; /* Square off the left side */
+             border: none !important;        /* NO BORDER */
+             border-radius: 0 !important;
              white-space: nowrap !important;
              cursor: pointer !important;
-             padding: 0 24px !important;
              background-color: #000 !important;
              color: #fff !important;
-             border: 1px solid #000 !important;
              font-weight: 600 !important;
+             font-size: 16px !important;
+             font-family: inherit !important;
           }
 
-          /* 6. Mobile Responsiveness */
+          .ilist-content button:hover,
+          .ilist-content input[type="submit"]:hover {
+             background-color: #262626 !important;
+          }
+
+          /* 7. Mobile Responsiveness */
           @media (max-width: 480px) {
-            .ilist-content form {
+            .ilist-content {
+               flex-direction: column !important;
+               border-radius: 4px !important;
+            }
+            .ilist-content form,
+            .ilist-content > div {
                flex-direction: column !important;
             }
-            .ilist-content input, 
-            .ilist-content button {
+            .ilist-content input[type="text"],
+            .ilist-content input:not([type="submit"]):not([type="button"]) {
                width: 100% !important;
-               border-radius: 4px !important;
-               margin: 0 0 10px 0 !important; /* Add space back for mobile stack */
-               border-right: 1px solid #ccc !important; /* Add border back */
+               border-bottom: 1px solid #ccc !important;
+            }
+            .ilist-content button,
+            .ilist-content input[type="submit"] {
+               width: 100% !important;
             }
           }
         </style>
