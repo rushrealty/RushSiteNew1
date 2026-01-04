@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Script from 'next/script';
 
 const HomeContent: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -11,8 +10,26 @@ const HomeContent: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Change QuickBuy button text from "Get Value" to "Get Offer"
+  // Load QuickBuy script dynamically and change button text
   useEffect(() => {
+    const loadQuickBuyScript = () => {
+      // Remove any existing QuickBuy script to force reload
+      const existingScript = document.querySelector('script[src*="quickbuyoffer.com"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Create and append new script
+      const script = document.createElement('script');
+      script.src = 'https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01';
+      script.async = true;
+      document.body.appendChild(script);
+    };
+
+    // Load script after a short delay to ensure DOM is ready
+    const timer = setTimeout(loadQuickBuyScript, 100);
+
+    // Change button text from "Get Value" to "Get Offer"
     const updateButtonText = () => {
       const buttons = document.querySelectorAll('.ilist-content button');
       buttons.forEach(button => {
@@ -22,21 +39,12 @@ const HomeContent: React.FC = () => {
       });
     };
 
-    // Run immediately and also observe for changes
-    updateButtonText();
-    
-    const observer = new MutationObserver(updateButtonText);
-    const container = document.querySelector('.ilist-content');
-    if (container) {
-      observer.observe(container, { childList: true, subtree: true });
-    }
-
-    // Also run on interval briefly to catch late-loading content
+    // Run button text update on interval to catch when widget loads
     const interval = setInterval(updateButtonText, 500);
-    setTimeout(() => clearInterval(interval), 5000);
+    setTimeout(() => clearInterval(interval), 10000);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
       clearInterval(interval);
     };
   }, []);
@@ -1394,12 +1402,6 @@ const HomeContent: React.FC = () => {
           </form>
         </div>
       </div>
-
-      {/* QuickBuy Address Search Script - placed at end per QuickBuy docs */}
-      <Script 
-        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="afterInteractive"
-      />
     </div>
   );
 };
