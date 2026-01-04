@@ -1,17 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import FAQ from '@/components/FAQ';
+import { howToSellFaqs } from '@/data/faqData';
 
 const SellContent: React.FC = () => {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
@@ -499,80 +496,6 @@ const SellContent: React.FC = () => {
             left: 0;
             color: var(--gold);
             font-weight: 700;
-        }
-
-        /* ═══════════════════════════════════════
-           FAQ SECTION
-        ═══════════════════════════════════════ */
-        .how-to-sell-page .faq-section {
-            padding: 4rem 2rem;
-            background: var(--gray-50);
-        }
-
-        .how-to-sell-page .faq-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .how-to-sell-page .faq-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--black);
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .how-to-sell-page .faq-item {
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-
-        .how-to-sell-page .faq-question {
-            padding: 1.25rem 1.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--gray-800);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .how-to-sell-page .faq-question:hover {
-            color: var(--black);
-        }
-
-        .how-to-sell-page .faq-question svg {
-            width: 20px;
-            height: 20px;
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-            margin-left: 1rem;
-        }
-
-        .how-to-sell-page .faq-item.active .faq-question svg {
-            transform: rotate(180deg);
-        }
-
-        .how-to-sell-page .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .how-to-sell-page .faq-item.active .faq-answer {
-            max-height: 800px;
-        }
-
-        .how-to-sell-page .faq-answer p {
-            padding: 0 1.5rem 1.5rem;
-            color: var(--gray-600);
-            font-size: 0.95rem;
-            line-height: 1.7;
         }
 
         /* ═══════════════════════════════════════
@@ -1092,34 +1015,13 @@ const SellContent: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════
-           FAQ SECTION
-      ═══════════════════════════════════════ */}
-      <section className="faq-section">
-        <div className="faq-container">
-            <h2 className="faq-title">Frequently Asked Questions</h2>
-
-            {[
-              { q: "How long does it take to sell a house?", a: "In Delaware, homes typically sell within 30-45 days of listing, plus 30-45 days to close. However, timeline varies based on price point, condition, location, and market conditions. With a cash offer through our Guaranteed Sale Program, you can close in as few as 14 days." },
-              { q: "What repairs should I make before selling?", a: "Focus on high-ROI fixes: fresh neutral paint, clean carpets, updated lighting, and minor repairs like leaky faucets or squeaky doors. Avoid major renovations that won't recover their cost. If you prefer not to make any repairs, ask about our cash offer program where you can sell as-is." },
-              { q: "How do I determine the right asking price?", a: "We'll complete a Comparative Market Analysis (CMA) looking at recently sold homes similar to yours in size, age, condition, and location. Pricing strategy depends on your goals—whether maximizing price or selling quickly. Overpricing often leads to longer market time and lower final sale price." },
-              { q: "What are the costs of selling a home?", a: "Typical seller costs include real estate commission, title insurance, transfer taxes, attorney fees, and any agreed-upon closing cost credits. In Delaware, expect total closing costs of 6-8% of the sale price. We'll provide a detailed net sheet so you know exactly what to expect." },
-              { q: "Can I sell my current home while buying a new one?", a: "Yes! Our Guaranteed Sale Program provides a backup offer on your current home, which allows you to make competitive, non-contingent offers on your next home. You can list traditionally while having the security of a guaranteed sale price if the market doesn't deliver what you need." }
-            ].map((faq, idx) => (
-              <div key={idx} className={`faq-item ${activeFaq === idx ? 'active' : ''}`}>
-                <div className="faq-question" onClick={() => toggleFaq(idx)}>
-                    {faq.q}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </div>
-                <div className="faq-answer">
-                    <p>{faq.a}</p>
-                </div>
-              </div>
-            ))}
-        </div>
-      </section>
+      {/* FAQ Section - Using Reusable Component */}
+      <FAQ 
+        label="FAQ"
+        title="Frequently Asked Questions"
+        subtitle="Common questions about selling your home"
+        faqs={howToSellFaqs}
+      />
 
       {/* ═══════════════════════════════════════
            CTA SECTION
