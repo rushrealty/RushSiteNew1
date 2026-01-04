@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 interface FAQItem {
   question: string;
-  answer: string;
+  answer: string | React.ReactNode;
 }
 
 interface FAQProps {
@@ -12,9 +12,10 @@ interface FAQProps {
   title: string;
   subtitle?: string;
   faqs: FAQItem[];
+  className?: string;
 }
 
-const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs }) => {
+const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs, className = '' }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
@@ -26,6 +27,7 @@ const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs }) => {
       <style jsx>{`
         /* ═══════════════════════════════════════
            FAQ SECTION - CONSISTENT STYLING
+           Matches rush-home-guaranteed-sale-v4_7.html
         ═══════════════════════════════════════ */
         .faq-section {
           padding: 5rem 2rem;
@@ -124,7 +126,7 @@ const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs }) => {
         }
 
         .faq-item.active .faq-answer {
-          max-height: 500px;
+          max-height: 1000px;
         }
 
         .faq-answer-content {
@@ -154,7 +156,7 @@ const FAQ: React.FC<FAQProps> = ({ label, title, subtitle, faqs }) => {
         }
       `}</style>
 
-      <section className="faq-section">
+      <section className={`faq-section ${className}`}>
         <div className="faq-section-header">
           {label && <div className="faq-section-label">{label}</div>}
           <h2 className="faq-section-title">{title}</h2>
