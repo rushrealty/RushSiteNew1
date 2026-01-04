@@ -11,6 +11,36 @@ const HomeContent: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Change QuickBuy button text from "Get Value" to "Get Offer"
+  useEffect(() => {
+    const updateButtonText = () => {
+      const buttons = document.querySelectorAll('.ilist-content button');
+      buttons.forEach(button => {
+        if (button.textContent?.includes('Get Value')) {
+          button.textContent = 'Get Offer';
+        }
+      });
+    };
+
+    // Run immediately and also observe for changes
+    updateButtonText();
+    
+    const observer = new MutationObserver(updateButtonText);
+    const container = document.querySelector('.ilist-content');
+    if (container) {
+      observer.observe(container, { childList: true, subtree: true });
+    }
+
+    // Also run on interval briefly to catch late-loading content
+    const interval = setInterval(updateButtonText, 500);
+    setTimeout(() => clearInterval(interval), 5000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(interval);
+    };
+  }, []);
+
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
@@ -123,7 +153,21 @@ const HomeContent: React.FC = () => {
           max-width: 520px;
         }
 
-        /* NO QUICKBUY STYLING - Using default widget appearance */
+        /* QuickBuy Widget Styling */
+        .guaranteed-sale-page .ilist-content {
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .guaranteed-sale-page .ilist-content button {
+          background: #000000 !important;
+          background-color: #000000 !important;
+        }
+
+        .guaranteed-sale-page .ilist-content button:hover {
+          background: #262626 !important;
+          background-color: #262626 !important;
+        }
 
         .guaranteed-sale-page .hero-benefits {
           display: flex;
