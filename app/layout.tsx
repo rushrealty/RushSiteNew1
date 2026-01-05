@@ -75,8 +75,15 @@ export default function RootLayout({
             (function(w,i,d,g,e,t){w["WidgetTrackerObject"]=g;(w[g]=w[g]||function() {(w[g].q=w[g].q||[]).push(arguments);}),(w[g].ds=1*new Date());(e="script"), (t=d.createElement(e)),(e=d.getElementsByTagName(e)[0]);t.async=1;t.src=i; e.parentNode.insertBefore(t,e);}) (window,"https://widgetbe.com/agent",document,"widgetTracker"); window.widgetTracker("create", "WT-BQSFVIEG"); window.widgetTracker("send", "pageview");
           `}
         </Script>
+        {/* QuickBuy Lead Identification */}
+        <Script
+          id="quickbuy-lead-id"
+          src="https://rushhome.quickbuyoffer.com/condorscripts/0119bb16b3e840e7800312cbdb8da4c4.js?v=3072"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={`${montserrat.variable} ${playfair.variable} font-sans antialiased bg-white text-gray-900`}>
+        <GoogleAnalytics />
         <LocalBusinessSchema />
         <Header />
         <main>{children}</main>
