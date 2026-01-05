@@ -17,15 +17,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/available-communities/wiggins-mill`, lastModified: new Date(), priority: 0.7 },
   ]
 }
-```
-
----
-
-**Also recommended - robots.txt:**
-
-Create `public/robots.txt`:
-```
-User-agent: *
-Allow: /
-
-Sitemap: https://rushhome.com/sitemap.xml
