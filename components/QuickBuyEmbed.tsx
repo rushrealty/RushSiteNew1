@@ -5,10 +5,10 @@ import React, { useState, useEffect } from 'react';
 export default function QuickBuyEmbed() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Listen for form submission message from iframe
+  // Listen for button click message from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data === 'QUICKBUY_FORM_SUBMITTED') {
+      if (event.data === 'QUICKBUY_SHOW_MODAL') {
         setIsModalVisible(true);
       }
       if (event.data === 'QUICKBUY_CLOSE_MODAL') {
@@ -32,7 +32,7 @@ export default function QuickBuyEmbed() {
     };
   }, [isModalVisible]);
 
-  // Widget HTML with target frame strategy
+  // Widget HTML - sets form target AND shows modal on click, but lets QuickBuy submit
   const widgetHtml = `
     <!DOCTYPE html>
     <html lang="en">
@@ -70,9 +70,6 @@ export default function QuickBuyEmbed() {
         .ilist-content input[type="text"]:focus {
           border-color: #000 !important;
         }
-        .ilist-content input[type="text"]::placeholder {
-          color: #9ca3af !important;
-        }
         
         .ilist-content button[type="submit"] {
           width: 100% !important;
@@ -93,25 +90,12 @@ export default function QuickBuyEmbed() {
           background-color: #262626 !important;
         }
         
-        .ilist-content br, 
-        .ilist-content hr { 
-          display: none !important; 
-        }
+        .ilist-content br, .ilist-content hr { display: none !important; }
         
-        /* Hide validation messages */
-        .ilist-content .error-message,
-        .ilist-content .validation-message,
-        .ilist-content .form-error {
-          display: none !important;
-        }
-        
-        /* Google Places dropdown */
         .pac-container {
           z-index: 10000 !important;
           border-radius: 8px;
           box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-          border: 1px solid #e5e5e5;
-          margin-top: 4px;
         }
       </style>
     </head>
@@ -121,39 +105,45 @@ export default function QuickBuyEmbed() {
       <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
 
       <script>
-        function prepareForm() {
+        function setupForm() {
           const form = document.querySelector('form');
           const button = document.querySelector('button[type="submit"]');
+          const input = document.querySelector('input[type="text"]');
           
-          if (form && !form.dataset.prepared) {
-            // Mark as prepared to avoid duplicate listeners
-            form.dataset.prepared = 'true';
+          if (form && !form.dataset.setup) {
+            form.dataset.setup = 'true';
             
-            // CRITICAL: Target the modal iframe for form results
-            form.target = "quickbuy-results-frame";
+            // CRITICAL: Tell form to load result in parent's modal iframe
+            form.setAttribute('target', 'quickbuy-results-frame');
             
             // Change button text
             if (button) {
-              button.textContent = "Get Offer";
+              button.textContent = 'Get Offer';
             }
-
-            // Listen for form submission
-            form.addEventListener('submit', function(e) {
-              // Small delay to ensure validation passed before showing modal
-              setTimeout(() => {
-                window.parent.postMessage('QUICKBUY_FORM_SUBMITTED', '*');
-              }, 150);
-            });
+            
+            // On button click, show modal (but don't prevent submission)
+            if (button) {
+              button.addEventListener('click', function() {
+                const address = input ? input.value.trim() : '';
+                if (address.length > 0) {
+                  // Show modal immediately
+                  window.parent.postMessage('QUICKBUY_SHOW_MODAL', '*');
+                }
+              }, false); // Use bubble phase so QuickBuy's handlers run too
+            }
+            
+            // Also listen to form submit as backup
+            form.addEventListener('submit', function() {
+              window.parent.postMessage('QUICKBUY_SHOW_MODAL', '*');
+            }, false);
           }
         }
 
-        // Watch for QuickBuy to load its form
-        const observer = new MutationObserver(prepareForm);
+        // Keep trying to setup the form
+        const observer = new MutationObserver(setupForm);
         observer.observe(document.body, { childList: true, subtree: true });
-        
-        // Also try on intervals as backup
-        prepareForm();
-        setInterval(prepareForm, 500);
+        setupForm();
+        setInterval(setupForm, 300);
       </script>
     </body>
     </html>
@@ -176,7 +166,7 @@ export default function QuickBuyEmbed() {
         />
       </div>
 
-      {/* Modal - Always in DOM, visibility controlled by CSS */}
+      {/* Modal - iframe is ALWAYS in DOM so it can receive form submission */}
       <div 
         style={{
           position: 'fixed',
@@ -249,7 +239,7 @@ export default function QuickBuyEmbed() {
             </button>
           </div>
 
-          {/* Results Iframe - Named target for form submission */}
+          {/* Results iframe - NAMED TARGET for form submission */}
           <iframe 
             name="quickbuy-results-frame"
             style={{ 
