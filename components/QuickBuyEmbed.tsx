@@ -1,158 +1,186 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const QuickBuyEmbed: React.FC = () => {
-  const [iframeHeight, setIframeHeight] = useState(140); 
+export default function QuickBuyEmbed() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Prevent body scroll when modal is open
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'QUICKBUY_RESIZE') {
-        setIframeHeight(event.data.height + 10);
-      }
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
     };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [isModalOpen]);
 
-  const iframeHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          /* 1. Base Reset */
-          body { 
-            margin: 0; 
-            padding: 0; 
-            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-            overflow: hidden; 
-            background: transparent;
-          }
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
 
-          /* 2. STACKED LAYOUT - Everything vertical */
-          .ilist-content,
-          .ilist-content form,
-          .ilist-content div,
-          .ilist-content label {
-             display: flex !important;
-             flex-direction: column !important;
-             align-items: stretch !important;
-             width: 100% !important;
-             gap: 0 !important;
-             margin: 0 !important;
-             padding: 0 !important;
-          }
-
-          /* 3. Hide Disruptive Elements AND Validation Messages */
-          .ilist-content br, 
-          .ilist-content hr,
-          .ilist-content span,
-          .ilist-content p,
-          .ilist-content .error,
-          .ilist-content .validation,
-          .ilist-content .message,
-          .ilist-content [class*="error"],
-          .ilist-content [class*="valid"],
-          .ilist-content [class*="message"] {
-            display: none !important;
-          }
-
-          /* 4. Input Styling - Full Width */
-          .ilist-content input[type="text"],
-          .ilist-content input:not([type="submit"]):not([type="button"]) {
-             width: 100% !important;
-             height: 50px !important;
-             margin: 0 !important;
-             padding: 0 16px !important;
-             font-size: 16px !important;
-             font-family: inherit !important;
-             border: 1px solid #ccc !important;
-             border-radius: 4px !important;
-             outline: none !important;
-             background: #fff !important;
-             box-sizing: border-box !important;
-          }
-
-          /* 5. Button Styling - Full Width, below input */
-          .ilist-content button,
-          .ilist-content input[type="button"],
-          .ilist-content input[type="submit"] {
-             width: 100% !important;
-             height: 50px !important;
-             margin-top: 12px !important;
-             padding: 0 24px !important;
-             font-size: 16px !important;
-             font-weight: 600 !important;
-             font-family: inherit !important;
-             white-space: nowrap !important;
-             background-color: #000 !important;
-             color: #fff !important;
-             border: none !important;
-             border-radius: 4px !important;
-             cursor: pointer !important;
-             box-sizing: border-box !important;
-          }
-
-          .ilist-content button:hover,
-          .ilist-content input[type="submit"]:hover {
-             background-color: #262626 !important;
-          }
-        </style>
-      </head>
-      <body>
-        
-        <div class="ilist-content"></div>
-
-        <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
-
-        <script>
-          // Button Text Updater
-          setInterval(() => {
-            const buttons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
-            buttons.forEach(btn => {
-              const text = btn.textContent || btn.value || '';
-              if (text.includes('Get Value')) {
-                if (btn.tagName === 'INPUT') {
-                    btn.value = 'Get Offer';
-                } else {
-                    btn.textContent = 'Get Offer';
-                }
-              }
-            });
-          }, 500);
-
-          // Resize Logic
-          const sendHeight = () => {
-            const container = document.querySelector('.ilist-content') || document.body;
-            const height = container.scrollHeight;
-            window.parent.postMessage({ type: 'QUICKBUY_RESIZE', height: height }, '*');
-          };
-          window.addEventListener('load', sendHeight);
-          const observer = new ResizeObserver(sendHeight);
-          observer.observe(document.body);
-          setInterval(sendHeight, 1000);
-        </script>
-      </body>
-    </html>
-  `;
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
-    <div style={{ width: '100%', minHeight: '120px' }}>
-      <iframe
-        srcDoc={iframeHtml}
-        title="QuickBuy Offer Widget"
-        style={{
-          width: '100%',
-          height: `${iframeHeight}px`,
-          border: 'none',
-          display: 'block'
-        }}
-        scrolling="no" 
-      />
-    </div>
-  );
-};
+    <>
+      {/* Compact Widget - Click to Open Modal */}
+      <div 
+        style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}
+        onClick={openModal}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Fake input that triggers modal */}
+          <div
+            style={{
+              width: '100%',
+              padding: '16px 20px',
+              fontSize: '16px',
+              border: '2px solid #e5e5e5',
+              borderRadius: '12px',
+              backgroundColor: '#fff',
+              color: '#9ca3af',
+              cursor: 'pointer',
+              transition: 'border-color 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.borderColor = '#000')}
+            onMouseOut={(e) => (e.currentTarget.style.borderColor = '#e5e5e5')}
+          >
+            Enter your home address
+          </div>
+          <button
+            type="button"
+            onClick={openModal}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              fontSize: '16px',
+              fontWeight: 700,
+              color: '#fff',
+              backgroundColor: '#000',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#262626')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#000')}
+          >
+            Get Offer
+          </button>
+        </div>
+      </div>
 
-export default QuickBuyEmbed;
+      {/* Full Screen Modal */}
+      {isModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            animation: 'fadeIn 0.2s ease',
+          }}
+          onClick={closeModal}
+        >
+          {/* Modal Content */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '900px',
+              height: '90vh',
+              maxHeight: '750px',
+              backgroundColor: '#fff',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+              animation: 'slideUp 0.3s ease',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with Close Button */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                borderBottom: '1px solid #e5e5e5',
+                backgroundColor: '#fff',
+              }}
+            >
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
+                Get Your Cash Offer
+              </h3>
+              <button
+                onClick={closeModal}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: '#f5f5f5',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#e5e5e5')}
+                onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#f5f5f5')}
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* QuickBuy iframe - Full Experience */}
+            <iframe
+              src="https://rushhome.quickbuyoffer.com/"
+              style={{
+                width: '100%',
+                height: 'calc(100% - 73px)',
+                border: 'none',
+              }}
+              title="Get Your Cash Offer"
+              allow="geolocation"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Animation Styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+    </>
+  );
+}
