@@ -1,9 +1,9 @@
-
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Script from "next/script";
 
 const montserrat = Montserrat({
@@ -18,9 +18,37 @@ const playfair = Playfair_Display({
   weight: ["700"],
 });
 
+// PWA Viewport settings
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#171717',
+};
+
 export const metadata: Metadata = {
+  // Base URL for all relative URLs
+  metadataBase: new URL('https://rushhome.com'),
+  
+  // PWA Manifest
+  manifest: '/manifest.json',
+  
+  // Apple PWA settings
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Rush Home',
+  },
+  
+  // Default page metadata
   title: "Your Home. Sold. Guaranteed. | Rush Home Team",
   description: "Get an instant cash offer on your Delaware home. Buy your next home before selling. No showings, no stress, your timeline.",
+  
+  // Additional SEO
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-180x180.png',
+  },
 };
 
 export default function RootLayout({
@@ -48,6 +76,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className={`${montserrat.variable} ${playfair.variable} font-sans antialiased bg-white text-gray-900`}>
+        <LocalBusinessSchema />
         <Header />
         <main>{children}</main>
         <Footer />
