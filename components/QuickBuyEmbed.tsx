@@ -3,7 +3,7 @@
 import React from 'react';
 
 export default function QuickBuyEmbed() {
-  // Widget HTML - captures address and opens QuickBuy in new tab
+
   const widgetHtml = `
     <!DOCTYPE html>
     <html lang="en">
@@ -20,7 +20,10 @@ export default function QuickBuyEmbed() {
           width: 100% !important; 
           gap: 12px !important; 
         }
-        .ilist-content div { width: 100% !important; display: block !important; }
+        .ilist-content div { 
+          width: 100% !important; 
+          display: block !important; 
+        }
         
         .ilist-content input[type="text"] {
           width: 100% !important;
@@ -31,6 +34,7 @@ export default function QuickBuyEmbed() {
           border-radius: 12px !important;
           outline: none !important;
           background: #fff !important;
+          color: #000 !important;
         }
         .ilist-content input[type="text"]:focus {
           border-color: #000 !important;
@@ -48,12 +52,16 @@ export default function QuickBuyEmbed() {
           border: none !important;
           border-radius: 12px !important;
           cursor: pointer !important;
+          -webkit-appearance: none;
         }
         .ilist-content button:hover {
           background-color: #262626 !important;
         }
         
-        .ilist-content br, .ilist-content hr { display: none !important; }
+        .ilist-content br, .ilist-content hr, .error-message, .validation-message { 
+          display: none !important; 
+        }
+        
         .pac-container { z-index: 9999 !important; border-radius: 8px; margin-top: 4px; }
       </style>
     </head>
@@ -63,51 +71,55 @@ export default function QuickBuyEmbed() {
       <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
 
       <script>
-        function setupForm() {
-          const form = document.querySelector('form');
-          const button = document.querySelector('button, input[type="submit"]');
-          const input = document.querySelector('input[type="text"]');
+        function openNewWindow(address) {
+          if (!address) return;
+          var url = "https://rushhome.quickbuyoffer.com/?address=" + encodeURIComponent(address);
+          window.open(url, '_blank');
+        }
+
+        function hijackButton() {
+          var form = document.querySelector('form');
+          if (!form) return;
+
+          // Neutralize the form submit
+          form.onsubmit = function(e) { 
+            e.preventDefault(); 
+            e.stopPropagation();
+            return false; 
+          };
+
+          // Find the button
+          var oldBtn = form.querySelector('button, input[type="submit"]');
           
-          if (form && !form.dataset.setup) {
-            form.dataset.setup = 'true';
+          // Only swap if we haven't already
+          if (oldBtn && !oldBtn.dataset.hijacked) {
+            var newBtn = oldBtn.cloneNode(true);
+            newBtn.dataset.hijacked = "true";
             
-            // Change button text
-            if (button) {
-              if (button.tagName === 'INPUT') button.value = 'Get Offer';
-              else button.textContent = 'Get Offer';
-            }
-            
-            // Intercept form submission - open in new tab
-            form.addEventListener('submit', function(e) {
+            // Set button text
+            if (newBtn.tagName === 'INPUT') newBtn.value = 'Get Offer';
+            else newBtn.textContent = 'Get Offer';
+
+            // Attach our click listener
+            newBtn.addEventListener('click', function(e) {
               e.preventDefault();
               e.stopPropagation();
               
-              const address = input ? input.value.trim() : '';
-              if (address) {
-                // Open QuickBuy in new tab with address
-                window.open('https://rushhome.quickbuyoffer.com/?address=' + encodeURIComponent(address), '_blank');
+              var input = document.querySelector('input[type="text"]');
+              if (input && input.value) {
+                openNewWindow(input.value);
+              } else {
+                if (input) input.style.borderColor = 'red';
               }
-            }, true);
-            
-            // Also intercept button click
-            if (button) {
-              button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const address = input ? input.value.trim() : '';
-                if (address) {
-                  window.open('https://rushhome.quickbuyoffer.com/?address=' + encodeURIComponent(address), '_blank');
-                }
-              }, true);
-            }
+            });
+
+            // Swap the buttons
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
           }
         }
 
-        const observer = new MutationObserver(setupForm);
-        observer.observe(document.body, { childList: true, subtree: true });
-        setupForm();
-        setInterval(setupForm, 300);
+        // Aggressive check every 200ms
+        setInterval(hijackButton, 200);
       </script>
     </body>
     </html>
@@ -118,7 +130,13 @@ export default function QuickBuyEmbed() {
       <iframe
         srcDoc={widgetHtml}
         title="QuickBuy Widget"
-        style={{ width: '100%', height: '140px', border: 'none', overflow: 'hidden' }}
+        sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin"
+        style={{ 
+          width: '100%', 
+          height: '140px', 
+          border: 'none', 
+          overflow: 'hidden' 
+        }}
         scrolling="no"
       />
     </div>
