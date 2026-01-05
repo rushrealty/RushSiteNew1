@@ -46,7 +46,7 @@ const Footer: React.FC = () => {
                 <ul className="space-y-3 text-sm text-brand-darkGray">
                   <li className="font-medium"><a href="tel:3022196707">302-219-6707</a></li>
                   <li><a href="mailto:info@rushhome.com">info@rushhome.com</a></li>
-                  <li className="leading-relaxed text-brand-slate italic">Smyrna, DE 19977</li>
+                  <li className="leading-relaxed text-brand-slate italic">200 S. Dupont Blvd, Ste 105, Smyrna, DE 19977</li>
                 </ul>
               </div>
            </div>
