@@ -6,11 +6,14 @@ const BuyContent: React.FC = () => {
   const idxContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Wait for ihfKestrel to be available, then render
+    // Wait for ihfKestrel to be available, then render the Listing Search Widget
     const renderIDX = () => {
       if (typeof window !== 'undefined' && window.ihfKestrel && idxContainerRef.current) {
         try {
-          const rendered = window.ihfKestrel.render();
+          // Render the Listing Search Widget specifically
+          const rendered = window.ihfKestrel.render({
+            component: "listingSearchWidget"
+          });
           if (rendered && idxContainerRef.current) {
             idxContainerRef.current.innerHTML = '';
             idxContainerRef.current.appendChild(rendered);
@@ -88,7 +91,7 @@ const BuyContent: React.FC = () => {
       {/* IDX Search Container */}
       <div className="idx-container">
         <div ref={idxContainerRef} id="ihf-main-container">
-          {/* iHomeFinder IDX will render here */}
+          {/* iHomeFinder Listing Search Widget will render here */}
           <p style={{ textAlign: 'center', color: '#737373', padding: '2rem' }}>
             Loading property search...
           </p>
@@ -104,7 +107,7 @@ export default BuyContent;
 declare global {
   interface Window {
     ihfKestrel: {
-      render: () => HTMLElement;
+      render: (options?: { component?: string }) => HTMLElement;
       config: {
         platform: string;
         activationToken: string;
