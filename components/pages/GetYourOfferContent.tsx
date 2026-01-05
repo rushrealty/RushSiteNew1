@@ -1,13 +1,51 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Script from 'next/script';
 import FAQ from '@/components/FAQ';
 
 export default function GetYourOfferContent() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  // Load QuickBuy script dynamically and change button text
+  useEffect(() => {
+    const loadQuickBuyScript = () => {
+      // Remove any existing QuickBuy script to force reload
+      const existingScript = document.querySelector('script[src*="quickbuyoffer.com"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // Create and append new script
+      const script = document.createElement('script');
+      script.src = 'https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01';
+      script.async = true;
+      document.body.appendChild(script);
+    };
+
+    // Load script after a short delay to ensure DOM is ready
+    const timer = setTimeout(loadQuickBuyScript, 100);
+
+    // Change button text from "Get Value" to "Get Offer"
+    const updateButtonText = () => {
+      const buttons = document.querySelectorAll('.ilist-content button');
+      buttons.forEach(button => {
+        if (button.textContent?.includes('Get Value')) {
+          button.textContent = 'Get Offer';
+        }
+      });
+    };
+
+    // Run button text update on interval to catch when widget loads
+    const interval = setInterval(updateButtonText, 500);
+    setTimeout(() => clearInterval(interval), 10000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   // FAQ Data
@@ -1186,12 +1224,6 @@ export default function GetYourOfferContent() {
         label="Questions"
         title="Frequently Asked Questions"
         faqs={getOfferFaqs}
-      />
-
-      {/* QuickBuy Address Search Script */}
-      <Script
-        src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"
-        strategy="lazyOnload"
       />
     </div>
   );
