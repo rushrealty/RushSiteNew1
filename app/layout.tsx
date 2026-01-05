@@ -81,6 +81,25 @@ export default function RootLayout({
           src="https://rushhome.quickbuyoffer.com/condorscripts/0119bb16b3e840e7800312cbdb8da4c4.js?v=3072"
           strategy="afterInteractive"
         />
+        {/* iHomeFinder IDX */}
+        <Script
+          id="ihf-kestrel"
+          src="https://kestrel.idxhome.com/ihf-kestrel.js"
+          strategy="beforeInteractive"
+        />
+        <Script
+          id="ihf-kestrel-config"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.ihfKestrel = window.ihfKestrel || {};
+              ihfKestrel.config = {
+                platform: "custom",
+                activationToken: "4060aca8-a116-467b-a7f0-9ba3dd49aebb",
+              };
+            `
+          }}
+        />
       </head>
       <body className={`${montserrat.variable} ${playfair.variable} font-sans antialiased bg-white text-gray-900`}>
         <GoogleAnalytics />
