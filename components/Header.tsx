@@ -336,7 +336,7 @@ const Header: React.FC = () => {
         </div>
 
         <div className="nav-right">
-          <Link href="/get-offer" className="nav-cta">Get My Offer</Link>
+          <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="nav-cta">Get My Offer</a>
           <div className="nav-toggle" onClick={toggleMobileMenu}>
             <span></span>
             <span></span>
@@ -364,7 +364,7 @@ const Header: React.FC = () => {
           </React.Fragment>
         ))}
 
-        <Link href="/get-offer" className="mobile-cta" onClick={toggleMobileMenu}>Get My Offer</Link>
+        <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="mobile-cta" onClick={toggleMobileMenu}>Get My Offer</a>
       </div>
     </>
   );
