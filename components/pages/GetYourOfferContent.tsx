@@ -559,20 +559,6 @@ export default function GetYourOfferContent() {
           flex-shrink: 0;
         }
 
-        .get-offer-page .choice-ideal {
-          font-size: 0.85rem;
-          color: var(--gray-600);
-          line-height: 1.5;
-          padding: 0.75rem;
-          background: var(--gray-50);
-          border-radius: 8px;
-          margin-bottom: 1.25rem;
-        }
-
-        .get-offer-page .choice-ideal strong {
-          color: var(--black);
-        }
-
         .get-offer-page .choice-cta {
           display: block;
           text-align: center;
@@ -1077,7 +1063,6 @@ export default function GetYourOfferContent() {
                   <span>Professional marketing</span>
                 </div>
               </div>
-              <p className="choice-ideal"><strong>Ideal if:</strong> You have time to wait for the right buyer and want to maximize your sale price.</p>
               <a href="/sell" className="choice-cta secondary">Learn More</a>
             </div>
 
@@ -1117,7 +1102,6 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <p className="choice-ideal"><strong>Ideal if:</strong> You need speed, certainty, or want to skip the hassle of listing.</p>
               <a href="#addressForm" className="choice-cta">Get Your Offer</a>
             </div>
 
@@ -1159,7 +1143,6 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <p className="choice-ideal"><strong>Ideal if:</strong> You want immediate liquidity but don&apos;t want to leave money on the table.</p>
               <a href="#addressForm" className="choice-cta">Get Your Offer</a>
             </div>
           </div>
