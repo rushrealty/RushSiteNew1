@@ -1,233 +1,126 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 
 export default function QuickBuyEmbed() {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [address, setAddress] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
-
-  // Initialize Google Places Autocomplete
-  useEffect(() => {
-    const initAutocomplete = async () => {
-      const win = window as any;
-      if (typeof window !== 'undefined' && win.google?.maps && inputRef.current && !autocompleteRef.current) {
-        try {
-          const { Autocomplete } = await win.google.maps.importLibrary('places');
-          
-          autocompleteRef.current = new Autocomplete(inputRef.current, {
-            componentRestrictions: { country: 'us' },
-            fields: ['formatted_address'],
-            types: ['address'],
-          });
-
-          autocompleteRef.current.addListener('place_changed', () => {
-            const place = autocompleteRef.current?.getPlace();
-            if (place?.formatted_address) {
-              setAddress(place.formatted_address);
-            }
-          });
-        } catch (error) {
-          console.log('Waiting for Google Maps...');
+  // Widget HTML - captures address and opens QuickBuy in new tab
+  const widgetHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; overflow: hidden; }
+        
+        .ilist-content { width: 100%; }
+        .ilist-content form { 
+          display: flex !important; 
+          flex-direction: column !important; 
+          width: 100% !important; 
+          gap: 12px !important; 
         }
-      }
-    };
+        .ilist-content div { width: 100% !important; display: block !important; }
+        
+        .ilist-content input[type="text"] {
+          width: 100% !important;
+          height: 54px !important;
+          padding: 0 20px !important;
+          font-size: 16px !important;
+          border: 2px solid #e5e5e5 !important;
+          border-radius: 12px !important;
+          outline: none !important;
+          background: #fff !important;
+        }
+        .ilist-content input[type="text"]:focus {
+          border-color: #000 !important;
+        }
+        
+        .ilist-content button,
+        .ilist-content input[type="submit"] {
+          width: 100% !important;
+          height: 54px !important;
+          padding: 0 24px !important;
+          font-size: 16px !important;
+          font-weight: 700 !important;
+          background-color: #000 !important;
+          color: #fff !important;
+          border: none !important;
+          border-radius: 12px !important;
+          cursor: pointer !important;
+        }
+        .ilist-content button:hover {
+          background-color: #262626 !important;
+        }
+        
+        .ilist-content br, .ilist-content hr { display: none !important; }
+        .pac-container { z-index: 9999 !important; border-radius: 8px; margin-top: 4px; }
+      </style>
+    </head>
+    <body>
+      <div class="ilist-content"></div>
+      
+      <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
 
-    initAutocomplete();
-    const timers = [
-      setTimeout(initAutocomplete, 500),
-      setTimeout(initAutocomplete, 1000),
-      setTimeout(initAutocomplete, 2000),
-    ];
-    
-    return () => timers.forEach(clearTimeout);
-  }, []);
+      <script>
+        function setupForm() {
+          const form = document.querySelector('form');
+          const button = document.querySelector('button, input[type="submit"]');
+          const input = document.querySelector('input[type="text"]');
+          
+          if (form && !form.dataset.setup) {
+            form.dataset.setup = 'true';
+            
+            // Change button text
+            if (button) {
+              if (button.tagName === 'INPUT') button.value = 'Get Offer';
+              else button.textContent = 'Get Offer';
+            }
+            
+            // Intercept form submission - open in new tab
+            form.addEventListener('submit', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const address = input ? input.value.trim() : '';
+              if (address) {
+                // Open QuickBuy in new tab with address
+                window.open('https://rushhome.quickbuyoffer.com/?address=' + encodeURIComponent(address), '_blank');
+              }
+            }, true);
+            
+            // Also intercept button click
+            if (button) {
+              button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const address = input ? input.value.trim() : '';
+                if (address) {
+                  window.open('https://rushhome.quickbuyoffer.com/?address=' + encodeURIComponent(address), '_blank');
+                }
+              }, true);
+            }
+          }
+        }
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (isModalVisible) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isModalVisible]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (address.trim()) {
-      setIsModalVisible(true);
-    }
-  };
+        const observer = new MutationObserver(setupForm);
+        observer.observe(document.body, { childList: true, subtree: true });
+        setupForm();
+        setInterval(setupForm, 300);
+      </script>
+    </body>
+    </html>
+  `;
 
   return (
-    <>
-      {/* Custom Address Input */}
-      <form 
-        onSubmit={handleSubmit}
-        style={{ 
-          width: '100%', 
-          maxWidth: '500px', 
-          margin: '0 auto',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="Enter your home address"
-            style={{
-              width: '100%',
-              height: '54px',
-              padding: '0 20px',
-              fontSize: '16px',
-              border: '2px solid #e5e5e5',
-              borderRadius: '12px',
-              outline: 'none',
-              fontFamily: 'inherit',
-              transition: 'border-color 0.2s',
-              backgroundColor: '#fff',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = '#000')}
-            onBlur={(e) => (e.target.style.borderColor = '#e5e5e5')}
-          />
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              height: '54px',
-              padding: '0 24px',
-              fontSize: '16px',
-              fontWeight: 700,
-              color: '#fff',
-              backgroundColor: '#000',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#262626')}
-            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#000')}
-          >
-            Get Offer
-          </button>
-        </div>
-      </form>
-
-      {/* Modal */}
-      {isModalVisible && (
-        <div 
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            padding: '20px',
-          }}
-          onClick={() => setIsModalVisible(false)}
-        >
-          <div 
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: '900px',
-              height: '90vh',
-              backgroundColor: '#fff',
-              borderRadius: '20px',
-              overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div style={{ 
-              padding: '16px 24px', 
-              borderBottom: '1px solid #e5e5e5', 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              flexShrink: 0,
-            }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>Get Your Cash Offer</h3>
-                {address && (
-                  <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#737373' }}>{address}</p>
-                )}
-              </div>
-              <button 
-                onClick={() => setIsModalVisible(false)} 
-                style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  borderRadius: '50%', 
-                  border: 'none', 
-                  background: '#f5f5f5', 
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                aria-label="Close"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            {/* QuickBuy iframe with address parameter */}
-            <iframe 
-              src={`https://rushhome.quickbuyoffer.com/?address=${encodeURIComponent(address)}`}
-              style={{ width: '100%', flex: 1, border: 'none' }}
-              title="Get Your Cash Offer"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Google Places Autocomplete Styles */}
-      <style jsx global>{`
-        .pac-container {
-          z-index: 10001 !important;
-          border-radius: 12px;
-          border: 1px solid #e5e5e5;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-          margin-top: 4px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          overflow: hidden;
-        }
-        .pac-item {
-          padding: 12px 16px;
-          cursor: pointer;
-          border-top: 1px solid #f5f5f5;
-        }
-        .pac-item:first-child {
-          border-top: none;
-        }
-        .pac-item:hover {
-          background-color: #f5f5f5;
-        }
-        .pac-item-query {
-          font-size: 15px;
-          color: #000;
-        }
-        .pac-matched {
-          font-weight: 600;
-        }
-        .pac-icon {
-          display: none;
-        }
-      `}</style>
-    </>
+    <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', minHeight: '130px' }}>
+      <iframe
+        srcDoc={widgetHtml}
+        title="QuickBuy Widget"
+        style={{ width: '100%', height: '140px', border: 'none', overflow: 'hidden' }}
+        scrolling="no"
+      />
+    </div>
   );
 }
