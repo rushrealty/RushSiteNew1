@@ -4,15 +4,14 @@ import React, { useState, useEffect } from 'react';
 
 export default function QuickBuyEmbed() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [targetAddress, setTargetAddress] = useState('');
 
-  // Listen for button click message from iframe
+  // Listen for the 'OPEN_MODAL' command from the iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data === 'QUICKBUY_SHOW_MODAL') {
+      if (event.data && event.data.type === 'QUICKBUY_OPEN_MODAL') {
+        setTargetAddress(event.data.address || '');
         setIsModalVisible(true);
-      }
-      if (event.data === 'QUICKBUY_CLOSE_MODAL') {
-        setIsModalVisible(false);
       }
     };
 
@@ -20,19 +19,17 @@ export default function QuickBuyEmbed() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Prevent body scroll when modal is open
+  // Lock body scroll when modal is open
   useEffect(() => {
     if (isModalVisible) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, [isModalVisible]);
 
-  // Widget HTML - sets form target AND shows modal on click, but lets QuickBuy submit
+  // Widget HTML with button hijack
   const widgetHtml = `
     <!DOCTYPE html>
     <html lang="en">
@@ -56,26 +53,23 @@ export default function QuickBuyEmbed() {
         
         .ilist-content input[type="text"] {
           width: 100% !important;
-          box-sizing: border-box !important;
           height: 54px !important;
-          margin: 0 !important;
           padding: 0 20px !important;
           font-size: 16px !important;
           border: 2px solid #e5e5e5 !important;
           border-radius: 12px !important;
           outline: none !important;
-          transition: border-color 0.2s !important;
           background: #fff !important;
+          color: #000 !important;
         }
         .ilist-content input[type="text"]:focus {
           border-color: #000 !important;
         }
         
-        .ilist-content button[type="submit"] {
+        .ilist-content button,
+        .ilist-content input[type="submit"] {
           width: 100% !important;
-          box-sizing: border-box !important;
           height: 54px !important;
-          margin: 0 !important;
           padding: 0 24px !important;
           font-size: 16px !important;
           font-weight: 700 !important;
@@ -84,19 +78,17 @@ export default function QuickBuyEmbed() {
           border: none !important;
           border-radius: 12px !important;
           cursor: pointer !important;
-          transition: background-color 0.2s !important;
+          -webkit-appearance: none;
         }
-        .ilist-content button[type="submit"]:hover {
+        .ilist-content button:hover {
           background-color: #262626 !important;
         }
         
-        .ilist-content br, .ilist-content hr { display: none !important; }
-        
-        .pac-container {
-          z-index: 10000 !important;
-          border-radius: 8px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        .ilist-content br, .ilist-content hr, .error-message, .validation-message { 
+          display: none !important; 
         }
+        
+        .pac-container { z-index: 9999 !important; border-radius: 8px; margin-top: 4px; }
       </style>
     </head>
     <body>
@@ -105,45 +97,55 @@ export default function QuickBuyEmbed() {
       <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
 
       <script>
-        function setupForm() {
-          const form = document.querySelector('form');
-          const button = document.querySelector('button[type="submit"]');
+        function triggerModal() {
           const input = document.querySelector('input[type="text"]');
+          const address = input ? input.value : '';
           
-          if (form && !form.dataset.setup) {
-            form.dataset.setup = 'true';
-            
-            // CRITICAL: Tell form to load result in parent's modal iframe
-            form.setAttribute('target', 'quickbuy-results-frame');
-            
-            // Change button text
-            if (button) {
-              button.textContent = 'Get Offer';
-            }
-            
-            // On button click, show modal (but don't prevent submission)
-            if (button) {
-              button.addEventListener('click', function() {
-                const address = input ? input.value.trim() : '';
-                if (address.length > 0) {
-                  // Show modal immediately
-                  window.parent.postMessage('QUICKBUY_SHOW_MODAL', '*');
-                }
-              }, false); // Use bubble phase so QuickBuy's handlers run too
-            }
-            
-            // Also listen to form submit as backup
-            form.addEventListener('submit', function() {
-              window.parent.postMessage('QUICKBUY_SHOW_MODAL', '*');
-            }, false);
-          }
+          if (!address) return;
+
+          window.parent.postMessage({
+            type: 'QUICKBUY_OPEN_MODAL',
+            address: address
+          }, '*');
         }
 
-        // Keep trying to setup the form
-        const observer = new MutationObserver(setupForm);
+        function hijackButton() {
+          const forms = document.querySelectorAll('form');
+          forms.forEach(form => {
+            // Disable standard submit
+            form.onsubmit = function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              triggerModal();
+              return false;
+            };
+
+            // Find and clone the button (cloning removes vendor event listeners)
+            const oldBtn = form.querySelector('button, input[type="submit"]');
+            if (oldBtn && !oldBtn.dataset.hijacked) {
+              const newBtn = oldBtn.cloneNode(true);
+              newBtn.dataset.hijacked = "true";
+              
+              // Set button text
+              if (newBtn.tagName === 'INPUT') newBtn.value = 'Get Offer';
+              else newBtn.textContent = 'Get Offer';
+
+              // Attach our click listener
+              newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                triggerModal();
+              });
+
+              // Swap in the DOM
+              oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            }
+          });
+        }
+
+        const observer = new MutationObserver(hijackButton);
         observer.observe(document.body, { childList: true, subtree: true });
-        setupForm();
-        setInterval(setupForm, 300);
+        setInterval(hijackButton, 500);
       </script>
     </body>
     </html>
@@ -151,29 +153,21 @@ export default function QuickBuyEmbed() {
 
   return (
     <>
-      {/* Address Input Widget */}
+      {/* Widget */}
       <div style={{ width: '100%', maxWidth: '500px', margin: '0 auto', minHeight: '130px' }}>
         <iframe
           srcDoc={widgetHtml}
-          title="QuickBuy Address Widget"
-          style={{ 
-            width: '100%', 
-            height: '140px', 
-            border: 'none', 
-            overflow: 'hidden' 
-          }}
+          title="QuickBuy Widget"
+          style={{ width: '100%', height: '140px', border: 'none', overflow: 'hidden' }}
           scrolling="no"
         />
       </div>
 
-      {/* Modal - iframe is ALWAYS in DOM so it can receive form submission */}
+      {/* Modal */}
       <div 
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          inset: 0,
           zIndex: 9999,
           display: isModalVisible ? 'flex' : 'none',
           alignItems: 'center',
@@ -189,7 +183,6 @@ export default function QuickBuyEmbed() {
             width: '100%',
             maxWidth: '900px',
             height: '90vh',
-            maxHeight: '800px',
             backgroundColor: '#fff',
             borderRadius: '20px',
             overflow: 'hidden',
@@ -199,29 +192,29 @@ export default function QuickBuyEmbed() {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Modal Header */}
-          <div 
-            style={{ 
-              padding: '16px 24px', 
-              borderBottom: '1px solid #e5e5e5', 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'space-between', 
-              backgroundColor: '#fff',
-              flexShrink: 0,
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
-              Get Your Cash Offer
-            </h3>
+          {/* Header */}
+          <div style={{ 
+            padding: '16px 24px', 
+            borderBottom: '1px solid #e5e5e5', 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            flexShrink: 0,
+          }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>Get Your Cash Offer</h3>
+              {targetAddress && (
+                <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#737373' }}>{targetAddress}</p>
+              )}
+            </div>
             <button 
               onClick={() => setIsModalVisible(false)} 
               style={{ 
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: '#f5f5f5',
+                width: '40px', 
+                height: '40px', 
+                borderRadius: '50%', 
+                border: 'none', 
+                background: '#f5f5f5', 
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -239,16 +232,14 @@ export default function QuickBuyEmbed() {
             </button>
           </div>
 
-          {/* Results iframe - NAMED TARGET for form submission */}
-          <iframe 
-            name="quickbuy-results-frame"
-            style={{ 
-              width: '100%', 
-              flex: 1,
-              border: 'none',
-            }}
-            title="Offer Results"
-          />
+          {/* Results iframe - loads QuickBuy with address parameter */}
+          {isModalVisible && (
+            <iframe 
+              src={`https://rushhome.quickbuyoffer.com/?address=${encodeURIComponent(targetAddress)}`}
+              style={{ width: '100%', flex: 1, border: 'none' }}
+              title="Offer Results"
+            />
+          )}
         </div>
       </div>
     </>
