@@ -4,13 +4,13 @@ import React, { useEffect } from 'react';
 
 export default function QuickBuyEmbed() {
 
-  // PARENT LISTENER - Opens the new tab when iframe sends message
+  // PARENT LISTENER - Opens new tab with full form data
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'QUICKBUY_OPEN_NEW_TAB') {
-        const address = event.data.address;
-        if (address) {
-          const url = `https://rushhome.quickbuyoffer.com/?address=${encodeURIComponent(address)}`;
+        const queryParams = event.data.params;
+        if (queryParams) {
+          const url = `https://rushhome.quickbuyoffer.com/?${queryParams}`;
           window.open(url, '_blank');
         }
       }
@@ -29,24 +29,39 @@ export default function QuickBuyEmbed() {
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; overflow: hidden; }
-        .ilist-content { width: 100%; }
-        .ilist-content form { display: flex !important; flex-direction: column !important; width: 100% !important; gap: 12px !important; }
-        .ilist-content div { width: 100% !important; display: block !important; }
         
+        .ilist-content form { 
+          display: flex !important; 
+          flex-direction: column !important; 
+          width: 100% !important; 
+          gap: 12px !important; 
+        }
+        
+        /* HIDE VENDOR BUTTON */
+        .ilist-content button, 
+        .ilist-content input[type="submit"] {
+          display: none !important;
+        }
+
+        /* INPUT STYLING */
         .ilist-content input[type="text"] {
           width: 100% !important; height: 54px !important; padding: 0 20px !important;
           font-size: 16px !important; border: 2px solid #e5e5e5 !important; border-radius: 12px !important;
           outline: none !important; background: #fff !important; color: #000 !important;
+          display: block !important;
         }
         .ilist-content input[type="text"]:focus { border-color: #000 !important; }
         
-        .ilist-content button, .ilist-content input[type="submit"] {
+        /* DECOY BUTTON STYLING */
+        #my-custom-btn {
           width: 100% !important; height: 54px !important; padding: 0 24px !important;
           font-size: 16px !important; font-weight: 700 !important; background-color: #000 !important;
           color: #fff !important; border: none !important; border-radius: 12px !important;
-          cursor: pointer !important; -webkit-appearance: none;
+          cursor: pointer !important; -webkit-appearance: none; margin-top: 0px;
+          display: block; text-align: center; line-height: 54px;
         }
-        .ilist-content button:hover { background-color: #262626 !important; }
+        #my-custom-btn:hover { background-color: #262626 !important; }
+
         .ilist-content br, .ilist-content hr, .error-message, .validation-message { display: none !important; }
         .pac-container { z-index: 9999 !important; border-radius: 8px; margin-top: 4px; }
       </style>
@@ -57,51 +72,43 @@ export default function QuickBuyEmbed() {
       <script src="https://rushhome.quickbuyoffer.com/scripts/falcon/auto-address.js?v=2.01"></script>
 
       <script>
-        function sendAddressToParent() {
-          var input = document.querySelector('input[type="text"]');
-          if (input && input.value) {
-            window.parent.postMessage({
-              type: 'QUICKBUY_OPEN_NEW_TAB',
-              address: input.value
-            }, '*');
-          }
-        }
-
-        function neutralizeAndHijack() {
+        function injectMyButton() {
           var form = document.querySelector('form');
           if (!form) return;
 
-          // Kill the form submit
-          form.onsubmit = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            sendAddressToParent();
-            return false;
-          };
+          // Prevent duplicate buttons
+          if (document.getElementById('my-custom-btn')) return;
 
-          // Hijack the button
-          var oldBtn = form.querySelector('button, input[type="submit"]');
-          if (oldBtn && !oldBtn.dataset.hijacked) {
-            var newBtn = oldBtn.cloneNode(true);
-            newBtn.dataset.hijacked = "true";
+          // Create Decoy Button
+          var myBtn = document.createElement('div');
+          myBtn.id = 'my-custom-btn';
+          myBtn.textContent = 'Get Offer';
+          
+          // Click handler
+          myBtn.addEventListener('click', function() {
+            // Capture ALL data from the form (Address + Hidden Fields)
+            var formData = new FormData(form);
+            var params = new URLSearchParams(formData).toString();
+
+            var input = document.querySelector('input[type="text"]');
             
-            if (newBtn.tagName === 'INPUT') newBtn.value = 'Get Offer';
-            else newBtn.textContent = 'Get Offer';
+            // Only proceed if address is entered
+            if (input && input.value) {
+              // Send entire data package to Parent
+              window.parent.postMessage({
+                type: 'QUICKBUY_OPEN_NEW_TAB',
+                params: params 
+              }, '*');
+            } else {
+              if (input) input.focus();
+            }
+          });
 
-            newBtn.onclick = function(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              sendAddressToParent();
-              return false;
-            };
-
-            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-          }
+          form.appendChild(myBtn);
         }
 
-        // Run aggressively every 100ms
-        setInterval(neutralizeAndHijack, 100);
+        // Run constantly to ensure our button stays visible
+        setInterval(injectMyButton, 200);
       </script>
     </body>
     </html>
