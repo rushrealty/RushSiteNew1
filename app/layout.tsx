@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Script from "next/script";
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const montserrat = Montserrat({
   subsets: ["latin"],
