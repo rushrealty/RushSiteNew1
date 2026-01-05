@@ -53,7 +53,7 @@ export default function GetYourOfferContent() {
   const getOfferFaqs = [
     {
       question: "How is my offer calculated?",
-      answer: "Your offer is based on comparable home sales in your area, current market conditions, and your property's condition. QuickBuy uses the same data real estate professionals use to determine fair market value, then provides a competitive cash offer."
+      answer: "Your offer is based on comparable home sales in your area, current market conditions, and your property's condition. Rush Home QuickBuy uses the same data real estate professionals use to determine fair market value, then provides a competitive cash offer."
     },
     {
       question: "Is there any obligation to accept the offer?",
@@ -61,15 +61,15 @@ export default function GetYourOfferContent() {
     },
     {
       question: "What's the difference between Immediate Offer and Advantage?",
-      answer: "Immediate Offer is a single settlement—you access your home's equity right away with a simplified, fast process. Advantage is a dual settlement—you access most of your home's value immediately, then receive additional proceeds when the home sells on the open market, capturing all the upside. QuickBuy manages any repairs or improvements with Advantage."
+      answer: "Immediate Offer is a single settlement—you access your home's equity right away with a simplified, fast process. Advantage is a dual settlement—you access most of your home's value immediately, then receive additional proceeds when the home sells on the open market, capturing all the upside. Rush Home manages any repairs or improvements with Advantage."
     },
     {
-      question: "What is QuickBuy Lock?",
-      answer: "Lock is a back-up plan that holds your Immediate Offer or Advantage option open for 150 days while you list traditionally. It provides certainty that your home will sell (you can accept the QuickBuy offer anytime), and allows you to get pre-approved for a mortgage to buy before you sell—overcoming DTI hurdles."
+      question: "What is Rush Home QuickBuy Lock?",
+      answer: "Lock is a back-up plan that holds your Immediate Offer or Advantage option open for 150 days while you list traditionally. It provides certainty that your home will sell (you can accept the Rush Home QuickBuy offer anytime), and allows you to get pre-approved for a mortgage to buy before you sell—overcoming DTI hurdles."
     },
     {
       question: "What types of homes qualify?",
-      answer: "QuickBuy works with most single-family homes, townhomes, and condos. The program is available in all 50 states and works for conventional loan financing. Enter your address to see if your home qualifies."
+      answer: "Rush Home QuickBuy works with most single-family homes, townhomes, and condos. The program is available to our Delaware client's only at the moment, and works for conventional loan financing. Enter your address to see if your home qualifies."
     },
     {
       question: "Can I stay in my home after selling?",
