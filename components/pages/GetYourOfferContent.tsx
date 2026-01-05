@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import FAQ from '@/components/FAQ';
+import QuickBuyEmbed from '@/components/QuickBuyEmbed';
 
 export default function GetYourOfferContent() {
 
@@ -845,7 +846,7 @@ export default function GetYourOfferContent() {
           
           <div className="address-form-container" id="addressForm">
             {/* QuickBuy Address Search Widget */}
-            <div className="ilist-content"></div>
+            <QuickBuyEmbed />
             
             <div className="form-helper">
               <div className="form-helper-item">
@@ -1214,7 +1215,7 @@ export default function GetYourOfferContent() {
             <h2>Ready to See Your Offer?</h2>
             <p>Get a no-obligation cash offer on your Delaware home in minutes. No commitment required.</p>
             {/* QuickBuy Address Search Widget */}
-            <div className="ilist-content"></div>
+            <QuickBuyEmbed />
           </div>
         </div>
       </section>
