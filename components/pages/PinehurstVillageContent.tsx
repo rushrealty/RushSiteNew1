@@ -1452,27 +1452,54 @@ const PinehurstVillageContent = () => {
                 <p>{modalSubtitle}</p>
               </div>
               <div className="modal-body">
-                <form>
-                  <div className="form-row">
-                    <div className="form-group"><label htmlFor="firstName">First Name *</label><input type="text" id="firstName" required /></div>
-                    <div className="form-group"><label htmlFor="lastName">Last Name *</label><input type="text" id="lastName" required /></div>
-                  </div>
-                  <div className="form-group"><label htmlFor="email">Email *</label><input type="email" id="email" required /></div>
-                  <div className="form-group"><label htmlFor="phone">Phone *</label><input type="tel" id="phone" required /></div>
-                  <div className="form-group">
-                    <label htmlFor="interest">I&apos;m Interested In</label>
-                    <select id="interest">
-                      <option value="">Select an option</option>
-                      <option value="tour">Scheduling a Tour</option>
-                      <option value="floorplan">Floor Plan Information</option>
-                      <option value="pricing">Current Pricing</option>
-                      <option value="availability">Lot Availability</option>
-                    </select>
-                  </div>
-                  <div className="form-group"><label htmlFor="message">Message</label><textarea id="message" placeholder="Tell us about your timeline, questions, or what you're looking for..."></textarea></div>
-                  <button type="submit" className="form-submit">Submit Request</button>
-                </form>
-              </div>
+  <form 
+    action="https://formspree.io/f/YOUR_FORM_ID_HERE"
+    method="POST"
+    onSubmit={async (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const submitBtn = form.querySelector('.form-submit') as HTMLButtonElement;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (response.ok) {
+          form.innerHTML = '<div style="text-align: center; padding: 2rem 0;"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="48" height="48" style="margin: 0 auto 1rem; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">Request Sent!</h3><p style="color: #525252; margin-bottom: 1.5rem;">We\'ll be in touch shortly to schedule your tour.</p></div>';
+        } else { throw new Error('Failed'); }
+      } catch (error) {
+        submitBtn.textContent = 'Submit Request';
+        submitBtn.disabled = false;
+        alert('Something went wrong. Please try again or call 302-219-6707.');
+      }
+    }}
+  >
+    <input type="hidden" name="_subject" value="Pinehurst Village - Tour Request" />
+    <input type="hidden" name="community" value="Pinehurst Village" />
+    <input type="hidden" name="interest_type" value={modalSubtitle} />
+    <div className="form-row">
+      <div className="form-group"><label htmlFor="firstName">First Name *</label><input type="text" id="firstName" name="first_name" required /></div>
+      <div className="form-group"><label htmlFor="lastName">Last Name *</label><input type="text" id="lastName" name="last_name" required /></div>
+    </div>
+    <div className="form-group"><label htmlFor="email">Email *</label><input type="email" id="email" name="email" required /></div>
+    <div className="form-group"><label htmlFor="phone">Phone *</label><input type="tel" id="phone" name="phone" required /></div>
+    <div className="form-group">
+      <label htmlFor="interest">I&apos;m Interested In</label>
+      <select id="interest" name="interest">
+        <option value="">Select an option</option>
+        <option value="Scheduling a Tour">Scheduling a Tour</option>
+        <option value="Floor Plan Information">Floor Plan Information</option>
+        <option value="Current Pricing">Current Pricing</option>
+        <option value="Lot Availability">Lot Availability</option>
+      </select>
+    </div>
+    <div className="form-group"><label htmlFor="message">Message</label><textarea id="message" name="message" placeholder="Tell us about your timeline, questions, or what you're looking for..."></textarea></div>
+    <button type="submit" className="form-submit">Submit Request</button>
+  </form>
+</div>
             </div>
           </div>
         )}
