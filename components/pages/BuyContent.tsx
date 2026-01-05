@@ -6,13 +6,15 @@ const BuyContent: React.FC = () => {
   const idxContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Wait for ihfKestrel to be available, then render the Listing Search Widget
+    // Wait for ihfKestrel to be available, then render the Market Report Widget
     const renderIDX = () => {
       if (typeof window !== 'undefined' && window.ihfKestrel && idxContainerRef.current) {
         try {
-          // Render the Listing Search Widget specifically
+          // Render the Market Report Widget
           const rendered = window.ihfKestrel.render({
-            component: "listingSearchWidget"
+            component: "marketReportWidget",
+            id: 2967664,
+            marketReportTypeId: 1
           });
           if (rendered && idxContainerRef.current) {
             idxContainerRef.current.innerHTML = '';
@@ -88,12 +90,12 @@ const BuyContent: React.FC = () => {
         <p>Search all available listings across Delaware with Rush Home Team</p>
       </section>
 
-      {/* IDX Search Container */}
+      {/* IDX Container */}
       <div className="idx-container">
         <div ref={idxContainerRef} id="ihf-main-container">
-          {/* iHomeFinder Listing Search Widget will render here */}
+          {/* iHomeFinder Market Report Widget will render here */}
           <p style={{ textAlign: 'center', color: '#737373', padding: '2rem' }}>
-            Loading property search...
+            Loading market data...
           </p>
         </div>
       </div>
@@ -107,7 +109,11 @@ export default BuyContent;
 declare global {
   interface Window {
     ihfKestrel: {
-      render: (options?: { component?: string }) => HTMLElement;
+      render: (options?: { 
+        component?: string;
+        id?: number;
+        marketReportTypeId?: number;
+      }) => HTMLElement;
       config: {
         platform: string;
         activationToken: string;
