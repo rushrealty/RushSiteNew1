@@ -2,25 +2,19 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-declare global {
-  interface Window {
-    google: typeof google;
-  }
-}
-
 export default function QuickBuyEmbed() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [address, setAddress] = useState('');
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<any>(null);
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
     const initAutocomplete = async () => {
-      if (typeof window !== 'undefined' && window.google?.maps && inputRef.current && !autocompleteRef.current) {
+      const win = window as any;
+      if (typeof window !== 'undefined' && win.google?.maps && inputRef.current && !autocompleteRef.current) {
         try {
-          const { Autocomplete } = await window.google.maps.importLibrary('places') as google.maps.PlacesLibrary;
+          const { Autocomplete } = await win.google.maps.importLibrary('places');
           
           autocompleteRef.current = new Autocomplete(inputRef.current, {
             componentRestrictions: { country: 'us' },
@@ -34,8 +28,6 @@ export default function QuickBuyEmbed() {
               setAddress(place.formatted_address);
             }
           });
-          
-          setIsGoogleLoaded(true);
         } catch (error) {
           console.log('Waiting for Google Maps...');
         }
