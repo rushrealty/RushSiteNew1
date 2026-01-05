@@ -516,7 +516,7 @@ const WiggsinsMillContent: React.FC = () => {
             <p>Schedule a private showing of this stunning Ocean View model with premium finishes.</p>
             <div className="cta-buttons-standalone">
                 <button className="btn-cta-primary" onClick={openModal}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule a Showing</button>
-                <a href="tel:302-219-6707" className="btn-cta-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Call 302-257-3883</a>
+                <a href="tel:302-257-3883" className="btn-cta-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Call 302-257-3883</a>
             </div>
             <div className="agent-card">
                 <div className="agent-photo"><img src="https://drive.google.com/thumbnail?id=1rqlB6VFTaj5BHtc-c75Apcz-bsgGi2T9&sz=w1000" alt="Marcus Rush" /></div>
@@ -528,12 +528,37 @@ const WiggsinsMillContent: React.FC = () => {
     <div className={`modal-overlay-standalone ${isModalOpen ? 'active' : ''}`} id="contactModal" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
         <div className="modal-standalone">
             <div className="modal-header"><h3>Schedule a Showing</h3><button className="modal-close" onClick={closeModal}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-            <form onSubmit={(e) => { e.preventDefault(); alert('Request sent!'); closeModal(); }}>
-                <div className="form-group"><label className="form-label">Full Name</label><input type="text" className="form-input" placeholder="John Smith" required /></div>
-                <div className="form-group"><label className="form-label">Email</label><input type="email" className="form-input" placeholder="john@email.com" required /></div>
-                <div className="form-group"><label className="form-label">Phone</label><input type="tel" className="form-input" placeholder="(302) 555-1234" required /></div>
-                <div className="form-group"><label className="form-label">Preferred Date & Time</label><input type="text" className="form-input" placeholder="Saturday afternoon, flexible" /></div>
-                <div className="form-group"><label className="form-label">Message (Optional)</label><textarea className="form-input form-textarea" placeholder="Any questions or specific requests..."></textarea></div>
+            <form 
+                action="https://formspree.io/f/xdakbnqq"
+                method="POST"
+                onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.target as HTMLFormElement;
+                    const submitBtn = form.querySelector('.form-submit') as HTMLButtonElement;
+                    submitBtn.textContent = 'Sending...';
+                    submitBtn.disabled = true;
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        if (response.ok) {
+                            form.innerHTML = '<div style="text-align: center; padding: 2rem 0;"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="48" height="48" style="margin: 0 auto 1rem; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">Request Sent!</h3><p style="color: #525252; margin-bottom: 1.5rem;">Marcus will be in touch shortly to schedule your showing.</p></div>';
+                        } else { throw new Error('Failed'); }
+                    } catch (error) {
+                        submitBtn.textContent = 'Submit Request';
+                        submitBtn.disabled = false;
+                        alert('Something went wrong. Please try again or call 302-257-3883.');
+                    }
+                }}>
+                <input type="hidden" name="_subject" value="Showing Request: 404 Wiggins Mill Rd, Townsend, DE" />
+                <input type="hidden" name="property" value="404 Wiggins Mill Rd, Townsend, DE 19734" />
+                <div className="form-group"><label className="form-label">Full Name</label><input type="text" name="name" className="form-input" placeholder="John Smith" required /></div>
+                <div className="form-group"><label className="form-label">Email</label><input type="email" name="email" className="form-input" placeholder="john@email.com" required /></div>
+                <div className="form-group"><label className="form-label">Phone</label><input type="tel" name="phone" className="form-input" placeholder="(302) 555-1234" required /></div>
+                <div className="form-group"><label className="form-label">Preferred Date &amp; Time</label><input type="text" name="preferred_time" className="form-input" placeholder="Saturday afternoon, flexible" /></div>
+                <div className="form-group"><label className="form-label">Message (Optional)</label><textarea name="message" className="form-input form-textarea" placeholder="Any questions or specific requests..."></textarea></div>
                 <button type="submit" className="form-submit">Submit Request</button>
             </form>
         </div>
