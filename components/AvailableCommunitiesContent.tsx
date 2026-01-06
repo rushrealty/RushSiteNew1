@@ -34,15 +34,7 @@ const AvailableCommunitiesContent: React.FC = () => {
         googleMap.current = new Map(mapRef.current, {
           zoom: 9,
           center: center,
-          mapId: '1ec478adee711142a6359ec3', 
-          styles: [
-            { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-            { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-            { elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
-            { elementType: "labels.text.stroke", stylers: [{ color: "#f5f5f5" }] },
-            { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-            { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9c9c9" }] }
-          ]
+          mapId: '1ec478adee711142a6359ec3'
         });
 
         infoWindow.current = new InfoWindow();
