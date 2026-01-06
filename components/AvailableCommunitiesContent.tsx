@@ -34,7 +34,7 @@ const AvailableCommunitiesContent: React.FC = () => {
         googleMap.current = new Map(mapRef.current, {
           zoom: 9,
           center: center,
-          mapId: 'DEMO_MAP_ID', 
+          mapId: '1ec478adee711142a6359ec3', 
           styles: [
             { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
             { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
