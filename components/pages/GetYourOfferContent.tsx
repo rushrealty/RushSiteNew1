@@ -560,17 +560,17 @@ export default function GetYourOfferContent() {
         }
 
         .get-offer-page .choice-cta {
-          display: block;
-          text-align: center;
-          padding: 0.875rem 1.5rem;
-          background: var(--black);
-          color: var(--white);
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.9rem;
-          border-radius: 8px;
-          transition: all 0.3s ease;
-          margin-top: auto;
+          display: block !important;
+          text-align: center !important;
+          padding: 0.875rem 1.5rem !important;
+          background: var(--black) !important;
+          color: var(--white) !important;
+          text-decoration: none !important;
+          font-weight: 600 !important;
+          font-size: 0.9rem !important;
+          border-radius: 8px !important;
+          transition: all 0.3s ease !important;
+          margin-top: auto !important;
         }
 
         .get-offer-page .choice-cta:hover {
@@ -711,23 +711,23 @@ export default function GetYourOfferContent() {
           box-shadow: 0 10px 40px rgba(0,0,0,0.15);
         }
 
-        .get-offer-page :global(.ilist-content button),
-        .get-offer-page :global(.ilist-content input[type="submit"]),
-        .get-offer-page :global(.ilist-content .btn) {
-          background: var(--black) !important;
-          color: var(--white) !important;
+        .get-offer-page .hero :global(.ilist-content button),
+        .get-offer-page .hero :global(.ilist-content input[type="submit"]),
+        .get-offer-page .hero :global(.ilist-content .btn) {
+          background: var(--white) !important;
+          color: var(--black) !important;
           border: none !important;
           border-radius: 12px !important;
           font-weight: 700 !important;
           transition: all 0.3s ease !important;
         }
 
-        .get-offer-page :global(.ilist-content button:hover),
-        .get-offer-page :global(.ilist-content input[type="submit"]:hover),
-        .get-offer-page :global(.ilist-content .btn:hover) {
-          background: var(--gray-800) !important;
+        .get-offer-page .hero :global(.ilist-content button:hover),
+        .get-offer-page .hero :global(.ilist-content input[type="submit"]:hover),
+        .get-offer-page .hero :global(.ilist-content .btn:hover) {
+          background: var(--gray-100) !important;
+          color: var(--black) !important;
         }
-
         /* Hero section QuickBuy button - white on dark background */
         .get-offer-page .hero :global(.ilist-content button),
         .get-offer-page .hero :global(.ilist-content input[type="submit"]),
