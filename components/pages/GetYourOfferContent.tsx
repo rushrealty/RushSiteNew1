@@ -711,23 +711,24 @@ export default function GetYourOfferContent() {
           box-shadow: 0 10px 40px rgba(0,0,0,0.15);
         }
 
-        .get-offer-page .hero :global(.ilist-content button),
-        .get-offer-page .hero :global(.ilist-content input[type="submit"]),
-        .get-offer-page .hero :global(.ilist-content .btn) {
-          background: var(--white) !important;
-          color: var(--black) !important;
+        /* Default QuickBuy button styling (black) - for secondary CTA */
+        .get-offer-page :global(.ilist-content button),
+        .get-offer-page :global(.ilist-content input[type="submit"]),
+        .get-offer-page :global(.ilist-content .btn) {
+          background: var(--black) !important;
+          color: var(--white) !important;
           border: none !important;
           border-radius: 12px !important;
           font-weight: 700 !important;
           transition: all 0.3s ease !important;
         }
 
-        .get-offer-page .hero :global(.ilist-content button:hover),
-        .get-offer-page .hero :global(.ilist-content input[type="submit"]:hover),
-        .get-offer-page .hero :global(.ilist-content .btn:hover) {
-          background: var(--gray-100) !important;
-          color: var(--black) !important;
+        .get-offer-page :global(.ilist-content button:hover),
+        .get-offer-page :global(.ilist-content input[type="submit"]:hover),
+        .get-offer-page :global(.ilist-content .btn:hover) {
+          background: var(--gray-800) !important;
         }
+
         /* Hero section QuickBuy button - white on dark background */
         .get-offer-page .hero :global(.ilist-content button),
         .get-offer-page .hero :global(.ilist-content input[type="submit"]),
@@ -742,6 +743,7 @@ export default function GetYourOfferContent() {
           background: var(--gray-100) !important;
           color: var(--black) !important;
         }
+
         /* ═══════════════════════════════════════
            RESPONSIVE
         ═══════════════════════════════════════ */
@@ -1116,7 +1118,7 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="hero-cta hero-cta-light">Get Your Offer</a>
+              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="choice-cta">Get Your Offer</a>
             </div>
 
             {/* Advantage */}
