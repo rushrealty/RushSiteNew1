@@ -714,8 +714,8 @@ export default function GetYourOfferContent() {
         .get-offer-page :global(.ilist-content button),
         .get-offer-page :global(.ilist-content input[type="submit"]),
         .get-offer-page :global(.ilist-content .btn) {
-          background: var(--white) !important;
-          color: var(--black) !important;
+          background: var(--black) !important;
+          color: var(--white) !important;
           border: none !important;
           border-radius: 12px !important;
           font-weight: 700 !important;
@@ -725,10 +725,22 @@ export default function GetYourOfferContent() {
         .get-offer-page :global(.ilist-content button:hover),
         .get-offer-page :global(.ilist-content input[type="submit"]:hover),
         .get-offer-page :global(.ilist-content .btn:hover) {
-          background: var(--gray-100) !important;
+          background: var(--gray-800) !important;
+        }
+        /* Hero section QuickBuy button - white on dark background */
+        .get-offer-page .hero :global(.ilist-content button),
+        .get-offer-page .hero :global(.ilist-content input[type="submit"]),
+        .get-offer-page .hero :global(.ilist-content .btn) {
+          background: var(--white) !important;
           color: var(--black) !important;
         }
 
+        .get-offer-page .hero :global(.ilist-content button:hover),
+        .get-offer-page .hero :global(.ilist-content input[type="submit"]:hover),
+        .get-offer-page .hero :global(.ilist-content .btn:hover) {
+          background: var(--gray-100) !important;
+          color: var(--black) !important;
+        }
         /* ═══════════════════════════════════════
            RESPONSIVE
         ═══════════════════════════════════════ */
