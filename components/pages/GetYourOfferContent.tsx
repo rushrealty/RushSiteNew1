@@ -714,8 +714,8 @@ export default function GetYourOfferContent() {
         .get-offer-page :global(.ilist-content button),
         .get-offer-page :global(.ilist-content input[type="submit"]),
         .get-offer-page :global(.ilist-content .btn) {
-          background: var(--black) !important;
-          color: var(--white) !important;
+          background: var(--white) !important;
+          color: var(--black) !important;
           border: none !important;
           border-radius: 12px !important;
           font-weight: 700 !important;
@@ -725,7 +725,8 @@ export default function GetYourOfferContent() {
         .get-offer-page :global(.ilist-content button:hover),
         .get-offer-page :global(.ilist-content input[type="submit"]:hover),
         .get-offer-page :global(.ilist-content .btn:hover) {
-          background: var(--gray-800) !important;
+          background: var(--gray-100) !important;
+          color: var(--black) !important;
         }
 
         /* ═══════════════════════════════════════
@@ -1102,7 +1103,7 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="choice-cta">Get Your Offer</a>
+              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="hero-cta hero-cta-light">Get Your Offer</a>
             </div>
 
             {/* Advantage */}
