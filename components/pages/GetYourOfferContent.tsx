@@ -1102,7 +1102,7 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <a href="#addressForm" className="choice-cta">Get Your Offer</a>
+              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="choice-cta">Get Your Offer</a>
             </div>
 
             {/* Advantage */}
@@ -1143,7 +1143,7 @@ export default function GetYourOfferContent() {
                   <span>Leaseback available</span>
                 </div>
               </div>
-              <a href="#addressForm" className="choice-cta">Get Your Offer</a>
+              <a href="https://rushhome.quickbuyoffer.com/auto/valuation" className="choice-cta">Get Your Offer</a>
             </div>
           </div>
 
