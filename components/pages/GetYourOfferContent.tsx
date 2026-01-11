@@ -727,6 +727,7 @@ export default function GetYourOfferContent() {
         .get-offer-page :global(.ilist-content .btn:hover) {
           background: var(--gray-800) !important;
         }
+
         /* Hero section QuickBuy button - white on dark background */
         .get-offer-page .hero :global(.ilist-content button),
         .get-offer-page .hero :global(.ilist-content input[type="submit"]),
