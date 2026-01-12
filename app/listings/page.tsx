@@ -1,5 +1,24 @@
 import type { Metadata } from 'next';
-import ListingContent from '@/components/pages/ListingContent';
+import dynamic from 'next/dynamic';
+
+// Dynamically import with SSR disabled to prevent hydration issues
+const ListingContent = dynamic(
+  () => import('@/components/pages/ListingContent'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div style={{ 
+        minHeight: '100vh', 
+        paddingTop: '100px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <p style={{ color: '#737373' }}>Loading property details...</p>
+      </div>
+    )
+  }
+);
 
 export const metadata: Metadata = {
   title: 'Property Details | Rush Home Team',
