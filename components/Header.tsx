@@ -54,7 +54,7 @@ const Header: React.FC = () => {
             {/* Sign In Link - Desktop */}
             <Link
               href="/sign-in"
-              className="hidden md:block text-sm font-medium text-gray-600 hover:text-black transition-colors"
+              className="hidden md:block text-sm font-bold text-gray-600 hover:text-black transition-colors"
             >
               Sign In
             </Link>
