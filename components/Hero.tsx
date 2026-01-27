@@ -13,15 +13,17 @@ const Hero: React.FC = () => {
     e.preventDefault();
     if (query.trim()) {
       setIsSearching(true);
+      // Navigate to quick-move-in with search query
       router.push(`/quick-move-in?search=${encodeURIComponent(query.trim())}`);
     }
   };
 
   return (
     <div className="relative h-[500px] md:h-[700px] rounded-[2rem] md:rounded-[3rem] overflow-hidden flex items-center justify-center shadow-2xl transition-all duration-500">
+        {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1600596542815-e328d4de4bf7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+            src="/images/hero.jpg"
             alt="Modern Luxury Home"
             className="w-full h-full object-cover scale-105 animate-slow-pan"
           />
@@ -40,6 +42,7 @@ const Hero: React.FC = () => {
             <span className="italic">New Construction</span>
           </h1>
 
+          {/* Modern Pill Search Bar */}
           <form onSubmit={handleSubmit} className="relative max-w-2xl mx-auto animate-scale-in group">
              <div className="absolute inset-0 bg-white/20 rounded-full blur-xl transform group-hover:scale-105 transition-transform duration-500"></div>
              <div className="relative bg-white p-2 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center transition-shadow duration-300 hover:shadow-[0_8px_40px_rgb(0,0,0,0.2)]">
@@ -62,6 +65,7 @@ const Hero: React.FC = () => {
                 </button>
              </div>
           </form>
+
         </div>
     </div>
   );
