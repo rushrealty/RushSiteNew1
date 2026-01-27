@@ -11,9 +11,13 @@ const Footer: React.FC = () => {
 
           {/* Logo */}
           <div className="lg:w-1/4">
-             <Link href="/" className="text-3xl font-medium tracking-widest uppercase flex items-center gap-1">
-               RUSHHOME
-             </Link>
+             <Link href="/" className="flex items-center">
+              <img
+                src="/images/logo.png"
+                alt="Rush Home Team"
+                className="h-8 w-auto object-contain"
+              />
+            </Link>
           </div>
 
           {/* Navigation Columns */}
