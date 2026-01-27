@@ -360,6 +360,7 @@ export const MOCK_PROPERTIES: Property[] = [
     brokeragePhone: '302-219-6707',
     lastUpdated: 'Jan 26, 2026',
     priceHistory: generateHistory(425000)
+  }
 ];
 
 export const SALE_OPTIONS: SaleOption[] = [
