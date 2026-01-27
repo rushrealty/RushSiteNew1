@@ -36,6 +36,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
   const availableCities = useMemo(() => {
     const cities = new Set(MOCK_COMMUNITIES.map(c => c.city));
     return ['All', ...Array.from(cities).sort()];
@@ -66,12 +67,12 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   }, [searchTerm, selectedCity, selectedPriceIdx, selectedLifestyles]);
 
   const handleCommunityClick = (community: Community) => {
-     setSelectedCommunity(community);
+    setSelectedCommunity(community);
     if (onCommunityClick) {
       onCommunityClick(community);
     }
   };
- 
+
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
   };
@@ -211,8 +212,6 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
              )}
           </div>
        </div>
-    </div>
-  );
 
        {/* Community Detail Modal */}
        {selectedCommunity && (
@@ -222,7 +221,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
            onPropertyClick={handlePropertyClick}
          />
        )}
- 
+
        {/* Property Detail Modal (when clicking from community modal) */}
        {selectedProperty && (
          <PropertyDetailModal
@@ -231,6 +230,8 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
            onPropertyClick={setSelectedProperty}
          />
        )}
+    </div>
+  );
 };
 
 export default CommunitiesContent;

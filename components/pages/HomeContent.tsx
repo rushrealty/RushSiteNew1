@@ -6,14 +6,16 @@ import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import CommunityCard from '../CommunityCard';
+import CommunityDetailModal from '../CommunityDetailModal';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../../constants';
-import { Property } from '../../types';
+import { Property, Community } from '../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HomeContent: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const quickMoveInHomes = MOCK_PROPERTIES.slice(0, 6);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -93,7 +95,7 @@ const HomeContent: React.FC = () => {
             >
               {MOCK_COMMUNITIES.map((community) => (
                 <div key={community.id} className="w-[65vw] md:w-[280px] snap-center flex-shrink-0">
-                  <CommunityCard community={community} />
+                  <CommunityCard community={community} onClick={setSelectedCommunity} />
                 </div>
               ))}
           </div>
@@ -132,6 +134,15 @@ const HomeContent: React.FC = () => {
         <PropertyDetailModal
           property={selectedProperty}
           onClose={() => setSelectedProperty(null)}
+          onPropertyClick={setSelectedProperty}
+        />
+      )}
+
+      {/* Community Detail Modal */}
+      {selectedCommunity && (
+        <CommunityDetailModal
+          community={selectedCommunity}
+          onClose={() => setSelectedCommunity(null)}
           onPropertyClick={setSelectedProperty}
         />
       )}
