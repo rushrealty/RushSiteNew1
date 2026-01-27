@@ -26,7 +26,7 @@ const Header: React.FC = () => {
              <img
                src="/images/logo.png"
                alt="Rush Home Team at Compass"
-               className="h-10 md:h-16 w-auto object-contain transition-all duration-300"
+               className="h-6 md:h-10 w-auto object-contain transition-all duration-300"
              />
           </Link>
 
@@ -51,6 +51,13 @@ const Header: React.FC = () => {
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-6 z-20">
+            {/* Sign In Link - Desktop */}
+            <Link
+              href="/sign-in"
+              className="hidden md:block text-sm font-medium text-gray-600 hover:text-black transition-colors"
+            >
+              Sign In
+            </Link>
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center">
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-gray-600">
@@ -75,6 +82,13 @@ const Header: React.FC = () => {
                 {link.name}
               </Link>
             ))}
+            <Link
+              href="/sign-in"
+              className="block text-2xl font-serif font-bold text-gray-900 py-3 border-b border-gray-100"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign In
+            </Link>
           </div>
         </div>
       )}
