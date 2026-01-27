@@ -40,7 +40,7 @@ const HomeContent: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-16 flex flex-col items-center text-center">
               <span className="text-xs font-bold tracking-[0.25em] text-gray-400 uppercase mb-4">Curated Selection</span>
-              <h2 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 leading-tight">Featured Quick Move-Ins</h2>
+              <h2 className="text-4xl md:text-5xl font-sans font-bold text-gray-900 leading-tight">Featured Quick Move-Ins</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -67,7 +67,7 @@ const HomeContent: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 px-4 md:px-8">
             <div>
               <span className="text-compass-gold font-bold tracking-[0.25em] uppercase text-xs mb-4 block">Neighborhoods</span>
-              <h2 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 leading-tight">
+              <h2 className="text-4xl md:text-5xl font-sans font-bold text-gray-900 leading-tight">
                 Featured Communities
               </h2>
             </div>
@@ -94,7 +94,7 @@ const HomeContent: React.FC = () => {
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {MOCK_COMMUNITIES.map((community) => (
-                <div key={community.id} className="w-[65vw] md:w-[280px] snap-center flex-shrink-0">
+                <div key={community.id} className="w-[55vw] md:w-[240px] snap-center flex-shrink-0">
                   <CommunityCard community={community} onClick={setSelectedCommunity} />
                 </div>
               ))}
@@ -117,7 +117,7 @@ const HomeContent: React.FC = () => {
 
              <div className="relative z-10">
                <span className="text-xs font-bold tracking-[0.25em] text-compass-gold uppercase mb-6 block">Seller Solutions</span>
-               <h2 className="text-4xl md:text-6xl font-playfair font-bold mb-6 text-gray-900">Need to Sell First?</h2>
+               <h2 className="text-4xl md:text-6xl font-sans font-bold mb-6 text-gray-900">Need to Sell First?</h2>
                <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto mb-12 font-light leading-relaxed">
                  Don&apos;t let a current mortgage hold you back. We have exclusive programs and guaranteed sale options designed for any new home buyer.
                </p>
