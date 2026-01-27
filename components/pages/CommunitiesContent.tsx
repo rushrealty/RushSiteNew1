@@ -32,9 +32,10 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedLifestyles, setSelectedLifestyles] = useState<string[]>([]);
+  const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-
   const availableCities = useMemo(() => {
     const cities = new Set(MOCK_COMMUNITIES.map(c => c.city));
     return ['All', ...Array.from(cities).sort()];
