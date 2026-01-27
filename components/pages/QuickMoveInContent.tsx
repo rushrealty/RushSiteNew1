@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
+import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_PROPERTIES } from '../../constants';
 import { Search, Filter, Check, X, Map as MapIcon, ChevronDown } from 'lucide-react';
 
@@ -29,7 +30,9 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const [minBeds, setMinBeds] = useState(0);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // State for desktop dropdown toggles
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const toggleCounty = (county: string) => {
@@ -57,6 +60,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   }, [searchTerm, selectedCounties, selectedPriceIdx, minBeds]);
 
   const handlePropertyClick = (property: Property) => {
+    setSelectedProperty(property);
     if (onPropertyClick) {
       onPropertyClick(property);
     }
@@ -186,9 +190,10 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
          </div>
        )}
 
-       {/* Desktop Filter Bar */}
+       {/* Desktop Filter Bar (Top of page) */}
        <div className="hidden lg:flex flex-col z-30 bg-white border-b border-gray-200 shadow-sm shrink-0">
            <div className="flex items-center gap-3 px-4 py-3">
+                {/* Search Input */}
                 <div className="relative w-80 xl:w-96">
                     <input
                        type="text"
@@ -200,6 +205,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                     <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-blue-500" size={18} />
                 </div>
 
+                {/* Price Filter */}
                 <div className="relative">
                     <button
                        onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
@@ -227,6 +233,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                     )}
                 </div>
 
+                {/* Beds Filter */}
                 <div className="relative">
                     <button
                        onClick={() => setActiveDropdown(activeDropdown === 'beds' ? null : 'beds')}
@@ -256,6 +263,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                     )}
                 </div>
 
+                {/* County Filter */}
                 <div className="relative">
                    <button
                        onClick={() => setActiveDropdown(activeDropdown === 'county' ? null : 'county')}
@@ -280,16 +288,19 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                     )}
                 </div>
 
+                {/* More Filters (Placeholder) */}
                 <button className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
                    More
                 </button>
 
+                {/* Save Search */}
                 <button className="ml-auto px-4 py-2 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 transition-colors shadow-sm text-sm">
                    Save search
                 </button>
            </div>
        </div>
 
+       {/* Invisible Overlay to close dropdowns when clicking outside */}
        {activeDropdown && (
           <div className="fixed inset-0 z-20 bg-transparent" onClick={() => setActiveDropdown(null)}></div>
        )}
@@ -297,10 +308,13 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
        {/* Desktop Split Layout */}
        <div className="flex-grow flex overflow-hidden relative">
 
+          {/* Left Panel: Listings */}
           <div className={`w-full lg:w-[60%] flex flex-col h-full bg-white border-r border-gray-200 overflow-hidden ${viewMode === 'map' ? 'hidden lg:flex' : 'flex'}`}>
 
+             {/* Property Grid Content */}
              <div className="flex-grow p-4 lg:p-8 overflow-y-auto bg-white">
 
+                {/* Result Count Bar */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                    <span className="font-bold text-gray-900">{filteredProperties.length} Homes Available</span>
                    <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -345,6 +359,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
              </div>
           </div>
 
+          {/* Right Panel: Map */}
           <div className={`w-full lg:w-[40%] bg-gray-200 relative ${viewMode === 'map' ? 'block' : 'hidden lg:block'}`}>
              <iframe
                 width="100%"
@@ -358,6 +373,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
              >
              </iframe>
 
+             {/* Map Controls Overlay */}
              <div className="absolute top-4 right-4 flex flex-col gap-2">
                  <button className="bg-white p-2 rounded shadow-md hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center justify-center w-10 h-10">
                      <MapIcon size={20} />
@@ -365,6 +381,15 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
              </div>
           </div>
        </div>
+
+       {/* Property Detail Modal */}
+       {selectedProperty && (
+         <PropertyDetailModal
+           property={selectedProperty}
+           onClose={() => setSelectedProperty(null)}
+           onPropertyClick={(property) => setSelectedProperty(property)}
+         />
+       )}
     </div>
   );
 };
