@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { name: 'Communities', href: '/communities' },
   { name: 'Quick Move-In', href: '/quick-move-in' },
   { name: 'New Construction Guide', href: '/guide' },
-  { name: 'Selling?', href: '/selling' },
+  { name: 'Selling', href: '/selling' },
 ];
 
 const Header: React.FC = () => {
