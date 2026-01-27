@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
+import PropertyDetailModal from '../PropertyDetailModal';
 import CommunityCard from '../CommunityCard';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../../constants';
+import { Property } from '../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HomeContent: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const quickMoveInHomes = MOCK_PROPERTIES.slice(0, 6);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -40,7 +43,11 @@ const HomeContent: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                {quickMoveInHomes.map((property) => (
-                  <PropertyCard key={property.id} property={property} />
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    onClick={setSelectedProperty}
+                  />
                ))}
             </div>
 
@@ -58,20 +65,32 @@ const HomeContent: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 px-4 md:px-8">
             <div>
               <span className="text-compass-gold font-bold tracking-[0.25em] uppercase text-xs mb-4 block">Neighborhoods</span>
-              <h2 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 leading-tight">Featured Communities</h2>
+              <h2 className="text-4xl md:text-5xl font-playfair font-bold text-gray-900 leading-tight">
+                Featured Communities
+              </h2>
             </div>
 
             <div className="flex items-center gap-4 mt-8 md:mt-0">
-                <button onClick={() => scroll('left')} className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-900 hover:bg-black hover:text-white hover:border-black transition-all">
+                <button
+                  onClick={() => scroll('left')}
+                  className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-900 hover:bg-black hover:text-white hover:border-black transition-all"
+                >
                   <ChevronLeft size={24} />
                 </button>
-                <button onClick={() => scroll('right')} className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-900 hover:bg-black hover:text-white hover:border-black transition-all">
+                <button
+                  onClick={() => scroll('right')}
+                  className="w-14 h-14 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-900 hover:bg-black hover:text-white hover:border-black transition-all"
+                >
                   <ChevronRight size={24} />
                 </button>
             </div>
           </div>
 
-          <div ref={scrollContainerRef} className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory px-4 md:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div
+              ref={scrollContainerRef}
+              className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory px-4 md:px-8"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {MOCK_COMMUNITIES.map((community) => (
                 <div key={community.id} className="w-[65vw] md:w-[280px] snap-center flex-shrink-0">
                   <CommunityCard community={community} />
@@ -107,6 +126,15 @@ const HomeContent: React.FC = () => {
            </div>
          </div>
       </section>
+
+      {/* Property Detail Modal */}
+      {selectedProperty && (
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onPropertyClick={setSelectedProperty}
+        />
+      )}
     </>
   );
 };
