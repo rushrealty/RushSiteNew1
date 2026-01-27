@@ -34,6 +34,7 @@ const Header: React.FC = () => {
           <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center space-x-8 lg:space-x-10 whitespace-nowrap">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
+
               return (
                 <Link
                   key={link.name}
