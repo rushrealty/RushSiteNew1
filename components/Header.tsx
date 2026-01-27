@@ -24,7 +24,7 @@ const Header: React.FC = () => {
           {/* Logo (Left) */}
           <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer z-20">
              <img
-               src="https://drive.google.com/file/d/1-MIkTr8DkFIcBxGWmOvGjXIhd7FB_jaC"
+               src="/images/logo.png"
                alt="Rush Home Team at Compass"
                className="h-10 md:h-16 w-auto object-contain transition-all duration-300"
              />
