@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Community } from '../../types';
+import { Community, Property } from '../../types';
 import CommunityCard from '../CommunityCard';
+import CommunityDetailModal from '../CommunityDetailModal';
+import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_COMMUNITIES } from '../../constants';
 import { Search, Filter, Home, Waves, Check } from 'lucide-react';
 
@@ -30,8 +32,8 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedLifestyles, setSelectedLifestyles] = useState<string[]>([]);
-  const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
-  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   const availableCities = useMemo(() => {
     const cities = new Set(MOCK_COMMUNITIES.map(c => c.city));
@@ -63,9 +65,14 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   }, [searchTerm, selectedCity, selectedPriceIdx, selectedLifestyles]);
 
   const handleCommunityClick = (community: Community) => {
+     setSelectedCommunity(community);
     if (onCommunityClick) {
       onCommunityClick(community);
     }
+  };
+ 
+  const handlePropertyClick = (property: Property) => {
+    setSelectedProperty(property);
   };
 
   return (
@@ -205,6 +212,24 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
        </div>
     </div>
   );
+
+       {/* Community Detail Modal */}
+       {selectedCommunity && (
+         <CommunityDetailModal
+           community={selectedCommunity}
+           onClose={() => setSelectedCommunity(null)}
+           onPropertyClick={handlePropertyClick}
+         />
+       )}
+ 
+       {/* Property Detail Modal (when clicking from community modal) */}
+       {selectedProperty && (
+         <PropertyDetailModal
+           property={selectedProperty}
+           onClose={() => setSelectedProperty(null)}
+           onPropertyClick={setSelectedProperty}
+         />
+       )}
 };
 
 export default CommunitiesContent;
