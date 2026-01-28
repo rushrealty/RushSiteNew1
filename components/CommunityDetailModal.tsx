@@ -388,7 +388,15 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="bg-white p-6 rounded-[2rem] border border-gray-100">
                             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-3">Builder</span>
                             <div className="flex items-center justify-between">
-                               <span className="font-serif font-bold text-lg text-gray-900">{community.builder}</span>
+                               {community.builderLogo ? (
+                                 <img
+                                   src={community.builderLogo}
+                                   alt={community.builder}
+                                   className="max-h-12 max-w-full object-contain"
+                                 />
+                               ) : (
+                                 <span className="font-serif font-bold text-lg text-gray-900">{community.builder}</span>
+                               )}
                             </div>
                          </div>
 
