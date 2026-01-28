@@ -5,6 +5,7 @@ import {
   InventoryData,
   EnrichedInventoryHome,
 } from './inventory-types';
+import { convertGoogleDriveUrl } from './utils';
 
 // Published Google Sheet ID from environment or default
 // This is the published sheet ID (from "File > Share > Publish to web")
@@ -122,7 +123,7 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
       row.model_photo_1,
       row.model_photo_2,
       row.model_photo_3,
-    ].filter(Boolean),
+    ].filter(Boolean).map(convertGoogleDriveUrl),
   })).filter(c => c.id);
 }
 
@@ -145,7 +146,7 @@ function parseInventory(data: Record<string, string>[]): InventoryHome[] {
     moveInDate: row.move_in_date || '',
     modelName: row.model_name || '',
     description: row.description || undefined,
-    photoUrl: row.photo_url || undefined,
+    photoUrl: row.photo_url ? convertGoogleDriveUrl(row.photo_url) : undefined,
     featured: row.featured?.toLowerCase() === 'true',
   })).filter(h => h.id && h.communityId);
 }

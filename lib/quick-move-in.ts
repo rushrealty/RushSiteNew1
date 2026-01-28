@@ -166,6 +166,7 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     taxAssessment: 0,
     schools: [],
     completionDate: home.moveInDate,
+    featured: home.featured,
     mlsId: home.mlsNumber || '',
     listingAgent: 'Rush Home Team',
     listingAgentPhone: '302-219-6707',
@@ -273,12 +274,18 @@ export async function getQuickMoveInListings(
 
     // Apply filters
     if (options.featuredOnly) {
-      // For featured, prioritize homes with images
-      homes = homes.filter((h) => h.images.length > 0);
+      // Filter to only featured homes from inventory
+      homes = homes.filter((h) => h.featured === true);
     }
 
-    // Sort by price (lowest first) for display
-    homes.sort((a, b) => a.price - b.price);
+    // Sort: featured homes first, then by price (lowest first)
+    homes.sort((a, b) => {
+      // Featured homes come first
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      // Then by price
+      return a.price - b.price;
+    });
 
     // Apply limit
     if (options.limit && options.limit > 0) {
@@ -304,10 +311,12 @@ export async function getQuickMoveInListings(
 
 /**
  * Get featured Quick Move-In homes for homepage display
+ * Prioritizes homes marked as featured in the inventory sheet
  */
 export async function getFeaturedQuickMoveIns(
   limit: number = 6
 ): Promise<Property[]> {
+  // Get all homes - sorting already puts featured first
   const result = await getQuickMoveInListings({ limit });
   return result.homes;
 }

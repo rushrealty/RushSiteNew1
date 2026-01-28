@@ -92,6 +92,7 @@ export interface Property {
   taxAssessment: number;
   schools: SchoolInfo[];
   completionDate?: string;
+  featured?: boolean;
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;
