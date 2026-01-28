@@ -6,6 +6,13 @@ import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
+// School type from API
+interface SchoolInfo {
+  name: string;
+  grades: string;
+  distance: string;
+}
+
 // Nearby place type from API
 interface NearbyPlace {
   name: string;
@@ -56,6 +63,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
   // State for nearby places from Google Places API
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(true);
+
+  // State for schools from Google Places API
+  const [schools, setSchools] = useState<SchoolInfo[]>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
 
   useEffect(() => {
     if (modalRef.current) {
@@ -108,6 +119,37 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     }
     fetchNearbyPlaces();
   }, [community.address, community.city, community.state]);
+
+  // Fetch schools from Google Places API
+  useEffect(() => {
+    async function fetchSchools() {
+      // If no school names provided, don't fetch
+      if (!community.schoolNames || community.schoolNames.length === 0) {
+        setSchools([]);
+        setLoadingSchools(false);
+        return;
+      }
+
+      setLoadingSchools(true);
+      try {
+        const address = community.address || `${community.city}, ${community.state}`;
+        const schoolNamesParam = community.schoolNames.join(';');
+        const response = await fetch(`/api/schools?address=${encodeURIComponent(address)}&schools=${encodeURIComponent(schoolNamesParam)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSchools(data.schools || []);
+        } else {
+          setSchools([]);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        setSchools([]);
+      } finally {
+        setLoadingSchools(false);
+      }
+    }
+    fetchSchools();
+  }, [community.address, community.city, community.state, community.schoolNames]);
 
   const availableHomes = useMemo(() => {
     return MOCK_PROPERTIES.filter(p => p.community === community.name);
@@ -315,12 +357,17 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                 </div>
                               )}
                               <div className="space-y-4">
-                                  {community.schools && community.schools.length > 0 ? (
-                                    community.schools.map((school, i) => (
+                                  {loadingSchools ? (
+                                    <div className="flex items-center py-4">
+                                      <Loader2 className="w-5 h-5 animate-spin text-compass-gold mr-2" />
+                                      <span className="text-sm text-gray-500">Loading school information...</span>
+                                    </div>
+                                  ) : schools.length > 0 ? (
+                                    schools.map((school, i) => (
                                       <div key={i} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
                                           <div>
                                               <p className="font-bold text-gray-900 text-sm">{school.name}</p>
-                                              <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>
+                                              {school.grades && <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>}
                                           </div>
                                           <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{school.distance}</span>
                                       </div>

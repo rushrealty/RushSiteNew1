@@ -67,7 +67,7 @@ const HomeContent: React.FC = () => {
           const data = await response.json();
           if (data.communities && data.communities.length > 0) {
             // Transform sheet communities to Community type
-            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; is55Plus?: boolean; hasClubhouse?: boolean; address?: string; schoolDistrict?: string; schools?: { name: string; grades: string; distance: string }[]; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; is55Plus?: boolean; hasClubhouse?: boolean; address?: string; schoolDistrict?: string; schoolNames?: string[]; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
               id: c.id,
               name: c.name,
               slug: c.slug || c.id,
@@ -88,7 +88,7 @@ const HomeContent: React.FC = () => {
               hasClubhouse: c.hasClubhouse || false,
               address: c.address || `${c.city}, DE`,
               schoolDistrict: c.schoolDistrict || '',
-              schools: c.schools || [],
+              schoolNames: c.schoolNames || [],
               features: [],
             }));
             setCommunities(transformedCommunities);

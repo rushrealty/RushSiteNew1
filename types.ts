@@ -32,12 +32,6 @@ export enum PropertyStatus {
   MODEL_HOME = 'Model Home'
 }
 
-export interface CommunitySchool {
-  name: string;
-  grades: string;
-  distance: string;
-}
-
 export interface Community {
   id: string;
   name: string;
@@ -59,7 +53,7 @@ export interface Community {
   hasClubhouse: boolean;
   address: string;
   schoolDistrict: string;
-  schools: CommunitySchool[];
+  schoolNames: string[]; // Simple school names - details fetched via API
   features: string[];
 }
 

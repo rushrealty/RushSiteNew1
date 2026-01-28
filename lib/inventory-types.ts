@@ -6,7 +6,7 @@ export interface Builder {
   website: string;
 }
 
-// School information
+// School information (used by API response)
 export interface School {
   name: string;
   grades: string;
@@ -27,7 +27,7 @@ export interface InventoryCommunity {
   hasClubhouse: boolean;
   address: string;
   schoolDistrict: string;
-  schools: School[];
+  schoolNames: string[]; // Simple school names - details fetched via API
   modelPhotos: string[];
 }
 
