@@ -6,8 +6,9 @@ import {
   EnrichedInventoryHome,
 } from './inventory-types';
 
-// Google Sheet ID from environment or default
-const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '1AlZ9mDsfIOR6DGAO9DQ548_CMIU4tsOEIxIkYa_dxV0';
+// Published Google Sheet ID from environment or default
+// This is the published sheet ID (from "File > Share > Publish to web")
+const PUBLISHED_SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '2PACX-1vQq5kKLZrq1Ror-1rXh_krZnhcs_V1ssIm4uykHjgURw-Y4j2k-RrteDMqfvod9OkHu4hofA071UOJo';
 
 // Tab GIDs (these may need to be updated based on your sheet)
 const TABS = {
@@ -25,9 +26,10 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Fetch CSV data from a published Google Sheet tab
+ * Uses the "Publish to web" CSV export format
  */
 async function fetchSheetTab(gid: number): Promise<string> {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const url = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
   const response = await fetch(url, {
     next: { revalidate: 300 } // Cache for 5 minutes
   });
