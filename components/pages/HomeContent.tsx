@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
@@ -13,9 +13,32 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HomeContent: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const quickMoveInHomes = MOCK_PROPERTIES.slice(0, 6);
+  const [quickMoveInHomes, setQuickMoveInHomes] = useState<Property[]>(MOCK_PROPERTIES.slice(0, 6));
+  const [loadingHomes, setLoadingHomes] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+
+  // Fetch real Quick Move-In homes on mount
+  useEffect(() => {
+    async function fetchHomes() {
+      try {
+        const response = await fetch('/api/quick-move-in?limit=6');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.homes && data.homes.length > 0) {
+            setQuickMoveInHomes(data.homes);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching quick move-in homes:', error);
+        // Keep using mock data on error
+      } finally {
+        setLoadingHomes(false);
+      }
+    }
+
+    fetchHomes();
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
