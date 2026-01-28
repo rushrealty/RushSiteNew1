@@ -185,13 +185,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                       <div className="mb-12">
                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">About {community.name}</h3>
                          <div className="prose prose-lg text-gray-600 font-light leading-relaxed">
-                            <p className="mb-4">{community.description}</p>
-                            <p>
-                               Experience the perfect blend of luxury and convenience. {community.name} offers residents
-                               a unique lifestyle with thoughtfully designed homes and world-class amenities.
-                               Whether you are looking for a low-maintenance townhome or a sprawling estate,
-                               {community.builder} delivers exceptional craftsmanship in every detail.
-                            </p>
+                            <p>{community.description}</p>
                          </div>
                       </div>
 
