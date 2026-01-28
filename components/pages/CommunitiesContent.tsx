@@ -1,12 +1,21 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Community, Property } from '../../types';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
+import CommunityPageModal from '../CommunityPageModal';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_COMMUNITIES } from '../../constants';
-import { Search, Filter, Home, Waves, Check } from 'lucide-react';
+import { Search, Filter, Home, Waves, Check, Loader2 } from 'lucide-react';
+
+// Special communities with existing pages
+const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: string; name: string }> = {
+  'abbotts-pond': { type: 'internal', url: '/available-communities/abbotts-pond', name: "Abbott's Pond" },
+  'pinehurst-village': { type: 'internal', url: '/available-communities/pinehurst-village', name: 'Pinehurst Village' },
+  'wiggins-mill': { type: 'internal', url: '/available-communities/wiggins-mill', name: 'Wiggins Mill' },
+  'baywood': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
+};
 
 const LIFESTYLE_FILTERS = [
   { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
@@ -37,10 +46,58 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
-  const availableCities = useMemo(() => {
-    const cities = new Set(MOCK_COMMUNITIES.map(c => c.city));
-    return ['All', ...Array.from(cities).sort()];
+  // State for special community page modal
+  const [specialCommunityUrl, setSpecialCommunityUrl] = useState<string | null>(null);
+  const [specialCommunityName, setSpecialCommunityName] = useState<string>('');
+
+  // State for fetched communities
+  const [communities, setCommunities] = useState<Community[]>(MOCK_COMMUNITIES);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch communities from API
+  useEffect(() => {
+    async function fetchCommunities() {
+      try {
+        const response = await fetch('/api/communities');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.communities && data.communities.length > 0) {
+            // Transform sheet communities to Community type
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; modelPhotos: string[]; builder?: { name: string } }) => ({
+              id: c.id,
+              name: c.name,
+              slug: c.slug || c.id,
+              location: `${c.city}, DE`,
+              city: c.city,
+              state: 'DE',
+              zip: '',
+              builder: c.builder?.name || '',
+              priceRange: 'Contact for Pricing',
+              minPrice: 0,
+              image: c.modelPhotos?.[0] || '/images/placeholder-community.jpg',
+              status: 'Now Selling' as const,
+              homesAvailable: 0,
+              floorPlansCount: 0,
+              description: '',
+              features: [],
+            }));
+            setCommunities(transformedCommunities);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+        // Keep using MOCK_COMMUNITIES as fallback
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCommunities();
   }, []);
+
+  const availableCities = useMemo(() => {
+    const cities = new Set(communities.map(c => c.city));
+    return ['All', ...Array.from(cities).sort()];
+  }, [communities]);
 
   const toggleLifestyle = (tag: string) => {
     setSelectedLifestyles(prev =>
@@ -49,7 +106,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   };
 
   const filteredCommunities = useMemo(() => {
-    return MOCK_COMMUNITIES.filter(community => {
+    return communities.filter(community => {
       const matchesSearch = searchTerm === '' ||
         community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         community.builder.toLowerCase().includes(searchTerm.toLowerCase());
@@ -64,10 +121,27 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
 
       return matchesSearch && matchesCity && matchesPrice && matchesLifestyle;
     });
-  }, [searchTerm, selectedCity, selectedPriceIdx, selectedLifestyles]);
+  }, [communities, searchTerm, selectedCity, selectedPriceIdx, selectedLifestyles]);
 
   const handleCommunityClick = (community: Community) => {
-    setSelectedCommunity(community);
+    // Check if this is a special community with an existing page
+    const slug = community.slug || community.id;
+    const special = SPECIAL_COMMUNITIES[slug];
+
+    if (special) {
+      if (special.type === 'external') {
+        // Open external link in new tab
+        window.open(special.url, '_blank');
+      } else {
+        // Open internal page in modal
+        setSpecialCommunityUrl(special.url);
+        setSpecialCommunityName(special.name);
+      }
+    } else {
+      // Use standard CommunityDetailModal
+      setSelectedCommunity(community);
+    }
+
     if (onCommunityClick) {
       onCommunityClick(community);
     }
@@ -178,6 +252,12 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
 
        {/* Results Grid */}
        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 size={40} className="text-compass-gold animate-spin mb-4" />
+              <p className="text-gray-500">Loading communities...</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
              {filteredCommunities.length > 0 ? (
                 filteredCommunities.map(community => (
@@ -211,7 +291,20 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
                 </div>
              )}
           </div>
+          )}
        </div>
+
+       {/* Special Community Page Modal */}
+       {specialCommunityUrl && (
+         <CommunityPageModal
+           url={specialCommunityUrl}
+           communityName={specialCommunityName}
+           onClose={() => {
+             setSpecialCommunityUrl(null);
+             setSpecialCommunityName('');
+           }}
+         />
+       )}
 
        {/* Community Detail Modal */}
        {selectedCommunity && (

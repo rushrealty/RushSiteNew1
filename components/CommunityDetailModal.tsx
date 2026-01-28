@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
 import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
-import { X, MapPin, Check, Phone, Calendar, Home, Layout, Trees, Bed, Bath, Maximize2, Clock, CheckCircle, Info } from 'lucide-react';
+import { X, MapPin, Check, Phone, Calendar, Home, Layout, Trees, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
-// Mock data for floor plans
-const MOCK_FLOOR_PLANS = [
-  { name: 'The Charleston', beds: 3, baths: 2.5, sqft: 2400, stories: 2, price: 'From $550k' },
-  { name: 'The Savannah', beds: 4, baths: 3.5, sqft: 3100, stories: 2, price: 'From $625k' },
-  { name: 'The Newport', beds: 3, baths: 2, sqft: 1900, stories: 1, price: 'From $495k' },
-  { name: 'The Seaside', beds: 5, baths: 4.5, sqft: 4200, stories: 3, price: 'From $850k' },
-];
 
 // Mock data for schools
 const MOCK_SCHOOLS = [
@@ -66,11 +59,37 @@ interface CommunityDetailModalProps {
 const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // State for new construction homes (to be built - not quick move-ins)
+  const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
+  const [loadingNewConstruction, setLoadingNewConstruction] = useState(true);
+
   useEffect(() => {
     if (modalRef.current) {
       modalRef.current.scrollTop = 0;
     }
   }, [community]);
+
+  // Fetch new construction homes for this community
+  useEffect(() => {
+    async function fetchNewConstructionHomes() {
+      setLoadingNewConstruction(true);
+      try {
+        const response = await fetch(`/api/community-homes?community=${encodeURIComponent(community.name)}&type=new-construction`);
+        if (response.ok) {
+          const data = await response.json();
+          setNewConstructionHomes(data.homes || []);
+        } else {
+          setNewConstructionHomes([]);
+        }
+      } catch (error) {
+        console.error('Error fetching new construction homes:', error);
+        setNewConstructionHomes([]);
+      } finally {
+        setLoadingNewConstruction(false);
+      }
+    }
+    fetchNewConstructionHomes();
+  }, [community.name]);
 
   const availableHomes = useMemo(() => {
     return MOCK_PROPERTIES.filter(p => p.community === community.name);
@@ -140,8 +159,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                       <div className="grid grid-cols-3 gap-2 md:gap-4 mb-12">
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Layout className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
-                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.floorPlansCount}</div>
-                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Floor Plans</div>
+                            <div className="font-bold text-lg md:text-xl text-gray-900">
+                              {loadingNewConstruction ? '...' : newConstructionHomes.length > 0 ? newConstructionHomes.length : 'TBD'}
+                            </div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">New Construction</div>
                          </div>
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Home className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
@@ -169,27 +190,31 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          </div>
                       </div>
 
-                      {/* Floor Plans Section */}
+                      {/* New Construction Homes Section (To Be Built) */}
                       <div className="mb-12">
-                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">Available Floor Plans</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {MOCK_FLOOR_PLANS.slice(0, community.floorPlansCount || 4).map((plan, i) => (
-                                  <div key={i} className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-black transition-colors cursor-pointer group shadow-sm">
-                                      <div className="flex justify-between items-start mb-4">
-                                          <div>
-                                             <h4 className="font-bold text-lg text-gray-900 group-hover:text-compass-gold transition-colors">{plan.name}</h4>
-                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{plan.price}</p>
-                                          </div>
-                                          <span className="text-[10px] uppercase tracking-wider bg-gray-50 px-2 py-1 rounded text-gray-500 font-bold">{plan.stories} Story</span>
-                                      </div>
-                                      <div className="flex gap-4 text-sm text-gray-500">
-                                          <div className="flex items-center gap-1"><Bed size={16}/> {plan.beds}</div>
-                                          <div className="flex items-center gap-1"><Bath size={16}/> {plan.baths}</div>
-                                          <div className="flex items-center gap-1"><Maximize2 size={16}/> {plan.sqft.toLocaleString()} SqFt</div>
-                                      </div>
-                                  </div>
+                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">New Construction Homes</h3>
+                          <p className="text-gray-500 text-sm mb-6">Homes currently under construction or available to build in this community.</p>
+
+                          {loadingNewConstruction ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                              <Loader2 size={32} className="text-compass-gold animate-spin mb-4" />
+                              <p className="text-gray-500 text-sm">Loading available homes...</p>
+                            </div>
+                          ) : newConstructionHomes.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {newConstructionHomes.map((home) => (
+                                <PropertyCard key={home.id} property={home} onClick={onPropertyClick} />
                               ))}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200 border-dashed">
+                              <Layout className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                              <h4 className="text-base font-bold text-gray-900 mb-2">No New Construction Listed</h4>
+                              <p className="text-gray-500 text-sm max-w-md mx-auto">
+                                Contact us for information about floor plans and available lots in this community.
+                              </p>
+                            </div>
+                          )}
                       </div>
 
                       {/* Amenities */}
