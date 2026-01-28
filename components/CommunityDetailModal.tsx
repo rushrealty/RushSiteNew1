@@ -6,23 +6,13 @@ import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
-
-// Mock data for schools
-const MOCK_SCHOOLS = [
-  { name: 'Evelyn I. Morris Early Childhood', grades: 'PK, K', distance: '10.6 mi' },
-  { name: 'Mispillion Elementary School', grades: '1-5', distance: '11.7 mi' },
-  { name: 'Milford Central Academy', grades: '6-8', distance: '11.2 mi' },
-  { name: 'Milford Senior High School', grades: '9-12', distance: '11.2 mi' },
-];
-
-// Mock data for nearby places
-const MOCK_NEARBY = [
-  { name: 'Local Dining & Shops', location: 'Greenwood', time: '3 min' },
-  { name: 'Harrington Casino & Raceway', location: '', time: '10 min' },
-  { name: 'Killens Pond State Park', location: '', time: '14 min' },
-  { name: 'Walmart Supercenter', location: 'Milford', time: '18 min' },
-  { name: 'Delaware Beaches', location: 'Rehoboth', time: '48 min' },
-];
+// Nearby place type from API
+interface NearbyPlace {
+  name: string;
+  location?: string;
+  time: string;
+  type: string;
+}
 
 // Market Chart Component
 const MarketChart = () => {
@@ -63,6 +53,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
   const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
   const [loadingNewConstruction, setLoadingNewConstruction] = useState(true);
 
+  // State for nearby places from Google Places API
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(true);
+
   useEffect(() => {
     if (modalRef.current) {
       modalRef.current.scrollTop = 0;
@@ -90,6 +84,30 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     }
     fetchNewConstructionHomes();
   }, [community.name]);
+
+  // Fetch nearby places from Google Places API
+  useEffect(() => {
+    async function fetchNearbyPlaces() {
+      setLoadingNearby(true);
+      try {
+        // Use community address if available, otherwise use city
+        const address = community.address || `${community.city}, ${community.state}`;
+        const response = await fetch(`/api/nearby-places?address=${encodeURIComponent(address)}&limit=7`);
+        if (response.ok) {
+          const data = await response.json();
+          setNearbyPlaces(data.places || []);
+        } else {
+          setNearbyPlaces([]);
+        }
+      } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        setNearbyPlaces([]);
+      } finally {
+        setLoadingNearby(false);
+      }
+    }
+    fetchNearbyPlaces();
+  }, [community.address, community.city, community.state]);
 
   const availableHomes = useMemo(() => {
     return MOCK_PROPERTIES.filter(p => p.community === community.name);
@@ -291,11 +309,14 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                               <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <CheckCircle className="text-compass-gold" size={24}/> Schools
                               </h3>
-                              <div className="mb-4">
-                                <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">Milford School District</span></p>
-                              </div>
+                              {community.schoolDistrict && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{community.schoolDistrict}</span></p>
+                                </div>
+                              )}
                               <div className="space-y-4">
-                                  {MOCK_SCHOOLS.map((school, i) => (
+                                  {community.schools && community.schools.length > 0 ? (
+                                    community.schools.map((school, i) => (
                                       <div key={i} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
                                           <div>
                                               <p className="font-bold text-gray-900 text-sm">{school.name}</p>
@@ -303,7 +324,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                           </div>
                                           <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{school.distance}</span>
                                       </div>
-                                  ))}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500">School information coming soon</p>
+                                  )}
                               </div>
                           </div>
 
@@ -313,7 +337,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                 <MapPin className="text-compass-gold" size={24}/> What&apos;s Nearby
                               </h3>
                               <div className="space-y-4 bg-white rounded-2xl border border-gray-100 p-6">
-                                  {MOCK_NEARBY.map((item, i) => (
+                                  {loadingNearby ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="w-6 h-6 animate-spin text-compass-gold" />
+                                      <span className="ml-2 text-sm text-gray-500">Finding nearby places...</span>
+                                    </div>
+                                  ) : nearbyPlaces.length > 0 ? (
+                                    nearbyPlaces.map((item, i) => (
                                       <div key={i} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
                                           <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                                               <Clock size={14} />
@@ -324,7 +354,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                           </div>
                                           <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{item.time}</span>
                                       </div>
-                                  ))}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500 py-4">Nearby places information unavailable</p>
+                                  )}
                               </div>
                           </div>
                       </div>

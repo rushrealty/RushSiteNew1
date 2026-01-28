@@ -20,6 +20,14 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Peaceful residential setting with spacious surroundings in Greenwood. Quick access to Route 13 and Delaware beaches.',
     is55Plus: false,
     hasClubhouse: false,
+    address: 'Greenwood, DE 19950',
+    schoolDistrict: 'Milford School District',
+    schools: [
+      { name: 'Evelyn I. Morris Early Childhood', grades: 'PK, K', distance: '10.6 mi' },
+      { name: 'Mispillion Elementary School', grades: '1-5', distance: '11.7 mi' },
+      { name: 'Milford Central Academy', grades: '6-8', distance: '11.2 mi' },
+      { name: 'Milford Senior High School', grades: '9-12', distance: '11.2 mi' },
+    ],
     features: ['Granite Countertops', '9\' Ceilings', '2-Car Garage', 'Energy Star Certified']
   },
   {
@@ -40,6 +48,14 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Vibrant community designed for active lifestyles with carriage style garage doors and expansive floor plans.',
     is55Plus: true,
     hasClubhouse: true,
+    address: '25 Belfry Dr, Felton, DE 19943',
+    schoolDistrict: 'Lake Forest School District',
+    schools: [
+      { name: 'Lake Forest North Elementary', grades: 'PK, K-3', distance: '1.1 mi' },
+      { name: 'Lake Forest Central Elementary', grades: '4-5', distance: '2.5 mi' },
+      { name: 'W.T. Chipman Middle School', grades: '6-8', distance: '2.8 mi' },
+      { name: 'Lake Forest High School', grades: '9-12', distance: '3.1 mi' },
+    ],
     features: ['8\' Unfinished Basement', 'Carriage Garage Doors', '42" Cabinets', 'Walking Trails']
   },
   {
@@ -60,6 +76,13 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Exclusive custom-designed homes on spacious 1+ acre lots in the heart of Middletown.',
     is55Plus: false,
     hasClubhouse: false,
+    address: 'Wiggins Mill Rd, Middletown, DE 19709',
+    schoolDistrict: 'Appoquinimink School District',
+    schools: [
+      { name: 'Olive B. Loss Elementary', grades: 'K-4', distance: '2.3 mi' },
+      { name: 'Cantwell\'s Bridge Middle', grades: '5-8', distance: '3.1 mi' },
+      { name: 'Appoquinimink High School', grades: '9-12', distance: '4.2 mi' },
+    ],
     features: ['Custom Floor Plans', '1+ Acre Lots', 'High-End Finishes', 'Appoquinimink Schools']
   },
   {
@@ -80,6 +103,13 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: "Delaware's premier golf course community. Resort-style living just minutes from the beach.",
     is55Plus: true,
     hasClubhouse: true,
+    address: '32267 Clubhouse Way, Millsboro, DE 19966',
+    schoolDistrict: 'Indian River School District',
+    schools: [
+      { name: 'Long Neck Elementary', grades: 'K-4', distance: '3.2 mi' },
+      { name: 'Millsboro Middle School', grades: '5-8', distance: '5.1 mi' },
+      { name: 'Sussex Central High School', grades: '9-12', distance: '8.3 mi' },
+    ],
     features: ['Championship Golf', 'Resort Pool', 'Clubhouse', 'Garden Care Included']
   }
 ];

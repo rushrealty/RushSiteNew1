@@ -4,6 +4,7 @@ import {
   InventoryHome,
   InventoryData,
   EnrichedInventoryHome,
+  School,
 } from './inventory-types';
 import { convertGoogleDriveUrl } from './utils';
 
@@ -108,6 +109,18 @@ function parseBuilders(data: Record<string, string>[]): Builder[] {
 }
 
 /**
+ * Parse schools from pipe-separated format: "School Name|Grades|Distance;School 2|Grades|Distance"
+ */
+function parseSchools(schoolsStr: string | undefined): School[] {
+  if (!schoolsStr || !schoolsStr.trim()) return [];
+
+  return schoolsStr.split(';').map(school => {
+    const [name, grades, distance] = school.split('|').map(s => s.trim());
+    return { name: name || '', grades: grades || '', distance: distance || '' };
+  }).filter(s => s.name);
+}
+
+/**
  * Parse communities from CSV data
  */
 function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] {
@@ -121,6 +134,9 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     // Check multiple possible column names for clubhouse
     const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
 
+    // Parse schools from pipe-separated format
+    const schools = parseSchools(row.schools);
+
     return {
       id: row.id || '',
       name: row.name || '',
@@ -132,6 +148,9 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
       description: row.description || '',
       is55Plus,
       hasClubhouse,
+      address: row.address || '',
+      schoolDistrict: row.school_district || '',
+      schools,
       modelPhotos: [
         row.model_photo_1,
         row.model_photo_2,
@@ -268,9 +287,9 @@ export const MOCK_INVENTORY: InventoryData = {
     { id: 'tunnell', name: 'Tunnell Companies', logoUrl: '/images/builders/tunnell.png', website: 'https://tunnellcompanies.com' },
   ],
   communities: [
-    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Milford', county: 'Kent', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, modelPhotos: [] },
-    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, modelPhotos: [] },
-    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: false, hasClubhouse: true, modelPhotos: [] },
+    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Greenwood', county: 'Sussex', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, address: 'Greenwood, DE 19950', schoolDistrict: 'Milford School District', schools: [], modelPhotos: [] },
+    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, address: '25 Belfry Dr, Felton, DE 19943', schoolDistrict: 'Lake Forest School District', schools: [{ name: 'Lake Forest North Elementary', grades: 'PK, K-3', distance: '1.1 mi' }, { name: 'Lake Forest Central Elementary', grades: '4-5', distance: '2.5 mi' }, { name: 'W.T. Chipman Middle School', grades: '6-8', distance: '2.8 mi' }, { name: 'Lake Forest High School', grades: '9-12', distance: '3.1 mi' }], modelPhotos: [] },
+    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: false, hasClubhouse: true, address: 'Millsboro, DE 19966', schoolDistrict: 'Indian River School District', schools: [], modelPhotos: [] },
   ],
   homes: [
     {
