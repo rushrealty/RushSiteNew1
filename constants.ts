@@ -20,6 +20,9 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Peaceful residential setting with spacious surroundings in Greenwood. Quick access to Route 13 and Delaware beaches.',
     is55Plus: false,
     hasClubhouse: false,
+    address: 'Greenwood, DE 19950',
+    schoolDistrict: 'Milford School District',
+    schoolNames: ['Evelyn I. Morris Early Childhood', 'Mispillion Elementary School', 'Milford Central Academy', 'Milford Senior High School'],
     features: ['Granite Countertops', '9\' Ceilings', '2-Car Garage', 'Energy Star Certified']
   },
   {
@@ -40,6 +43,9 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Vibrant community designed for active lifestyles with carriage style garage doors and expansive floor plans.',
     is55Plus: true,
     hasClubhouse: true,
+    address: '25 Belfry Dr, Felton, DE 19943',
+    schoolDistrict: 'Lake Forest School District',
+    schoolNames: ['Lake Forest North Elementary', 'Lake Forest Central Elementary', 'W.T. Chipman Middle School', 'Lake Forest High School'],
     features: ['8\' Unfinished Basement', 'Carriage Garage Doors', '42" Cabinets', 'Walking Trails']
   },
   {
@@ -60,6 +66,9 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: 'Exclusive custom-designed homes on spacious 1+ acre lots in the heart of Middletown.',
     is55Plus: false,
     hasClubhouse: false,
+    address: 'Wiggins Mill Rd, Middletown, DE 19709',
+    schoolDistrict: 'Appoquinimink School District',
+    schoolNames: ['Olive B. Loss Elementary', 'Cantwell\'s Bridge Middle', 'Appoquinimink High School'],
     features: ['Custom Floor Plans', '1+ Acre Lots', 'High-End Finishes', 'Appoquinimink Schools']
   },
   {
@@ -80,6 +89,9 @@ export const MOCK_COMMUNITIES: Community[] = [
     description: "Delaware's premier golf course community. Resort-style living just minutes from the beach.",
     is55Plus: true,
     hasClubhouse: true,
+    address: '32267 Clubhouse Way, Millsboro, DE 19966',
+    schoolDistrict: 'Indian River School District',
+    schoolNames: ['Long Neck Elementary', 'Millsboro Middle School', 'Sussex Central High School'],
     features: ['Championship Golf', 'Resort Pool', 'Clubhouse', 'Garden Care Included']
   }
 ];

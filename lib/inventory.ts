@@ -108,6 +108,14 @@ function parseBuilders(data: Record<string, string>[]): Builder[] {
 }
 
 /**
+ * Parse school names from semicolon-separated format: "School Name;School 2;School 3"
+ */
+function parseSchoolNames(schoolsStr: string | undefined): string[] {
+  if (!schoolsStr || !schoolsStr.trim()) return [];
+  return schoolsStr.split(';').map(s => s.trim()).filter(Boolean);
+}
+
+/**
  * Parse communities from CSV data
  */
 function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] {
@@ -121,6 +129,9 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     // Check multiple possible column names for clubhouse
     const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
 
+    // Parse school names from semicolon-separated format
+    const schoolNames = parseSchoolNames(row.schools);
+
     return {
       id: row.id || '',
       name: row.name || '',
@@ -132,6 +143,9 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
       description: row.description || '',
       is55Plus,
       hasClubhouse,
+      address: row.address || '',
+      schoolDistrict: row.school_district || '',
+      schoolNames,
       modelPhotos: [
         row.model_photo_1,
         row.model_photo_2,
@@ -268,9 +282,9 @@ export const MOCK_INVENTORY: InventoryData = {
     { id: 'tunnell', name: 'Tunnell Companies', logoUrl: '/images/builders/tunnell.png', website: 'https://tunnellcompanies.com' },
   ],
   communities: [
-    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Milford', county: 'Kent', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, modelPhotos: [] },
-    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, modelPhotos: [] },
-    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: false, hasClubhouse: true, modelPhotos: [] },
+    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Greenwood', county: 'Sussex', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, address: 'Greenwood, DE 19950', schoolDistrict: 'Milford School District', schoolNames: ['Evelyn I. Morris Early Childhood', 'Mispillion Elementary School', 'Milford Central Academy', 'Milford Senior High School'], modelPhotos: [] },
+    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, address: '25 Belfry Dr, Felton, DE 19943', schoolDistrict: 'Lake Forest School District', schoolNames: ['Lake Forest North Elementary', 'Lake Forest Central Elementary', 'W.T. Chipman Middle School', 'Lake Forest High School'], modelPhotos: [] },
+    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: false, hasClubhouse: true, address: 'Millsboro, DE 19966', schoolDistrict: 'Indian River School District', schoolNames: ['Long Neck Elementary', 'Millsboro Middle School', 'Sussex Central High School'], modelPhotos: [] },
   ],
   homes: [
     {

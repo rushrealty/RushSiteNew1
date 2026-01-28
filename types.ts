@@ -51,6 +51,9 @@ export interface Community {
   description: string;
   is55Plus: boolean;
   hasClubhouse: boolean;
+  address: string;
+  schoolDistrict: string;
+  schoolNames: string[]; // Simple school names - details fetched via API
   features: string[];
 }
 

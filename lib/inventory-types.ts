@@ -6,6 +6,13 @@ export interface Builder {
   website: string;
 }
 
+// School information (used by API response)
+export interface School {
+  name: string;
+  grades: string;
+  distance: string;
+}
+
 // Community information from Google Sheets
 export interface InventoryCommunity {
   id: string;
@@ -18,6 +25,9 @@ export interface InventoryCommunity {
   description: string;
   is55Plus: boolean;
   hasClubhouse: boolean;
+  address: string;
+  schoolDistrict: string;
+  schoolNames: string[]; // Simple school names - details fetched via API
   modelPhotos: string[];
 }
 
