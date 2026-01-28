@@ -18,6 +18,7 @@ const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: 
   'pinehurst-village': { type: 'internal', url: '/available-communities/pinehurst-village', name: 'Pinehurst Village' },
   'wiggins-mill': { type: 'internal', url: '/available-communities/wiggins-mill', name: 'Wiggins Mill' },
   'baywood': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
+  'baywood-greens': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
 };
 
 const HomeContent: React.FC = () => {
@@ -66,7 +67,7 @@ const HomeContent: React.FC = () => {
           const data = await response.json();
           if (data.communities && data.communities.length > 0) {
             // Transform sheet communities to Community type
-            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; modelPhotos: string[]; builder?: { name: string } }) => ({
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; modelPhotos: string[]; builder?: { name: string } }) => ({
               id: c.id,
               name: c.name,
               slug: c.slug || c.id,
@@ -75,8 +76,8 @@ const HomeContent: React.FC = () => {
               state: 'DE',
               zip: '',
               builder: c.builder?.name || '',
-              priceRange: 'Contact for Pricing',
-              minPrice: 0,
+              priceRange: c.minPrice ? `From $${Math.round(c.minPrice / 1000)}k` : 'Contact for Pricing',
+              minPrice: c.minPrice || 0,
               image: c.modelPhotos?.[0] || '/images/placeholder-community.jpg',
               status: 'Now Selling' as const,
               homesAvailable: 0,
