@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
 import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
-import { X, MapPin, Check, Phone, Calendar, Home, Layout, Trees, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
+import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
 
 // Mock data for schools
@@ -156,7 +156,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                    <div className="flex-grow lg:w-2/3">
 
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-12">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-12">
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Layout className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
                             <div className="font-bold text-lg md:text-xl text-gray-900">
@@ -170,9 +170,14 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                             <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Quick Move-Ins</div>
                          </div>
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
-                            <Trees className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
-                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.amenities || 'Yes'}</div>
-                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Amenities</div>
+                            <Users className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
+                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.is55Plus ? 'Yes' : 'No'}</div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">55+</div>
+                         </div>
+                         <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                            <Building className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
+                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.hasClubhouse ? 'Yes' : 'No'}</div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Clubhouse</div>
                          </div>
                       </div>
 
