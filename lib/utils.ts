@@ -19,17 +19,30 @@ export function formatNumber(num: number): string {
 
 /**
  * Converts Google Drive view/share links to direct image URLs.
+ * Uses the lh3.googleusercontent.com service which is more reliable for embedding.
+ *
  * Input: https://drive.google.com/file/d/{FILE_ID}/view?usp=drive_link
- * Output: https://drive.google.com/uc?export=view&id={FILE_ID}
+ * Output: https://lh3.googleusercontent.com/d/{FILE_ID}
+ *
+ * Alternative formats also supported:
+ * - https://drive.google.com/uc?id={FILE_ID}
+ * - https://drive.google.com/open?id={FILE_ID}
  */
 export function convertGoogleDriveUrl(url: string): string {
   if (!url) return url;
 
-  // Match Google Drive file URLs
-  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (driveMatch) {
-    const fileId = driveMatch[1];
-    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  // Match Google Drive file URLs: /file/d/{FILE_ID}/
+  const fileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (fileMatch) {
+    const fileId = fileMatch[1];
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+
+  // Match Google Drive URLs with id parameter: ?id={FILE_ID} or &id={FILE_ID}
+  const idMatch = url.match(/drive\.google\.com\/(?:uc|open)\?.*id=([^&]+)/);
+  if (idMatch) {
+    const fileId = idMatch[1];
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
   }
 
   // Already a direct URL or not a Google Drive link
