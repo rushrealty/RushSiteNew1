@@ -14,6 +14,7 @@ export interface QuickMoveInResult {
 export interface QuickMoveInOptions {
   limit?: number;
   featuredOnly?: boolean;
+  includeAll?: boolean; // Include all available homes (QMI first, then others)
 }
 
 /**
@@ -241,8 +242,34 @@ export async function getQuickMoveInListings(
         });
       });
 
-    // Merge homes: Repliers first (higher priority), then Sheet
-    let homes = [...repliersQMIs, ...sheetOnlyHomes];
+    // Merge homes based on options
+    let homes: Property[];
+
+    if (options.includeAll) {
+      // Get all other Repliers listings that are NOT Quick Move-Ins
+      // Exclude: new construction that isn't built (Under Construction/Proposed NOT in sheet)
+      const otherListings = repliersResponse.listings
+        .filter((listing) => {
+          const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
+          // Skip if already included as QMI
+          if (repliersAddressSet.has(normalizedAddr)) return false;
+
+          const status = listing.details.constructionStatus;
+          // Include if NOT new construction (status is null)
+          if (!status) return true;
+          // Include if construction is complete
+          if (status.toLowerCase() === 'complete') return true;
+          // Exclude unbuilt new construction not in sheet
+          return false;
+        })
+        .map(transformRepliersListing);
+
+      // QMI homes first, then sheet homes, then other available homes
+      homes = [...repliersQMIs, ...sheetOnlyHomes, ...otherListings];
+    } else {
+      // Original behavior: QMI homes only
+      homes = [...repliersQMIs, ...sheetOnlyHomes];
+    }
 
     // Apply filters
     if (options.featuredOnly) {
