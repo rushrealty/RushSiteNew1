@@ -64,7 +64,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
           const data = await response.json();
           if (data.communities && data.communities.length > 0) {
             // Transform sheet communities to Community type
-            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
               id: c.id,
               name: c.name,
               slug: c.slug || c.id,
@@ -80,7 +80,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
               status: 'Now Selling' as const,
               homesAvailable: 0,
               floorPlansCount: 0,
-              description: `Discover ${c.name}, a beautiful new construction community in ${c.city}, Delaware by ${c.builder?.name || 'a premier builder'}.`,
+              description: c.description || `Discover ${c.name}, a beautiful new construction community in ${c.city}, Delaware by ${c.builder?.name || 'a premier builder'}.`,
               features: [],
             }));
             setCommunities(transformedCommunities);
