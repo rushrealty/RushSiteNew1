@@ -49,6 +49,8 @@ export interface Community {
   homesAvailable: number;
   floorPlansCount: number;
   description: string;
+  is55Plus: boolean;
+  hasClubhouse: boolean;
   features: string[];
 }
 

@@ -16,6 +16,8 @@ export interface InventoryCommunity {
   slug: string;
   minPrice: number;
   description: string;
+  is55Plus: boolean;
+  hasClubhouse: boolean;
   modelPhotos: string[];
 }
 

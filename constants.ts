@@ -18,6 +18,8 @@ export const MOCK_COMMUNITIES: Community[] = [
     homesAvailable: 6,
     floorPlansCount: 6,
     description: 'Peaceful residential setting with spacious surroundings in Greenwood. Quick access to Route 13 and Delaware beaches.',
+    is55Plus: false,
+    hasClubhouse: false,
     features: ['Granite Countertops', '9\' Ceilings', '2-Car Garage', 'Energy Star Certified']
   },
   {
@@ -36,6 +38,8 @@ export const MOCK_COMMUNITIES: Community[] = [
     homesAvailable: 12,
     floorPlansCount: 6,
     description: 'Vibrant community designed for active lifestyles with carriage style garage doors and expansive floor plans.',
+    is55Plus: true,
+    hasClubhouse: true,
     features: ['8\' Unfinished Basement', 'Carriage Garage Doors', '42" Cabinets', 'Walking Trails']
   },
   {
@@ -54,6 +58,8 @@ export const MOCK_COMMUNITIES: Community[] = [
     homesAvailable: 2,
     floorPlansCount: 0,
     description: 'Exclusive custom-designed homes on spacious 1+ acre lots in the heart of Middletown.',
+    is55Plus: false,
+    hasClubhouse: false,
     features: ['Custom Floor Plans', '1+ Acre Lots', 'High-End Finishes', 'Appoquinimink Schools']
   },
   {
@@ -72,6 +78,8 @@ export const MOCK_COMMUNITIES: Community[] = [
     homesAvailable: 8,
     floorPlansCount: 4,
     description: "Delaware's premier golf course community. Resort-style living just minutes from the beach.",
+    is55Plus: true,
+    hasClubhouse: true,
     features: ['Championship Golf', 'Resort Pool', 'Clubhouse', 'Garden Care Included']
   }
 ];
