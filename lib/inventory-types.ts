@@ -14,6 +14,7 @@ export interface InventoryCommunity {
   city: string;
   county: string;
   slug: string;
+  minPrice: number;
   modelPhotos: string[];
 }
 
