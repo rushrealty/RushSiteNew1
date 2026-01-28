@@ -111,23 +111,34 @@ function parseBuilders(data: Record<string, string>[]): Builder[] {
  * Parse communities from CSV data
  */
 function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] {
-  return data.map(row => ({
-    id: row.id || '',
-    name: row.name || '',
-    builderId: row.builder_id || '',
-    city: row.city || '',
-    county: row.county || '',
-    slug: row.slug || '',
-    minPrice: parseInt(row.min_price, 10) || 0,
-    description: row.description || '',
-    is55Plus: row['55+']?.toLowerCase() === 'yes' || row['is_55_plus']?.toLowerCase() === 'yes',
-    hasClubhouse: row['clubhouse']?.toLowerCase() === 'yes' || row['has_clubhouse']?.toLowerCase() === 'yes',
-    modelPhotos: [
-      row.model_photo_1,
-      row.model_photo_2,
-      row.model_photo_3,
-    ].filter(Boolean).map(convertGoogleDriveUrl),
-  })).filter(c => c.id);
+  return data.map(row => {
+    // Helper to check Yes value with case-insensitive and whitespace handling
+    const isYes = (value: string | undefined) => value?.trim().toLowerCase() === 'yes';
+
+    // Check multiple possible column names for 55+
+    const is55Plus = isYes(row['55+']) || isYes(row['55plus']) || isYes(row['is_55_plus']) || isYes(row['is55plus']);
+
+    // Check multiple possible column names for clubhouse
+    const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
+
+    return {
+      id: row.id || '',
+      name: row.name || '',
+      builderId: row.builder_id || '',
+      city: row.city || '',
+      county: row.county || '',
+      slug: row.slug || '',
+      minPrice: parseInt(row.min_price, 10) || 0,
+      description: row.description || '',
+      is55Plus,
+      hasClubhouse,
+      modelPhotos: [
+        row.model_photo_1,
+        row.model_photo_2,
+        row.model_photo_3,
+      ].filter(Boolean).map(convertGoogleDriveUrl),
+    };
+  }).filter(c => c.id);
 }
 
 /**
