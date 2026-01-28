@@ -75,6 +75,7 @@ export interface RepliersListing {
     yearBuilt?: number;
     garage?: number;
     description?: string;
+    constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
   };
   images?: string[];
   status: string;
