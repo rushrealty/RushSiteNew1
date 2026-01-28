@@ -18,6 +18,25 @@ export function formatNumber(num: number): string {
 }
 
 /**
+ * Converts Google Drive view/share links to direct image URLs.
+ * Input: https://drive.google.com/file/d/{FILE_ID}/view?usp=drive_link
+ * Output: https://drive.google.com/uc?export=view&id={FILE_ID}
+ */
+export function convertGoogleDriveUrl(url: string): string {
+  if (!url) return url;
+
+  // Match Google Drive file URLs
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (driveMatch) {
+    const fileId = driveMatch[1];
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+
+  // Already a direct URL or not a Google Drive link
+  return url;
+}
+
+/**
  * Normalizes an address for comparison purposes.
  * Converts to lowercase, standardizes common abbreviations,
  * and removes punctuation.
