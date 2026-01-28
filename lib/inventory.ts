@@ -120,6 +120,7 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     slug: row.slug || '',
     minPrice: parseInt(row.min_price, 10) || 0,
     description: row.description || '',
+    amenities: row.amenities || '',
     modelPhotos: [
       row.model_photo_1,
       row.model_photo_2,
@@ -255,9 +256,9 @@ export const MOCK_INVENTORY: InventoryData = {
     { id: 'tunnell', name: 'Tunnell Companies', logoUrl: '/images/builders/tunnell.png', website: 'https://tunnellcompanies.com' },
   ],
   communities: [
-    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Milford', county: 'Kent', slug: 'abbotts-pond', minPrice: 425000, description: '', modelPhotos: [] },
-    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', modelPhotos: [] },
-    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', modelPhotos: [] },
+    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Milford', county: 'Kent', slug: 'abbotts-pond', minPrice: 425000, description: '', amenities: 'Yes', modelPhotos: [] },
+    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', amenities: 'Yes', modelPhotos: [] },
+    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', amenities: 'Yes', modelPhotos: [] },
   ],
   homes: [
     {

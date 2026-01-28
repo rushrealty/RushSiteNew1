@@ -16,6 +16,7 @@ export interface InventoryCommunity {
   slug: string;
   minPrice: number;
   description: string;
+  amenities: string;
   modelPhotos: string[];
 }
 

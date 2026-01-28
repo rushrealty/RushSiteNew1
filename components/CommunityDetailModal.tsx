@@ -171,7 +171,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          </div>
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Trees className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
-                            <div className="font-bold text-lg md:text-xl text-gray-900">Yes</div>
+                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.amenities || 'Yes'}</div>
                             <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Amenities</div>
                          </div>
                       </div>

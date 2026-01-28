@@ -49,6 +49,7 @@ export interface Community {
   homesAvailable: number;
   floorPlansCount: number;
   description: string;
+  amenities: string;
   features: string[];
 }
 
