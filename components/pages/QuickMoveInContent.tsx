@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_PROPERTIES } from '../../constants';
-import { Search, Filter, Check, X, Map as MapIcon, ChevronDown } from 'lucide-react';
+import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, Loader2 } from 'lucide-react';
 
 const COUNTIES = ['New Castle', 'Kent', 'Sussex'];
 
@@ -32,6 +32,36 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
+  // State for fetched homes data
+  const [allHomes, setAllHomes] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch homes from API on mount
+  useEffect(() => {
+    async function fetchHomes() {
+      try {
+        const response = await fetch('/api/quick-move-in?includeAll=true');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.homes && data.homes.length > 0) {
+            setAllHomes(data.homes);
+          } else {
+            // Fall back to mock data if no real data
+            setAllHomes(MOCK_PROPERTIES);
+          }
+        } else {
+          setAllHomes(MOCK_PROPERTIES);
+        }
+      } catch (error) {
+        console.error('Error fetching homes:', error);
+        setAllHomes(MOCK_PROPERTIES);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHomes();
+  }, []);
+
   // State for desktop dropdown toggles
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -42,7 +72,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   };
 
   const filteredProperties = useMemo(() => {
-    return MOCK_PROPERTIES.filter(property => {
+    return allHomes.filter(property => {
       const matchesSearch = searchTerm === '' ||
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +87,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
       return matchesSearch && matchesCounty && matchesPrice && matchesBeds;
     });
-  }, [searchTerm, selectedCounties, selectedPriceIdx, minBeds]);
+  }, [allHomes, searchTerm, selectedCounties, selectedPriceIdx, minBeds]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
@@ -316,14 +346,21 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
                 {/* Result Count Bar */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
-                   <span className="font-bold text-gray-900">{filteredProperties.length} Homes Available</span>
+                   <span className="font-bold text-gray-900">
+                     {loading ? 'Loading...' : `${filteredProperties.length} Homes Available`}
+                   </span>
                    <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span>Sort by:</span>
                       <button className="font-bold text-gray-900 flex items-center gap-1">Newest <ChevronDown size={14}/></button>
                    </div>
                 </div>
 
-                {filteredProperties.length > 0 ? (
+                {loading ? (
+                   <div className="flex flex-col items-center justify-center py-20">
+                      <Loader2 size={40} className="text-blue-600 animate-spin mb-4" />
+                      <p className="text-gray-500">Loading homes...</p>
+                   </div>
+                ) : filteredProperties.length > 0 ? (
                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                       {filteredProperties.map(property => (
                          <div key={property.id} className="h-full">

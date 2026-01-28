@@ -7,10 +7,12 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const limit = searchParams.get('limit');
     const featuredOnly = searchParams.get('featuredOnly') === 'true';
+    const includeAll = searchParams.get('includeAll') === 'true';
 
     const result = await getQuickMoveInListings({
       limit: limit ? parseInt(limit) : undefined,
       featuredOnly,
+      includeAll,
     });
 
     // If no real listings found, fall back to mock data for development
