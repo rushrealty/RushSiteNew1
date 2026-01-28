@@ -10,12 +10,9 @@ interface CommunityCardProps {
   onClick?: (community: Community) => void;
 }
 
-// Helper to format price (e.g. 650000 -> $650k, 1200000 -> $1.2M)
+// Helper to format price as full number (e.g. 650000 -> $650,000)
 const formatMinPrice = (price: number) => {
-  if (price >= 1000000) {
-    return `$${(price / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
-  }
-  return `$${(price / 1000).toFixed(0)}k`;
+  return `$${price.toLocaleString()}`;
 };
 
 const CommunityCard: React.FC<CommunityCardProps> = ({ community, onClick }) => {

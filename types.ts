@@ -41,10 +41,11 @@ export interface Community {
   state: string;
   zip: string;
   builder: string;
+  builderLogo?: string;
   priceRange: string;
   minPrice: number;
   image: string;
-  status: 'Grand Opening' | 'Selling Fast' | 'Closeout' | 'Coming Soon';
+  status: 'Grand Opening' | 'Selling Fast' | 'Closeout' | 'Coming Soon' | 'Now Selling';
   homesAvailable: number;
   floorPlansCount: number;
   description: string;
