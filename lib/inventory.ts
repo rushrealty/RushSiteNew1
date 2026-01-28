@@ -10,11 +10,11 @@ import {
 // This is the published sheet ID (from "File > Share > Publish to web")
 const PUBLISHED_SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '2PACX-1vQq5kKLZrq1Ror-1rXh_krZnhcs_V1ssIm4uykHjgURw-Y4j2k-RrteDMqfvod9OkHu4hofA071UOJo';
 
-// Tab GIDs (these may need to be updated based on your sheet)
+// Tab GIDs - these are the actual GID values from the published Google Sheet
 const TABS = {
-  builders: 0,      // First tab
-  communities: 1,   // Second tab
-  inventory: 2,     // Third tab
+  builders: 0,            // Builders tab
+  communities: 1651556845, // Communities tab
+  inventory: 1527336354,   // Inventory tab
 };
 
 // Cache for inventory data (5 minute TTL)
