@@ -129,8 +129,9 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     // Check multiple possible column names for clubhouse
     const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
 
-    // Parse school names from semicolon-separated format
-    const schoolNames = parseSchoolNames(row.schools);
+    // Parse school names from semicolon-separated format (check multiple column name variations)
+    const schoolsValue = row['schools'] || row['Schools'] || row['school_names'] || row['schoolNames'] || '';
+    const schoolNames = parseSchoolNames(schoolsValue);
 
     return {
       id: row.id || '',
