@@ -15,9 +15,29 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
       className="group bg-white rounded-[2rem] shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full relative"
       onClick={() => onClick?.(property)}
     >
-      <div className="relative h-72 overflow-hidden">
-        <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
-        <div className="absolute top-5 left-5">
+      <div className="relative h-72 overflow-hidden bg-gray-100">
+        {property.images && property.images.length > 0 ? (
+          <img
+            src={property.images[0]}
+            alt={property.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              (e.target as HTMLImageElement).src = '/images/placeholder-home.jpg';
+            }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <span className="text-gray-400 text-sm">No image available</span>
+          </div>
+        )}
+        <div className="absolute top-5 left-5 flex flex-col gap-2">
+          {property.community && (
+            <span className="px-3 py-1.5 rounded-full bg-black/80 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-lg border border-white/10">
+              {property.community}
+            </span>
+          )}
           <span className="px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-black shadow-sm">
             {property.status}
           </span>
