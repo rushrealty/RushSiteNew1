@@ -236,12 +236,15 @@ const HomeContent: React.FC = () => {
          </div>
       </section>
 
-      {/* Property Detail Modal */}
-      {selectedProperty && (
-        <PropertyDetailModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onPropertyClick={setSelectedProperty}
+      {/* Special Community Page Modal */}
+      {specialCommunityUrl && (
+        <CommunityPageModal
+          url={specialCommunityUrl}
+          communityName={specialCommunityName}
+          onClose={() => {
+            setSpecialCommunityUrl(null);
+            setSpecialCommunityName('');
+          }}
         />
       )}
 
@@ -254,15 +257,12 @@ const HomeContent: React.FC = () => {
         />
       )}
 
-      {/* Special Community Page Modal */}
-      {specialCommunityUrl && (
-        <CommunityPageModal
-          url={specialCommunityUrl}
-          communityName={specialCommunityName}
-          onClose={() => {
-            setSpecialCommunityUrl(null);
-            setSpecialCommunityName('');
-          }}
+      {/* Property Detail Modal (rendered last so it appears on top) */}
+      {selectedProperty && (
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onPropertyClick={setSelectedProperty}
         />
       )}
     </>
