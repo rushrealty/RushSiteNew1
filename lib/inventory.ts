@@ -173,6 +173,12 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     // Check multiple possible column names for clubhouse
     const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
 
+    // Check multiple possible column names for golf course
+    const hasGolfCourse = isYes(row['golfcourse']) || isYes(row['golf_course']) || isYes(row['Golf Course']) || isYes(row['has_golf_course']);
+
+    // Check multiple possible column names for community pool
+    const hasCommunityPool = isYes(row['community_pool']) || isYes(row['communitypool']) || isYes(row['Community Pool']) || isYes(row['has_community_pool']) || isYes(row['pool']);
+
     // Parse school names from semicolon-separated format (check multiple column name variations)
     const schoolsValue = row['schools'] || row['Schools'] || row['school_names'] || row['schoolNames'] || '';
     const schoolNames = parseSchoolNames(schoolsValue);
@@ -191,6 +197,8 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
       description: row.description || '',
       is55Plus,
       hasClubhouse,
+      hasGolfCourse,
+      hasCommunityPool,
       address: row.address || '',
       schoolDistrict: row.school_district || '',
       schoolNames,
@@ -341,9 +349,9 @@ export const MOCK_INVENTORY: InventoryData = {
     { id: 'tunnell', name: 'Tunnell Companies', logoUrl: '/images/builders/tunnell.png', website: 'https://tunnellcompanies.com' },
   ],
   communities: [
-    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Greenwood', county: 'Sussex', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, address: 'Greenwood, DE 19950', schoolDistrict: 'Milford School District', schoolNames: ['Evelyn I. Morris Early Childhood', 'Mispillion Elementary School', 'Milford Central Academy', 'Milford Senior High School'], modelPhotos: [] },
-    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, address: '25 Belfry Dr, Felton, DE 19943', schoolDistrict: 'Lake Forest School District', schoolNames: ['Lake Forest North Elementary', 'Lake Forest Central Elementary', 'W.T. Chipman Middle School', 'Lake Forest High School'], modelPhotos: [] },
-    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: false, hasClubhouse: true, address: 'Millsboro, DE 19966', schoolDistrict: 'Indian River School District', schoolNames: ['Long Neck Elementary', 'Millsboro Middle School', 'Sussex Central High School'], modelPhotos: [] },
+    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Greenwood', county: 'Sussex', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, hasGolfCourse: false, hasCommunityPool: false, address: 'Greenwood, DE 19950', schoolDistrict: 'Milford School District', schoolNames: ['Evelyn I. Morris Early Childhood', 'Mispillion Elementary School', 'Milford Central Academy', 'Milford Senior High School'], modelPhotos: [] },
+    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, hasGolfCourse: false, hasCommunityPool: false, address: '25 Belfry Dr, Felton, DE 19943', schoolDistrict: 'Lake Forest School District', schoolNames: ['Lake Forest North Elementary', 'Lake Forest Central Elementary', 'W.T. Chipman Middle School', 'Lake Forest High School'], modelPhotos: [] },
+    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: true, hasClubhouse: true, hasGolfCourse: true, hasCommunityPool: true, address: 'Millsboro, DE 19966', schoolDistrict: 'Indian River School District', schoolNames: ['Long Neck Elementary', 'Millsboro Middle School', 'Sussex Central High School'], modelPhotos: [] },
   ],
   homes: [
     {
