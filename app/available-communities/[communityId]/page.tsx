@@ -9,6 +9,7 @@ interface InventoryHome {
   id: string;
   community_id: string;
   mls_number: string;
+  source: 'sheet' | 'repliers' | 'merged';
   status: string;
   address: string;
   lot: string;
@@ -17,11 +18,15 @@ interface InventoryHome {
   baths: string;
   sqft: string;
   garage: string;
+  lot_size: string;
   move_in_date: string;
   model_name: string;
   description: string;
   photo_url: string;
+  images: string[];
   featured: boolean;
+  construction_status: string;
+  is_quick_move_in: boolean;
 }
 
 interface SheetCommunity {
@@ -106,8 +111,8 @@ export default function Page({ params }: { params: Promise<{ communityId: string
           setSheetCommunity(communityData.data[0]);
         }
 
-        // Fetch inventory homes for this community
-        const inventoryRes = await fetch(`/api/inventory?community_id=${communityId}`);
+        // Fetch inventory homes for this community (merged from Google Sheet + Repliers)
+        const inventoryRes = await fetch(`/api/listings?community_id=${communityId}&quick_move_in=true`);
         const inventoryData = await inventoryRes.json();
         if (inventoryData.success) {
           setInventoryHomes(inventoryData.data);
@@ -421,7 +426,14 @@ export default function Page({ params }: { params: Promise<{ communityId: string
                           </span>
                         </div>
                         <div className="inventory-content">
-                          <div className="inventory-price">${parseInt(home.price).toLocaleString()}</div>
+                          <div className="inventory-price">
+                            ${parseInt(home.price).toLocaleString()}
+                            {home.mls_number && home.source !== 'sheet' && (
+                              <span style={{ fontSize: '11px', color: '#737373', marginLeft: '8px', fontWeight: 500 }}>
+                                MLS# {home.mls_number}
+                              </span>
+                            )}
+                          </div>
                           <div className="inventory-monthly">
                             Est. {calculateMonthlyPayment(home.price)}/mo
                           </div>
