@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
-import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
@@ -59,6 +58,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
   // State for new construction homes (to be built - not quick move-ins)
   const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
   const [loadingNewConstruction, setLoadingNewConstruction] = useState(true);
+
+  // State for quick move-in homes (from Google Sheet inventory)
+  const [availableHomes, setAvailableHomes] = useState<Property[]>([]);
+  const [loadingAvailableHomes, setLoadingAvailableHomes] = useState(true);
 
   // State for nearby places from Google Places API
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
@@ -151,9 +154,28 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     fetchSchools();
   }, [community.address, community.city, community.state, community.schoolNames]);
 
-  const availableHomes = useMemo(() => {
-    return MOCK_PROPERTIES.filter(p => p.community === community.name);
-  }, [community]);
+  // Fetch quick move-in homes from inventory API
+  useEffect(() => {
+    async function fetchQuickMoveInHomes() {
+      setLoadingAvailableHomes(true);
+      try {
+        // Fetch from quick-move-in API with community filter
+        const response = await fetch(`/api/quick-move-in?communityId=${encodeURIComponent(community.id)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableHomes(data.homes || []);
+        } else {
+          setAvailableHomes([]);
+        }
+      } catch (error) {
+        console.error('Error fetching quick move-in homes:', error);
+        setAvailableHomes([]);
+      } finally {
+        setLoadingAvailableHomes(false);
+      }
+    }
+    fetchQuickMoveInHomes();
+  }, [community.id]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/60 backdrop-blur-xl animate-fade-in font-sans">
@@ -251,8 +273,8 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
 
                       {/* New Construction Homes Section (To Be Built) */}
                       <div className="mb-12">
-                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">New Construction Homes</h3>
-                          <p className="text-gray-500 text-sm mb-6">Homes currently under construction or available to build in this community.</p>
+                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Available Floor Plans</h3>
+                          <p className="text-gray-500 text-sm mb-6">Floor plans available to build in this community.</p>
 
                           {loadingNewConstruction ? (
                             <div className="flex flex-col items-center justify-center py-12">
@@ -296,16 +318,21 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                             <div>
                                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Available Homes</h3>
-                               <p className="text-gray-500">Quick move-in opportunities currently listed on the MLS.</p>
+                               <p className="text-gray-500">Quick move-in homes ready for immediate occupancy.</p>
                             </div>
-                            {availableHomes.length > 0 && (
+                            {!loadingAvailableHomes && availableHomes.length > 0 && (
                                <div className="text-sm font-bold text-compass-gold uppercase tracking-widest">
-                                  {availableHomes.length} Listings Found
+                                  {availableHomes.length} Homes Found
                                </div>
                             )}
                          </div>
 
-                         {availableHomes.length > 0 ? (
+                         {loadingAvailableHomes ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                              <Loader2 size={32} className="text-compass-gold animate-spin mb-4" />
+                              <p className="text-gray-500 text-sm">Loading available homes...</p>
+                            </div>
+                         ) : availableHomes.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                {availableHomes.map(property => (
                                   <div key={property.id} className="h-full">
@@ -316,13 +343,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          ) : (
                             <div className="bg-gray-50 rounded-3xl p-10 text-center border border-gray-200 border-dashed">
                                <Home className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                               <h4 className="text-lg font-bold text-gray-900 mb-2">No Quick Move-Ins Listed Online</h4>
+                               <h4 className="text-lg font-bold text-gray-900 mb-2">No Quick Move-In Homes Available</h4>
                                <p className="text-gray-500 max-w-md mx-auto mb-6">
-                                  Many builders have &quot;pocket listings&quot; or homes nearing completion that aren&apos;t on the MLS yet.
-                                  Contact us to get the full inventory list.
+                                  There are currently no quick move-in homes in this community.
+                                  Contact us to learn about upcoming availability or to build a custom home.
                                </p>
                                <button className="px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
-                                  Check Offline Inventory
+                                  Contact Us
                                </button>
                             </div>
                          )}
@@ -444,7 +471,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="bg-white p-8 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100">
                             <h3 className="font-serif font-bold text-xl text-gray-900 mb-2">Interested in {community.name}?</h3>
                             <p className="text-gray-500 text-sm mb-6">
-                               Work with the Rush Home Team to negotiate the best deal with {community.builder}. Our representation is free for buyers.
+                               Let the Rush Home Team help you find your perfect home in this community.
                             </p>
 
                             <div className="space-y-3 mb-6">

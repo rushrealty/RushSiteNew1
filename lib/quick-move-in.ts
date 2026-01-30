@@ -15,6 +15,7 @@ export interface QuickMoveInOptions {
   limit?: number;
   featuredOnly?: boolean;
   includeAll?: boolean; // Include all available homes (QMI first, then others)
+  communityId?: string; // Filter by community ID
 }
 
 /**
@@ -279,6 +280,21 @@ export async function getQuickMoveInListings(
     if (options.featuredOnly) {
       // Filter to only featured homes from inventory
       homes = homes.filter((h) => h.featured === true);
+    }
+
+    // Filter by community ID if provided
+    if (options.communityId) {
+      // Look up community name from ID for matching
+      const targetCommunity = communitiesMap.get(options.communityId);
+      const communityName = targetCommunity?.name;
+
+      homes = homes.filter((h) => {
+        // Match by community name (case-insensitive)
+        if (communityName && h.community) {
+          return h.community.toLowerCase() === communityName.toLowerCase();
+        }
+        return false;
+      });
     }
 
     // Sort: featured homes first, then by price (lowest first)
