@@ -48,10 +48,34 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   }, [property]);
 
   const similarHomes = useMemo(() => {
+    // Find similar homes based on: same county, similar price range, similar bed count
     return MOCK_PROPERTIES
-      .filter(p => p.id !== property.id && (p.county === property.county || Math.abs(p.price - property.price) < 100000))
+      .filter(p => {
+        if (p.id === property.id) return false;
+
+        // Must be in same county or nearby price range
+        const sameCounty = p.county === property.county;
+        const similarPrice = Math.abs(p.price - property.price) < 75000;
+        const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+
+        // Score based on similarity
+        const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
+        return matchScore >= 3; // Must match at least 3 points
+      })
+      .sort((a, b) => {
+        // Sort by similarity to current property
+        const aScore = (a.county === property.county ? 2 : 0) +
+                       (Math.abs(a.beds - property.beds) <= 1 ? 1 : 0);
+        const bScore = (b.county === property.county ? 2 : 0) +
+                       (Math.abs(b.beds - property.beds) <= 1 ? 1 : 0);
+        return bScore - aScore;
+      })
       .slice(0, 3);
   }, [property]);
+
+  // Check if this is a quick move-in home (no amenities/price history)
+  const isQuickMoveIn = property.isQuickMoveIn ||
+    (property.priceHistory.length === 0 && !property.mlsId);
 
   const community = MOCK_COMMUNITIES.find(c => c.name === property.community);
 
@@ -233,10 +257,18 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                            <div className="p-8 border-b border-gray-100 bg-gray-50/50">
                               <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Trees size={20} className="text-compass-gold"/> Exterior</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                 <div className="flex justify-between border-b border-gray-100 pb-2">
-                                    <span className="text-gray-500">Lot Size</span>
-                                    <span className="font-medium">{property.lotSize}</span>
-                                 </div>
+                                 {property.lotSize && (
+                                   <div className="flex justify-between border-b border-gray-100 pb-2">
+                                      <span className="text-gray-500">Lot Size</span>
+                                      <span className="font-medium">{property.lotSize}</span>
+                                   </div>
+                                 )}
+                                 {property.lotNumber && (
+                                   <div className="flex justify-between border-b border-gray-100 pb-2">
+                                      <span className="text-gray-500">Lot</span>
+                                      <span className="font-medium">{property.lotNumber}</span>
+                                   </div>
+                                 )}
                                  <div className="flex justify-between border-b border-gray-100 pb-2">
                                     <span className="text-gray-500">Parking</span>
                                     <span className="font-medium">{property.parking}</span>
@@ -252,46 +284,50 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                               </div>
                            </div>
 
-                           {/* Features List */}
-                           <div className="p-8">
-                              <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><CheckCircle size={20} className="text-compass-gold"/> Amenities</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                 {property.features.map((f, i) => (
-                                   <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-compass-gold"></div>
-                                      {f}
-                                   </div>
-                                 ))}
-                                 {community?.features.map((f, i) => (
-                                   <div key={`c-${i}`} className="flex items-center gap-2 text-sm text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                                      {f} (Community)
-                                   </div>
-                                 ))}
-                              </div>
-                           </div>
+                           {/* Features List - Hidden for Quick Move-In homes */}
+                           {!isQuickMoveIn && (property.features.length > 0 || community?.features.length) && (
+                             <div className="p-8">
+                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><CheckCircle size={20} className="text-compass-gold"/> Amenities</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                   {property.features.map((f, i) => (
+                                     <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-compass-gold"></div>
+                                        {f}
+                                     </div>
+                                   ))}
+                                   {community?.features.map((f, i) => (
+                                     <div key={`c-${i}`} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                                        {f} (Community)
+                                     </div>
+                                   ))}
+                                </div>
+                             </div>
+                           )}
 
                         </div>
                       </div>
 
-                      {/* Price History */}
-                      <div className="mb-12">
-                         <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Price History</h2>
-                         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                            <div className="grid grid-cols-3 bg-gray-50 p-4 font-bold text-xs uppercase tracking-widest text-gray-500">
-                               <div>Date</div>
-                               <div>Event</div>
-                               <div className="text-right">Price</div>
-                            </div>
-                            {property.priceHistory.map((item, idx) => (
-                               <div key={idx} className="grid grid-cols-3 p-4 border-t border-gray-100 text-sm">
-                                  <div className="text-gray-600">{item.date}</div>
-                                  <div className="font-medium">{item.event}</div>
-                                  <div className="text-right font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '-'}</div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
+                      {/* Price History - Hidden for Quick Move-In homes */}
+                      {!isQuickMoveIn && property.priceHistory.length > 0 && (
+                        <div className="mb-12">
+                           <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Price History</h2>
+                           <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                              <div className="grid grid-cols-3 bg-gray-50 p-4 font-bold text-xs uppercase tracking-widest text-gray-500">
+                                 <div>Date</div>
+                                 <div>Event</div>
+                                 <div className="text-right">Price</div>
+                              </div>
+                              {property.priceHistory.map((item, idx) => (
+                                 <div key={idx} className="grid grid-cols-3 p-4 border-t border-gray-100 text-sm">
+                                    <div className="text-gray-600">{item.date}</div>
+                                    <div className="font-medium">{item.event}</div>
+                                    <div className="text-right font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '-'}</div>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                      )}
 
                       {/* Schools */}
                       <div className="mb-12">
