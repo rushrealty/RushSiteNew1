@@ -82,7 +82,7 @@ function mapInventoryStatus(status: string): PropertyStatus {
       return PropertyStatus.MOVE_IN_READY;
     case 'Coming Soon':
       return PropertyStatus.TO_BE_BUILT;
-    case 'Under Contract':
+    case 'Under Construction':
       return PropertyStatus.UNDER_CONSTRUCTION;
     default:
       return PropertyStatus.MOVE_IN_READY;
