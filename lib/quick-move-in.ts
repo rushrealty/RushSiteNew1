@@ -140,6 +140,15 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
 function transformInventoryHome(home: EnrichedInventoryHome): Property {
   const status = mapInventoryStatus(home.status);
 
+  // Build images array - use home photo first, fall back to community model photos
+  let images: string[] = [];
+  if (home.photoUrl) {
+    images = [home.photoUrl];
+  } else if (home.community?.modelPhotos && home.community.modelPhotos.length > 0) {
+    // Use community model photos as fallback
+    images = home.community.modelPhotos;
+  }
+
   return {
     id: home.id,
     title: home.modelName || `${home.beds} Bed Home`,
@@ -159,7 +168,7 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     community: home.community?.name || '',
     status,
     description: home.description || '',
-    images: home.photoUrl ? [home.photoUrl] : [],
+    images,
     features: [],
     heating: '',
     cooling: '',
