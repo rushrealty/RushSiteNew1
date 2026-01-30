@@ -214,11 +214,6 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <p className="text-gray-600 text-lg leading-relaxed font-light mb-6">
                             {property.description}
                          </p>
-                         <p className="text-gray-600 text-lg leading-relaxed font-light mb-8">
-                            Built by {property.builder} in the prestigious {property.community} community.
-                            This property sits on a {property.lotSize} lot and features {property.heating} heating and {property.cooling} cooling systems.
-                            Move-in status: <span className="font-semibold text-gray-900">{property.status}</span>.
-                         </p>
                       </div>
 
                       {/* Facts & Features Grid */}
