@@ -124,9 +124,9 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
       const priceRange = PRICE_RANGES[selectedPriceIdx];
       const matchesPrice = community.minPrice >= priceRange.min && community.minPrice <= priceRange.max;
 
-      // Check lifestyle filters against community properties
+      // Check lifestyle filters against community properties (OR logic - show if ANY selected filter matches)
       const matchesLifestyle = selectedLifestyles.length === 0 ||
-        selectedLifestyles.every(tag => {
+        selectedLifestyles.some(tag => {
           switch (tag) {
             case '55+':
               return community.is55Plus;
