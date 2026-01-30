@@ -21,7 +21,6 @@ const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: 
 const LIFESTYLE_FILTERS = [
   { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
   { id: 'Golf Course', label: 'Golf Course', icon: <Waves size={14} /> },
-  { id: 'Waterfront', label: 'Waterfront', icon: <Waves size={14} /> },
   { id: 'Pool', label: 'Community Pool', icon: <Waves size={14} /> },
   { id: 'Clubhouse', label: 'Clubhouse', icon: <Waves size={14} /> },
 ];
@@ -64,7 +63,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
           const data = await response.json();
           if (data.communities && data.communities.length > 0) {
             // Transform sheet communities to Community type
-            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; is55Plus?: boolean; hasClubhouse?: boolean; address?: string; schoolDistrict?: string; schoolNames?: string[]; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; is55Plus?: boolean; hasClubhouse?: boolean; hasGolfCourse?: boolean; hasCommunityPool?: boolean; address?: string; schoolDistrict?: string; schoolNames?: string[]; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
               id: c.id,
               name: c.name,
               slug: c.slug || c.id,
@@ -83,6 +82,8 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
               description: c.description || `Discover ${c.name}, a beautiful new construction community in ${c.city}, Delaware by ${c.builder?.name || 'a premier builder'}.`,
               is55Plus: c.is55Plus || false,
               hasClubhouse: c.hasClubhouse || false,
+              hasGolfCourse: c.hasGolfCourse || false,
+              hasCommunityPool: c.hasCommunityPool || false,
               address: c.address || `${c.city}, DE`,
               schoolDistrict: c.schoolDistrict || '',
               schoolNames: c.schoolNames || [],
@@ -123,8 +124,22 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
       const priceRange = PRICE_RANGES[selectedPriceIdx];
       const matchesPrice = community.minPrice >= priceRange.min && community.minPrice <= priceRange.max;
 
+      // Check lifestyle filters against community properties
       const matchesLifestyle = selectedLifestyles.length === 0 ||
-        selectedLifestyles.every(tag => community.features.some(f => f.includes(tag) || tag.includes(f)));
+        selectedLifestyles.every(tag => {
+          switch (tag) {
+            case '55+':
+              return community.is55Plus;
+            case 'Golf Course':
+              return community.hasGolfCourse;
+            case 'Pool':
+              return community.hasCommunityPool;
+            case 'Clubhouse':
+              return community.hasClubhouse;
+            default:
+              return false;
+          }
+        });
 
       return matchesSearch && matchesCity && matchesPrice && matchesLifestyle;
     });
