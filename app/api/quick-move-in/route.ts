@@ -8,11 +8,13 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit');
     const featuredOnly = searchParams.get('featuredOnly') === 'true';
     const includeAll = searchParams.get('includeAll') === 'true';
+    const communityId = searchParams.get('communityId');
 
     const result = await getQuickMoveInListings({
       limit: limit ? parseInt(limit) : undefined,
       featuredOnly,
       includeAll,
+      communityId: communityId || undefined,
     });
 
     // If no real listings found, fall back to mock data for development

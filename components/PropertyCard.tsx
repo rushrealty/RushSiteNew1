@@ -16,7 +16,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
       onClick={() => onClick?.(property)}
     >
       <div className="relative h-72 overflow-hidden">
-        <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" referrerPolicy="no-referrer" />
         <div className="absolute top-5 left-5">
           <span className="px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-black shadow-sm">
             {property.status}
