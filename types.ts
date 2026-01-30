@@ -83,6 +83,7 @@ export interface Property {
   baths: number;
   sqft: number;
   lotSize: string;
+  lotNumber?: string; // Lot number within community (e.g., "Lot 45")
   yearBuilt: number;
   builder: string;
   community: string;
@@ -99,6 +100,7 @@ export interface Property {
   schools: SchoolInfo[];
   completionDate?: string;
   featured?: boolean;
+  isQuickMoveIn?: boolean; // True for quick move-in homes (new construction ready or from sheet)
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;

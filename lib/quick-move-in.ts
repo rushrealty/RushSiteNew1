@@ -91,7 +91,7 @@ function mapInventoryStatus(status: string): PropertyStatus {
 /**
  * Transform a Repliers listing to a Property
  */
-function transformRepliersListing(listing: RepliersListing): Property {
+function transformRepliersListing(listing: RepliersListing, isQMI: boolean = false): Property {
   const address = buildAddressString(listing.address);
   const status = mapConstructionStatus(listing.details.constructionStatus);
 
@@ -122,13 +122,14 @@ function transformRepliersListing(listing: RepliersListing): Property {
     hoaFee: 0,
     taxAssessment: 0,
     schools: [],
+    isQuickMoveIn: isQMI, // Set based on construction status check
     mlsId: listing.mlsNumber,
     listingAgent: listing.agent?.name || '',
     listingAgentPhone: listing.agent?.phone || '',
     listingBrokerage: listing.office?.name || '',
     brokeragePhone: listing.office?.phone || '',
     lastUpdated: listing.listDate || new Date().toISOString(),
-    priceHistory: [],
+    priceHistory: isQMI ? [] : [], // Price history would come from API if needed
   };
 }
 
@@ -150,7 +151,8 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     beds: home.beds,
     baths: home.baths,
     sqft: home.sqft,
-    lotSize: home.lot || '',
+    lotSize: '', // Lot dimensions not available from inventory sheet
+    lotNumber: home.lot ? `Lot ${home.lot}` : undefined,
     yearBuilt: new Date().getFullYear(),
     builder: home.builder?.name || '',
     community: home.community?.name || '',
@@ -167,13 +169,14 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     schools: [],
     completionDate: home.moveInDate,
     featured: home.featured,
+    isQuickMoveIn: true, // Sheet homes are always quick move-in
     mlsId: home.mlsNumber || '',
     listingAgent: 'Rush Home Team',
     listingAgentPhone: '302-219-6707',
     listingBrokerage: 'Compass RE',
     brokeragePhone: '302-219-6707',
     lastUpdated: new Date().toISOString(),
-    priceHistory: [],
+    priceHistory: [], // No price history for quick move-in homes
   };
 }
 
@@ -214,7 +217,7 @@ export async function getQuickMoveInListings(
       const inSheet = sheetAddressSet.has(normalizedAddr);
 
       if (isQuickMoveIn(listing, inSheet)) {
-        repliersQMIs.push(transformRepliersListing(listing));
+        repliersQMIs.push(transformRepliersListing(listing, true));
         repliersAddressSet.add(normalizedAddr);
       }
     }
@@ -263,7 +266,7 @@ export async function getQuickMoveInListings(
           // Exclude unbuilt new construction not in sheet
           return false;
         })
-        .map(transformRepliersListing);
+        .map((listing) => transformRepliersListing(listing, false));
 
       // QMI homes first, then sheet homes, then other available homes
       homes = [...repliersQMIs, ...sheetOnlyHomes, ...otherListings];
