@@ -154,7 +154,7 @@ export default function Page({ params }: { params: Promise<{ communityId: string
     ? `${sheetCommunity.city}, ${sheetCommunity.county} County`
     : hardcodedCommunity?.location || '';
   const communityPrice = sheetCommunity
-    ? `$${parseInt(sheetCommunity.min_price).toLocaleString()}`
+    ? `$${parseInt(sheetCommunity.min_price?.replace(/,/g, '')).toLocaleString()}`
     : hardcodedCommunity?.price || '';
   const communityDescription = sheetCommunity?.description || hardcodedCommunity?.description || '';
   const communityImg = sheetCommunity?.model_photo_1
