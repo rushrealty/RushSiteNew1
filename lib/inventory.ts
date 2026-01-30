@@ -37,11 +37,13 @@ async function fetchSheetTab(gid: number, tabName: string = 'unknown'): Promise<
   console.log(`[Inventory] Fetching ${tabName} tab from: ${url}`);
 
   try {
+    // Google Sheets may return a redirect, so we need to follow it
     const response = await fetch(url, {
       next: { revalidate: 300 }, // Cache for 5 minutes
       headers: {
         'Accept': 'text/csv',
       },
+      redirect: 'follow', // Explicitly follow redirects
     });
 
     if (!response.ok) {
@@ -51,6 +53,25 @@ async function fetchSheetTab(gid: number, tabName: string = 'unknown'): Promise<
 
     const text = await response.text();
     console.log(`[Inventory] Successfully fetched ${tabName} tab, got ${text.length} characters`);
+
+    // Check if we got an HTML redirect page - if so, extract and follow the redirect URL
+    if (text.includes('Temporary Redirect') || text.includes('The document has moved')) {
+      const hrefMatch = text.match(/HREF="([^"]+)"/i);
+      if (hrefMatch && hrefMatch[1]) {
+        const redirectUrl = hrefMatch[1].replace(/&amp;/g, '&');
+        console.log(`[Inventory] Following redirect for ${tabName} tab to: ${redirectUrl}`);
+        const redirectResponse = await fetch(redirectUrl, {
+          headers: { 'Accept': 'text/csv' },
+        });
+        if (redirectResponse.ok) {
+          const redirectText = await redirectResponse.text();
+          console.log(`[Inventory] Successfully fetched ${tabName} tab after redirect, got ${redirectText.length} characters`);
+          return redirectText;
+        }
+      }
+      console.error(`[Inventory] Got redirect but couldn't follow for ${tabName} tab`);
+      throw new Error(`Got redirect for ${tabName} tab but couldn't follow it`);
+    }
 
     // Check if we got an HTML error page instead of CSV
     if (text.includes('<!DOCTYPE') || text.includes('<html')) {
@@ -156,8 +177,11 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     const schoolsValue = row['schools'] || row['Schools'] || row['school_names'] || row['schoolNames'] || '';
     const schoolNames = parseSchoolNames(schoolsValue);
 
+    // Support both 'id' and 'community_id' column names
+    const id = row.id || row.community_id || '';
+
     return {
-      id: row.id || '',
+      id,
       name: row.name || '',
       builderId: row.builder_id || '',
       city: row.city || '',
