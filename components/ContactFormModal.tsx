@@ -47,8 +47,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
-    // Formspree endpoint - uses environment variable or falls back to placeholder
-    const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/your-form-id';
+    // Formspree endpoint
+    const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xlgnveeb';
 
     // Format the date for display
     const formattedDate = formData.preferredDate
