@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Community, Property } from '../../types';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
 import CommunityPageModal from '../CommunityPageModal';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_COMMUNITIES } from '../../constants';
-import { Search, Filter, Home, Waves, Check, Loader2 } from 'lucide-react';
+import { ChevronDown, Filter, Home, Waves, Check, Loader2, X } from 'lucide-react';
 
 // Special communities with existing pages
 const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: string; name: string }> = {
@@ -38,7 +38,9 @@ interface CommunitiesContentProps {
 }
 
 const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClick }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
+  const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
+  const builderDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedLifestyles, setSelectedLifestyles] = useState<string[]>([]);
   const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
@@ -53,6 +55,17 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   // State for fetched communities
   const [communities, setCommunities] = useState<Community[]>(MOCK_COMMUNITIES);
   const [loading, setLoading] = useState(true);
+
+  // Close builder dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (builderDropdownRef.current && !builderDropdownRef.current.contains(event.target as Node)) {
+        setShowBuilderDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Fetch communities from API
   useEffect(() => {
@@ -107,6 +120,17 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
     return ['All', ...Array.from(cities).sort()];
   }, [communities]);
 
+  const availableBuilders = useMemo(() => {
+    const builders = new Set(communities.map(c => c.builder).filter(b => b && b.trim() !== ''));
+    return Array.from(builders).sort();
+  }, [communities]);
+
+  const toggleBuilder = (builder: string) => {
+    setSelectedBuilders(prev =>
+      prev.includes(builder) ? prev.filter(b => b !== builder) : [...prev, builder]
+    );
+  };
+
   const toggleLifestyle = (tag: string) => {
     setSelectedLifestyles(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
@@ -115,9 +139,8 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
 
   const filteredCommunities = useMemo(() => {
     return communities.filter(community => {
-      const matchesSearch = searchTerm === '' ||
-        community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        community.builder.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesBuilder = selectedBuilders.length === 0 ||
+        selectedBuilders.includes(community.builder);
 
       const matchesCity = selectedCity === 'All' || community.city === selectedCity;
 
@@ -141,9 +164,9 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
           }
         });
 
-      return matchesSearch && matchesCity && matchesPrice && matchesLifestyle;
+      return matchesBuilder && matchesCity && matchesPrice && matchesLifestyle;
     });
-  }, [communities, searchTerm, selectedCity, selectedPriceIdx, selectedLifestyles]);
+  }, [communities, selectedBuilders, selectedCity, selectedPriceIdx, selectedLifestyles]);
 
   const handleCommunityClick = (community: Community) => {
     // Check if this is a special community with an existing page
@@ -193,17 +216,56 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
              <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
 
-                {/* Search & Toggle */}
+                {/* Builder Dropdown & Toggle */}
                 <div className="flex gap-4 w-full lg:w-auto">
-                   <div className="relative flex-grow lg:w-80">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                      <input
-                         type="text"
-                         placeholder="Search by name or builder..."
-                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-1 focus:ring-black focus:border-black outline-none text-sm"
-                         value={searchTerm}
-                         onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                   <div className="relative flex-grow lg:w-80" ref={builderDropdownRef}>
+                      <button
+                         onClick={() => setShowBuilderDropdown(!showBuilderDropdown)}
+                         className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors"
+                      >
+                         <span className={selectedBuilders.length === 0 ? 'text-gray-400' : 'text-gray-900'}>
+                            {selectedBuilders.length === 0
+                              ? 'All Builders'
+                              : selectedBuilders.length === 1
+                                ? selectedBuilders[0]
+                                : `${selectedBuilders.length} Builders Selected`}
+                         </span>
+                         <ChevronDown size={18} className={`text-gray-400 transition-transform ${showBuilderDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showBuilderDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                          {/* Clear Selection */}
+                          {selectedBuilders.length > 0 && (
+                            <button
+                              onClick={() => setSelectedBuilders([])}
+                              className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100 flex items-center gap-2"
+                            >
+                              <X size={14} /> Clear Selection
+                            </button>
+                          )}
+                          {/* Builder Options */}
+                          {availableBuilders.map(builder => {
+                            const isSelected = selectedBuilders.includes(builder);
+                            return (
+                              <button
+                                key={builder}
+                                onClick={() => toggleBuilder(builder)}
+                                className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${
+                                  isSelected ? 'bg-gray-50' : ''
+                                }`}
+                              >
+                                <span className={isSelected ? 'font-medium text-gray-900' : 'text-gray-700'}>{builder}</span>
+                                {isSelected && <Check size={16} className="text-compass-gold" />}
+                              </button>
+                            );
+                          })}
+                          {availableBuilders.length === 0 && (
+                            <div className="px-4 py-3 text-sm text-gray-500">No builders available</div>
+                          )}
+                        </div>
+                      )}
                    </div>
                    <button
                       className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"
@@ -304,7 +366,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
                          setSelectedCity('All');
                          setSelectedPriceIdx(0);
                          setSelectedLifestyles([]);
-                         setSearchTerm('');
+                         setSelectedBuilders([]);
                       }}
                       className="mt-8 px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800"
                    >
