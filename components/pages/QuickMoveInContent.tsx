@@ -97,7 +97,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   };
 
   return (
-    <div className="pt-24 h-screen flex flex-col bg-white overflow-hidden">
+    <div className="pt-24 min-h-[140vh] flex flex-col bg-white">
 
        {/* Page Header - Fixed at Top */}
        <div className="bg-white py-8 px-4 border-b border-gray-100 shrink-0">
