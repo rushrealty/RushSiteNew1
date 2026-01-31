@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../constants';
 import PropertyCard from './PropertyCard';
+import ContactFormModal from './ContactFormModal';
 import { Property } from '../types';
 import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle } from 'lucide-react';
 
@@ -40,6 +41,7 @@ interface PropertyDetailModalProps {
 
 const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   useEffect(() => {
     if (modalRef.current) {
@@ -400,10 +402,16 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <div className="bg-white p-8 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 text-center">
                             <h3 className="font-serif font-bold text-2xl text-gray-900 mb-6">Interested in this home?</h3>
                             <div className="space-y-4">
-                               <button className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition-transform active:scale-95 shadow-md">
+                               <button
+                                  onClick={() => setShowContactForm(true)}
+                                  className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition-transform active:scale-95 shadow-md"
+                               >
                                   Schedule Tour
                                </button>
-                               <button className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                               <button
+                                  onClick={() => setShowContactForm(true)}
+                                  className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                               >
                                   Ask a Question
                                </button>
                             </div>
@@ -485,13 +493,28 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
 
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
-             <button className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md">
+             <button
+                onClick={() => setShowContactForm(true)}
+                className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
+             >
                 Schedule Tour
              </button>
-             <button className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm">
+             <button
+                onClick={() => setShowContactForm(true)}
+                className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
+             >
                 Ask Question
              </button>
           </div>
+
+          {/* Contact Form Modal */}
+          <ContactFormModal
+            isOpen={showContactForm}
+            onClose={() => setShowContactForm(false)}
+            subjectName={property.address}
+            subjectType="property"
+            subjectDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
+          />
        </div>
     </div>
   );

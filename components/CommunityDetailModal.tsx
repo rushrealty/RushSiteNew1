@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
 import PropertyCard from './PropertyCard';
+import ContactFormModal from './ContactFormModal';
 import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
 
 // School type from API
@@ -54,6 +55,7 @@ interface CommunityDetailModalProps {
 
 const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
 
   // State for new construction homes (to be built - not quick move-ins)
   const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
@@ -475,10 +477,16 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                             </p>
 
                             <div className="space-y-3 mb-6">
-                               <button className="w-full flex items-center justify-center gap-3 py-4 bg-compass-gold text-white rounded-xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-md">
+                               <button
+                                  onClick={() => setShowContactForm(true)}
+                                  className="w-full flex items-center justify-center gap-3 py-4 bg-compass-gold text-white rounded-xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-md"
+                               >
                                   <Calendar size={18} /> Schedule Tour
                                </button>
-                               <button className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                               <button
+                                  onClick={() => setShowContactForm(true)}
+                                  className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                               >
                                   <Info size={18} /> More Information
                                </button>
                             </div>
@@ -516,13 +524,28 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
 
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
-             <button className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md">
+             <button
+                onClick={() => setShowContactForm(true)}
+                className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
+             >
                 Schedule Tour
              </button>
-             <button className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm">
+             <button
+                onClick={() => setShowContactForm(true)}
+                className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
+             >
                 More Info
              </button>
           </div>
+
+          {/* Contact Form Modal */}
+          <ContactFormModal
+            isOpen={showContactForm}
+            onClose={() => setShowContactForm(false)}
+            subjectName={community.name}
+            subjectType="community"
+            subjectDetails={`${community.city}, ${community.state} - Starting at $${community.minPrice.toLocaleString()}`}
+          />
        </div>
     </div>
   );
