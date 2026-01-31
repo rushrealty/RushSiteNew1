@@ -42,6 +42,12 @@ interface PropertyDetailModalProps {
 const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [isTourRequest, setIsTourRequest] = useState(false);
+
+  const openContactForm = (forTour: boolean) => {
+    setIsTourRequest(forTour);
+    setShowContactForm(true);
+  };
 
   useEffect(() => {
     if (modalRef.current) {
@@ -403,13 +409,13 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                             <h3 className="font-serif font-bold text-2xl text-gray-900 mb-6">Interested in this home?</h3>
                             <div className="space-y-4">
                                <button
-                                  onClick={() => setShowContactForm(true)}
+                                  onClick={() => openContactForm(true)}
                                   className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition-transform active:scale-95 shadow-md"
                                >
                                   Schedule Tour
                                </button>
                                <button
-                                  onClick={() => setShowContactForm(true)}
+                                  onClick={() => openContactForm(false)}
                                   className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
                                >
                                   Ask a Question
@@ -494,13 +500,13 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
              <button
-                onClick={() => setShowContactForm(true)}
+                onClick={() => openContactForm(true)}
                 className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
              >
                 Schedule Tour
              </button>
              <button
-                onClick={() => setShowContactForm(true)}
+                onClick={() => openContactForm(false)}
                 className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
              >
                 Ask Question
@@ -514,6 +520,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
             subjectName={property.address}
             subjectType="property"
             subjectDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
+            isTourRequest={isTourRequest}
           />
        </div>
     </div>

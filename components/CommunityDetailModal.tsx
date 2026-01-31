@@ -56,6 +56,12 @@ interface CommunityDetailModalProps {
 const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [isTourRequest, setIsTourRequest] = useState(false);
+
+  const openContactForm = (forTour: boolean) => {
+    setIsTourRequest(forTour);
+    setShowContactForm(true);
+  };
 
   // State for new construction homes (to be built - not quick move-ins)
   const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
@@ -478,13 +484,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
 
                             <div className="space-y-3 mb-6">
                                <button
-                                  onClick={() => setShowContactForm(true)}
+                                  onClick={() => openContactForm(true)}
                                   className="w-full flex items-center justify-center gap-3 py-4 bg-compass-gold text-white rounded-xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-md"
                                >
                                   <Calendar size={18} /> Schedule Tour
                                </button>
                                <button
-                                  onClick={() => setShowContactForm(true)}
+                                  onClick={() => openContactForm(false)}
                                   className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
                                >
                                   <Info size={18} /> More Information
@@ -525,13 +531,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
              <button
-                onClick={() => setShowContactForm(true)}
+                onClick={() => openContactForm(true)}
                 className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
              >
                 Schedule Tour
              </button>
              <button
-                onClick={() => setShowContactForm(true)}
+                onClick={() => openContactForm(false)}
                 className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
              >
                 More Info
@@ -545,6 +551,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
             subjectName={community.name}
             subjectType="community"
             subjectDetails={`${community.city}, ${community.state} - Starting at $${community.minPrice.toLocaleString()}`}
+            isTourRequest={isTourRequest}
           />
        </div>
     </div>

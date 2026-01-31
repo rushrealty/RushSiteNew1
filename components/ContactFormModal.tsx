@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Loader2, CheckCircle2, Home, Building2 } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Home, Building2, Calendar, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 interface ContactFormModalProps {
@@ -13,6 +13,8 @@ interface ContactFormModalProps {
   subjectType: 'property' | 'community';
   // Optional: additional context like price, location, etc.
   subjectDetails?: string;
+  // Whether this is a tour request (shows date/time fields) or general inquiry
+  isTourRequest?: boolean;
 }
 
 const ContactFormModal: React.FC<ContactFormModalProps> = ({
@@ -20,19 +22,25 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   onClose,
   subjectName,
   subjectType,
-  subjectDetails
+  subjectDetails,
+  isTourRequest = false
 }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    phone: ''
+    phone: '',
+    preferredDate: '',
+    preferredTime: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  // Get minimum date (today)
+  const today = new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +49,16 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
     // Formspree endpoint - uses environment variable or falls back to placeholder
     const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/your-form-id';
+
+    // Format the date for display
+    const formattedDate = formData.preferredDate
+      ? new Date(formData.preferredDate + 'T00:00:00').toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : '';
 
     try {
       const response = await fetch(formspreeEndpoint, {
@@ -51,10 +69,20 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         },
         body: JSON.stringify({
           // Subject information
-          _subject: `New Inquiry: ${subjectName}`,
-          inquiryType: subjectType === 'property' ? 'Home Inquiry' : 'Community Inquiry',
+          _subject: isTourRequest
+            ? `Tour Request: ${subjectName}`
+            : `New Inquiry: ${subjectName}`,
+          inquiryType: isTourRequest
+            ? (subjectType === 'property' ? 'Home Tour Request' : 'Community Tour Request')
+            : (subjectType === 'property' ? 'Home Inquiry' : 'Community Inquiry'),
           propertyOrCommunity: subjectName,
           additionalDetails: subjectDetails || '',
+          // Tour scheduling info (if applicable)
+          ...(isTourRequest && {
+            preferredDate: formattedDate,
+            preferredTime: formData.preferredTime,
+            tourDateTime: `${formattedDate} at ${formData.preferredTime}`
+          }),
           // Contact information
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -79,7 +107,14 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
   const handleClose = () => {
     // Reset form state when closing
-    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      preferredDate: '',
+      preferredTime: ''
+    });
     setSubmitted(false);
     setError(null);
     onClose();
@@ -99,16 +134,31 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={32} />
           </div>
-          <h3 className="text-2xl font-serif font-bold mb-2 text-gray-900">Request Received!</h3>
+          <h3 className="text-2xl font-serif font-bold mb-2 text-gray-900">
+            {isTourRequest ? 'Tour Request Received!' : 'Request Received!'}
+          </h3>
           <p className="text-gray-500 mb-4 font-light leading-relaxed">
-            Thanks {formData.firstName}! We&apos;ve received your inquiry about:
+            Thanks {formData.firstName}! We&apos;ve received your {isTourRequest ? 'tour request' : 'inquiry'} for:
           </p>
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <p className="font-bold text-gray-900">{subjectName}</p>
             {subjectDetails && <p className="text-sm text-gray-500">{subjectDetails}</p>}
+            {isTourRequest && formData.preferredDate && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Requested:</span>{' '}
+                  {new Date(formData.preferredDate + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                  })}{' '}
+                  at {formData.preferredTime}
+                </p>
+              </div>
+            )}
           </div>
           <p className="text-gray-500 mb-8 font-light leading-relaxed text-sm">
-            A member of the Rush Home Team will be in touch within 24 hours.
+            A member of the Rush Home Team will {isTourRequest ? 'confirm your tour' : 'be in touch'} within 24 hours.
           </p>
           <button
             onClick={handleClose}
@@ -126,7 +176,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       <div className="bg-white rounded-[2rem] w-full max-w-lg relative overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-          <h3 className="font-serif font-bold text-xl text-gray-900">Request Information</h3>
+          <h3 className="font-serif font-bold text-xl text-gray-900">
+            {isTourRequest ? 'Schedule a Tour' : 'Request Information'}
+          </h3>
           <button
             onClick={handleClose}
             className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors text-gray-600"
@@ -149,7 +201,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               </div>
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block mb-1">
-                  {subjectType === 'property' ? 'Inquiring About Home' : 'Inquiring About Community'}
+                  {subjectType === 'property' ? 'Home' : 'Community'}
                 </span>
                 <p className="font-bold text-gray-900">{subjectName}</p>
                 {subjectDetails && <p className="text-sm text-gray-500 mt-0.5">{subjectDetails}</p>}
@@ -164,6 +216,47 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Tour Date/Time - Only shown for tour requests */}
+            {isTourRequest && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
+                    <Calendar size={12} /> Preferred Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    type="date"
+                    min={today}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all"
+                    value={formData.preferredDate}
+                    onChange={e => setFormData({ ...formData, preferredDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
+                    <Clock size={12} /> Preferred Time <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all"
+                    value={formData.preferredTime}
+                    onChange={e => setFormData({ ...formData, preferredTime: e.target.value })}
+                  >
+                    <option value="">Select time</option>
+                    <option value="9:00 AM">9:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="1:00 PM">1:00 PM</option>
+                    <option value="2:00 PM">2:00 PM</option>
+                    <option value="3:00 PM">3:00 PM</option>
+                    <option value="4:00 PM">4:00 PM</option>
+                    <option value="5:00 PM">5:00 PM</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -231,7 +324,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <Loader2 className="animate-spin" size={20} /> Submitting...
                 </>
               ) : (
-                'Submit Request'
+                isTourRequest ? 'Request Tour' : 'Submit Request'
               )}
             </button>
 
