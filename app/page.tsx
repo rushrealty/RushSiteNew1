@@ -2,28 +2,28 @@ import type { Metadata } from 'next';
 import HomeContent from '@/components/pages/HomeContent';
 
 export const metadata: Metadata = {
-  title: 'Your Home. Sold. Guaranteed. | Rush Home Team | Delaware Real Estate',
-  description: 'Get a guaranteed offer on your Delaware home in 48 hours. Buy your next home before selling. No showings, no stress, close on your timeline. Serving all three Delaware counties.',
-  keywords: 'sell home Delaware, guaranteed home sale, cash offer Delaware, sell house fast, Rush Home Team, Delaware real estate, buy before you sell, QuickBuy Delaware',
+  title: 'Delaware New Construction Homes | Rush Home Team at Compass',
+  description: 'Your guide to Delaware new construction. Explore communities, find quick move-in homes, and work with Delaware\'s new construction experts. Serving New Castle, Kent, and Sussex counties.',
+  keywords: 'Delaware new construction, new homes Delaware, quick move-in homes, new construction communities, Rush Home Team, Compass real estate, Ashburn Homes, Delaware builders',
   openGraph: {
-    title: 'Your Home. Sold. Guaranteed. | Rush Home Team',
-    description: 'Get a guaranteed offer on your Delaware home in 48 hours. Buy your next home before selling.',
+    title: 'Delaware New Construction Homes | Rush Home Team',
+    description: 'Your guide to Delaware new construction. Explore communities, find quick move-in homes, and work with Delaware\'s new construction experts.',
     type: 'website',
     url: 'https://rushhome.com',
-    siteName: 'Rush Home Team',
+    siteName: 'Rush Home Team at Compass',
     images: [
       {
         url: 'https://rushhome.com/images/og-home.jpg',
         width: 1200,
         height: 630,
-        alt: 'Rush Home Team - Your Home. Sold. Guaranteed.',
+        alt: 'Rush Home Team - Delaware New Construction Experts',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Your Home. Sold. Guaranteed. | Rush Home Team',
-    description: 'Get a guaranteed offer on your Delaware home in 48 hours.',
+    title: 'Delaware New Construction Homes | Rush Home Team',
+    description: 'Your guide to Delaware new construction. Explore communities and find quick move-in homes.',
     images: ['https://rushhome.com/images/og-home.jpg'],
   },
   alternates: {
