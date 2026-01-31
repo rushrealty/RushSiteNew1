@@ -143,7 +143,19 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                 </div>
 
                 {/* Image Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg relative">
+                {property.images.length === 1 ? (
+                  /* Single image - full width display for inventory homes */
+                  <div className="mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg">
+                    <img
+                      src={property.images[0]}
+                      alt="Main View"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ) : (
+                  /* Multiple images - grid display for MLS homes */
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg relative">
                    {/* Main Large Image */}
                    <div className="md:col-span-2 md:row-span-2 h-full">
                      <img src={property.images[0]} alt="Main View" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" />
@@ -166,7 +178,8 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <Images size={14} /> {property.images.length} Photos
                       </button>
                    </div>
-                </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col lg:flex-row gap-12">
 
