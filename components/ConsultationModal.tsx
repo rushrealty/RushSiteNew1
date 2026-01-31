@@ -18,17 +18,45 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ onClose, isOpen }
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Mock API call
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const response = await fetch('https://formspree.io/f/xdazjvpw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          _subject: `Selling Consultation Request: ${formData.address}`,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone,
+          propertyAddress: formData.address,
+          inquiryType: 'Selling Consultation'
+        })
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      setError('Unable to submit form. Please try again or call us directly.');
+    } finally {
       setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1500);
+    }
   };
 
   if (submitted) {
@@ -64,6 +92,11 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ onClose, isOpen }
         </div>
 
         <div className="p-8 overflow-y-auto">
+           {error && (
+             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+               {error}
+             </div>
+           )}
            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
