@@ -7,7 +7,7 @@ import CommunityDetailModal from '../CommunityDetailModal';
 import CommunityPageModal from '../CommunityPageModal';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_COMMUNITIES } from '../../constants';
-import { ChevronDown, Filter, Home, Waves, Check, Loader2, X } from 'lucide-react';
+import { ChevronDown, Filter, Home, Waves, Check, Loader2, X, Search } from 'lucide-react';
 
 // Special communities with existing pages
 const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: string; name: string }> = {
