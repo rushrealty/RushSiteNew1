@@ -61,9 +61,14 @@ const SellingContent: React.FC = () => {
                         <span className="font-medium text-gray-700">Sell &quot;as-is&quot; - no repairs needed</span>
                      </li>
                   </ul>
-                  <button onClick={() => setIsModalOpen(true)} className="px-8 py-4 bg-black text-white font-bold uppercase tracking-widest rounded-full hover:bg-gray-800 transition-all shadow-lg">
+                  <a
+                     href="https://rushhome.quickbuyoffer.com/auto/valuation"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="inline-block px-8 py-4 bg-black text-white font-bold uppercase tracking-widest rounded-full hover:bg-gray-800 transition-all shadow-lg"
+                  >
                      Request Offer
-                  </button>
+                  </a>
                </div>
                <div className="lg:w-1/2 w-full">
                   <div className="relative rounded-2xl overflow-hidden shadow-2xl">
