@@ -87,15 +87,30 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
 
   const community = MOCK_COMMUNITIES.find(c => c.name === property.community);
 
-  const interestRate = 0.065;
-  const downPayment = 0.20;
+  // Check if this property has MLS data (for tax/HOA information)
+  const hasMlsData = !!property.mlsId;
+
+  // Mortgage calculation
+  // FHA loan: 3.5% down, 6.2% interest rate for non-MLS properties
+  // MLS properties may have actual tax/HOA data
+  const interestRate = 0.062; // 6.2% annual interest rate
+  const downPayment = 0.035; // FHA 3.5% down payment
   const principal = property.price * (1 - downPayment);
   const monthlyRate = interestRate / 12;
-  const numPayments = 30 * 12;
+  const numPayments = 30 * 12; // 30-year mortgage
+
+  // Monthly mortgage payment formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
   const mortgagePayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
-  const propertyTax = property.taxAssessment / 12;
-  const insurance = (property.price * 0.0035) / 12;
-  const hoa = property.hoaFee;
+
+  // Property tax: use MLS data if available, otherwise $0
+  const propertyTax = hasMlsData && property.taxAssessment > 0 ? property.taxAssessment / 12 : 0;
+
+  // Insurance: $70/month estimate
+  const insurance = 70;
+
+  // HOA: use MLS data if available, otherwise $0
+  const hoa = hasMlsData ? property.hoaFee : 0;
+
   const totalMonthly = mortgagePayment + propertyTax + insurance + hoa;
 
   return (
@@ -434,7 +449,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                             <div className="text-3xl font-bold text-gray-900 mb-1">
                                ${Math.round(totalMonthly).toLocaleString()}
                             </div>
-                            <p className="text-xs text-gray-400 mb-6">Estimated monthly payment based on 20% down.</p>
+                            <p className="text-xs text-gray-400 mb-6">Estimated monthly payment based on FHA 3.5% down at 6.2% interest rate.</p>
 
                             <div className="space-y-3 text-sm">
                                <div className="flex justify-between items-center">
