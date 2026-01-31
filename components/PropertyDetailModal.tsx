@@ -105,8 +105,8 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   // Property tax: use MLS data if available, otherwise $0
   const propertyTax = hasMlsData && property.taxAssessment > 0 ? property.taxAssessment / 12 : 0;
 
-  // Insurance: $70/month estimate
-  const insurance = 70;
+  // Insurance: 0.35% of home price annually
+  const insurance = (property.price * 0.0035) / 12;
 
   // HOA: use MLS data if available, otherwise $0
   const hoa = hasMlsData ? property.hoaFee : 0;
