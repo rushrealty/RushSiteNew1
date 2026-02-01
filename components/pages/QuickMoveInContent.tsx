@@ -21,9 +21,10 @@ const BEDROOM_OPTIONS = [2, 3, 4, 5];
 
 interface QuickMoveInContentProps {
   onPropertyClick?: (property: Property) => void;
+  initialPropertyId?: string;
 }
 
-const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick }) => {
+const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick, initialPropertyId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
@@ -61,6 +62,16 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     }
     fetchHomes();
   }, []);
+
+  // Auto-open property modal if initialPropertyId is provided
+  useEffect(() => {
+    if (initialPropertyId && allHomes.length > 0 && !selectedProperty) {
+      const property = allHomes.find(home => home.id === initialPropertyId);
+      if (property) {
+        setSelectedProperty(property);
+      }
+    }
+  }, [initialPropertyId, allHomes, selectedProperty]);
 
   // State for desktop dropdown toggles
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
