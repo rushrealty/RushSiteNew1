@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Community, Property } from '../../types';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
@@ -35,9 +36,11 @@ const PRICE_RANGES = [
 
 interface CommunitiesContentProps {
   onCommunityClick?: (community: Community) => void;
+  initialCommunityId?: string;
 }
 
-const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClick }) => {
+const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClick, initialCommunityId }) => {
+  const router = useRouter();
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
   const [showBuilderDropdown, setShowBuilderDropdown] = useState(false);
   const builderDropdownRef = useRef<HTMLDivElement>(null);
@@ -47,6 +50,9 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
+  // Track if we've already processed the initial community ID
+  const hasProcessedInitialCommunity = useRef(false);
 
   // State for special community page modal
   const [specialCommunityUrl, setSpecialCommunityUrl] = useState<string | null>(null);
@@ -114,6 +120,26 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
     }
     fetchCommunities();
   }, []);
+
+  // Auto-open community modal if initialCommunityId is provided (only once)
+  useEffect(() => {
+    if (initialCommunityId && communities.length > 0 && !hasProcessedInitialCommunity.current) {
+      const community = communities.find(c => c.id === initialCommunityId);
+      if (community) {
+        setSelectedCommunity(community);
+        hasProcessedInitialCommunity.current = true;
+      }
+    }
+  }, [initialCommunityId, communities]);
+
+  // Handle closing the modal - clear URL parameter
+  const handleCloseCommunityModal = () => {
+    setSelectedCommunity(null);
+    // Clear the community parameter from URL without navigation
+    if (initialCommunityId) {
+      router.replace('/communities', { scroll: false });
+    }
+  };
 
   const availableCities = useMemo(() => {
     const cities = new Set(communities.map(c => c.city));
@@ -394,7 +420,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
        {selectedCommunity && (
          <CommunityDetailModal
            community={selectedCommunity}
-           onClose={() => setSelectedCommunity(null)}
+           onClose={handleCloseCommunityModal}
            onPropertyClick={handlePropertyClick}
          />
        )}

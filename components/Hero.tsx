@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Home } from 'lucide-react';
+import { Search, MapPin, Home, Building2 } from 'lucide-react';
 
 interface InventoryHome {
   id: string;
@@ -16,6 +16,16 @@ interface InventoryHome {
   photo_url: string;
 }
 
+interface Community {
+  id: string;
+  name: string;
+  builder_id: string;
+  city: string;
+  county: string;
+  min_price: string;
+  description: string;
+}
+
 interface AutocompletePrediction {
   description: string;
   type: string;
@@ -25,6 +35,8 @@ interface AutocompletePrediction {
   zip?: string;
   inventoryId?: string;
   inventoryData?: InventoryHome;
+  communityId?: string;
+  communityData?: Community;
 }
 
 const Hero: React.FC = () => {
@@ -85,6 +97,14 @@ const Hero: React.FC = () => {
     setQuery(prediction.description);
     setShowDropdown(false);
 
+    // If it's a community, navigate to communities page with community ID to auto-open modal
+    if (prediction.type === 'community' && prediction.communityId) {
+      const params = new URLSearchParams();
+      params.set('community', prediction.communityId);
+      router.push(`/communities?${params.toString()}`);
+      return;
+    }
+
     // If it's an inventory home, navigate to quick-move-in page with property ID to auto-open modal
     if (prediction.type === 'inventory' && prediction.inventoryData) {
       const params = new URLSearchParams();
@@ -115,6 +135,9 @@ const Hero: React.FC = () => {
   };
 
   const getLocationIcon = (type: string) => {
+    if (type === 'community') {
+      return <Building2 size={16} className="text-blue-500" />;
+    }
     if (type === 'inventory') {
       return <Home size={16} className="text-compass-gold" />;
     }
@@ -196,17 +219,27 @@ const Hero: React.FC = () => {
                      type="button"
                      onClick={() => handleSelectPrediction(prediction)}
                      className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                       prediction.type === 'inventory' ? 'bg-amber-50/50' : ''
+                       prediction.type === 'inventory' ? 'bg-amber-50/50' : prediction.type === 'community' ? 'bg-blue-50/50' : ''
                      }`}
                    >
                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                       prediction.type === 'inventory' ? 'bg-amber-100' : 'bg-gray-100'
+                       prediction.type === 'inventory' ? 'bg-amber-100' : prediction.type === 'community' ? 'bg-blue-100' : 'bg-gray-100'
                      }`}>
                        {getLocationIcon(prediction.type)}
                      </div>
                      <div className="flex-grow min-w-0">
                        <p className="text-gray-900 font-medium truncate">{prediction.description}</p>
-                       {prediction.type === 'inventory' && prediction.inventoryData ? (
+                       {prediction.type === 'community' && prediction.communityData ? (
+                         <div className="flex items-center gap-2 text-xs text-gray-500">
+                           <span>{prediction.communityData.city}, DE</span>
+                           {prediction.communityData.min_price && (
+                             <>
+                               <span className="text-gray-300">|</span>
+                               <span className="text-blue-600 font-semibold">From {formatPrice(prediction.communityData.min_price)}</span>
+                             </>
+                           )}
+                         </div>
+                       ) : prediction.type === 'inventory' && prediction.inventoryData ? (
                          <div className="flex items-center gap-2 text-xs text-gray-500">
                            <span className="text-compass-gold font-semibold">{formatPrice(prediction.inventoryData.price)}</span>
                            <span className="text-gray-300">|</span>
@@ -224,6 +257,11 @@ const Hero: React.FC = () => {
                          <p className="text-xs text-gray-500 capitalize">{prediction.type || 'Location'}</p>
                        )}
                      </div>
+                     {prediction.type === 'community' && (
+                       <span className="flex-shrink-0 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                         Community
+                       </span>
+                     )}
                      {prediction.type === 'inventory' && (
                        <span className="flex-shrink-0 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                          Available
