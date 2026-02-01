@@ -155,7 +155,7 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <div className="relative h-[500px] md:h-[700px] rounded-[2rem] md:rounded-[3rem] flex items-center justify-center shadow-2xl transition-all duration-500">
+    <div className="relative h-[500px] md:h-[700px] rounded-[2rem] md:rounded-[3rem] flex items-center justify-center shadow-2xl transition-all duration-500 z-20">
         {/* Background Image with Overlay - overflow-hidden here to clip image to rounded corners */}
         <div className="absolute inset-0 z-0 rounded-[2rem] md:rounded-[3rem] overflow-hidden">
           <img
