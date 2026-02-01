@@ -44,35 +44,35 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
         </div>
       </div>
 
-      <div className="p-8 flex flex-col flex-grow relative">
-        <div className="absolute top-0 right-8 -mt-6 bg-compass-gold text-white p-3 rounded-full opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-lg z-10">
+      <div className="p-6 flex flex-col flex-grow relative">
+        <div className="absolute top-0 right-6 -mt-6 bg-compass-gold text-white p-3 rounded-full opacity-0 transform translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-lg z-10">
            <ArrowUpRight size={24} />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
            <div className="text-2xl font-bold text-gray-900 mb-1 font-sans">${property.price.toLocaleString()}</div>
-           <div className="text-lg font-medium text-gray-600 font-sans">{property.address}, {property.city}, {property.state}</div>
+           <div className="text-sm font-medium text-gray-600 font-sans">{property.address}, {property.city}, {property.state}</div>
         </div>
 
-        <div className="flex gap-6 mt-auto">
+        <div className="flex flex-wrap gap-4 mt-auto">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bed size={18} /></div>
+            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bed size={16} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none">{property.beds}</span>
+              <span className="font-bold text-gray-900 leading-none text-sm">{property.beds}</span>
               <span className="text-[10px] text-gray-500 uppercase tracking-wider">Beds</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bath size={18} /></div>
+            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bath size={16} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none">{property.baths}</span>
+              <span className="font-bold text-gray-900 leading-none text-sm">{property.baths}</span>
               <span className="text-[10px] text-gray-500 uppercase tracking-wider">Baths</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Maximize2 size={18} /></div>
+            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Maximize2 size={16} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none">{property.sqft.toLocaleString()}</span>
+              <span className="font-bold text-gray-900 leading-none text-sm">{property.sqft.toLocaleString()}</span>
               <span className="text-[10px] text-gray-500 uppercase tracking-wider">SqFt</span>
             </div>
           </div>
