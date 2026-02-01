@@ -54,26 +54,26 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
            <div className="text-sm font-medium text-gray-600 font-sans">{property.address}, {property.city}, {property.state}</div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mt-auto">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bed size={16} /></div>
+        <div className="flex gap-3 mt-auto">
+          <div className="flex items-center gap-1.5">
+            <div className="p-1.5 bg-gray-50 rounded-full text-gray-900"><Bed size={14} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none text-sm">{property.beds}</span>
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">Beds</span>
+              <span className="font-bold text-gray-900 leading-none text-xs">{property.beds}</span>
+              <span className="text-[9px] text-gray-500 uppercase tracking-wider">Beds</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bath size={16} /></div>
+          <div className="flex items-center gap-1.5">
+            <div className="p-1.5 bg-gray-50 rounded-full text-gray-900"><Bath size={14} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none text-sm">{property.baths}</span>
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">Baths</span>
+              <span className="font-bold text-gray-900 leading-none text-xs">{property.baths}</span>
+              <span className="text-[9px] text-gray-500 uppercase tracking-wider">Baths</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Maximize2 size={16} /></div>
+          <div className="flex items-center gap-1.5">
+            <div className="p-1.5 bg-gray-50 rounded-full text-gray-900"><Maximize2 size={14} /></div>
             <div className="flex flex-col">
-              <span className="font-bold text-gray-900 leading-none text-sm">{property.sqft.toLocaleString()}</span>
-              <span className="text-[10px] text-gray-500 uppercase tracking-wider">SqFt</span>
+              <span className="font-bold text-gray-900 leading-none text-xs">{property.sqft.toLocaleString()}</span>
+              <span className="text-[9px] text-gray-500 uppercase tracking-wider">SqFt</span>
             </div>
           </div>
         </div>
