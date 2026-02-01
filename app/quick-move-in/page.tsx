@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function QuickMoveInPage() {
-  return <QuickMoveInContent />;
+interface PageProps {
+  searchParams: Promise<{ property?: string }>;
+}
+
+export default async function QuickMoveInPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  return <QuickMoveInContent initialPropertyId={params.property} />;
 }

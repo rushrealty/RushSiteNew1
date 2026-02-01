@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Home } from 'lucide-react';
-import PropertyDetailModal from './PropertyDetailModal';
-import { Property } from '../types';
 
 interface InventoryHome {
   id: string;
@@ -35,33 +33,9 @@ const Hero: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-
-  // Fetch the full property data from the quick-move-in API
-  const fetchPropertyByAddress = async (address: string): Promise<Property | null> => {
-    try {
-      const response = await fetch('/api/quick-move-in?includeAll=true');
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      const homes: Property[] = data.homes || [];
-
-      // Find the matching property by address (case-insensitive, trimmed)
-      const normalizedSearch = address.toLowerCase().trim();
-      const matchingProperty = homes.find(
-        (home) => home.address.toLowerCase().trim() === normalizedSearch
-      );
-
-      return matchingProperty || null;
-    } catch (error) {
-      console.error('Error fetching property:', error);
-      return null;
-    }
-  };
 
   // Fetch autocomplete suggestions
   useEffect(() => {
@@ -107,22 +81,15 @@ const Hero: React.FC = () => {
     }
   };
 
-  const handleSelectPrediction = async (prediction: AutocompletePrediction) => {
+  const handleSelectPrediction = (prediction: AutocompletePrediction) => {
     setQuery(prediction.description);
     setShowDropdown(false);
 
-    // If it's an inventory home, fetch full property data and open modal
+    // If it's an inventory home, navigate to quick-move-in page with property ID to auto-open modal
     if (prediction.type === 'inventory' && prediction.inventoryData) {
-      setIsLoadingProperty(true);
-      const property = await fetchPropertyByAddress(prediction.inventoryData.address);
-      setIsLoadingProperty(false);
-
-      if (property) {
-        setSelectedProperty(property);
-      } else {
-        // If fetch failed, navigate to quick-move-in page with search
-        performSearch(prediction.inventoryData.address);
-      }
+      const params = new URLSearchParams();
+      params.set('property', prediction.inventoryData.id);
+      router.push(`/quick-move-in?${params.toString()}`);
       return;
     }
 
@@ -276,25 +243,6 @@ const Hero: React.FC = () => {
           </div>
 
         </div>
-
-      {/* Loading overlay when fetching property */}
-      {isLoadingProperty && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-3 border-gray-300 border-t-compass-gold rounded-full animate-spin"></div>
-            <p className="text-gray-600">Loading property details...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Property Detail Modal for inventory homes */}
-      {selectedProperty && (
-        <PropertyDetailModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onPropertyClick={(property) => setSelectedProperty(property)}
-        />
-      )}
     </div>
   );
 };
