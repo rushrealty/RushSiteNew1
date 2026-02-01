@@ -2,7 +2,21 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Home } from 'lucide-react';
+import PropertyDetailModal from './PropertyDetailModal';
+import { Property, PropertyStatus } from '../types';
+
+interface InventoryHome {
+  id: string;
+  community_id: string;
+  address: string;
+  price: string;
+  beds: string;
+  baths: string;
+  sqft: string;
+  status: string;
+  photo_url: string;
+}
 
 interface AutocompletePrediction {
   description: string;
@@ -11,6 +25,8 @@ interface AutocompletePrediction {
   area?: string;
   neighborhood?: string;
   zip?: string;
+  inventoryId?: string;
+  inventoryData?: InventoryHome;
 }
 
 const Hero: React.FC = () => {
@@ -19,9 +35,50 @@ const Hero: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Convert inventory home data to Property format for the modal
+  const convertInventoryToProperty = (inventory: InventoryHome): Property => {
+    return {
+      id: inventory.id,
+      title: 'New Construction Home',
+      price: parseInt(inventory.price.replace(/[^0-9]/g, '')) || 0,
+      address: inventory.address,
+      city: '',
+      state: 'DE',
+      zip: '',
+      county: '',
+      beds: parseInt(inventory.beds) || 0,
+      baths: parseFloat(inventory.baths) || 0,
+      sqft: parseInt(inventory.sqft.replace(/[^0-9]/g, '')) || 0,
+      lotSize: '',
+      yearBuilt: new Date().getFullYear(),
+      builder: '',
+      community: inventory.community_id,
+      status: PropertyStatus.MOVE_IN_READY,
+      description: '',
+      images: inventory.photo_url ? [inventory.photo_url] : [],
+      features: [],
+      heating: '',
+      cooling: '',
+      parking: '',
+      basement: '',
+      hoaFee: 0,
+      taxAssessment: 0,
+      schools: [],
+      isQuickMoveIn: true,
+      mlsId: '',
+      listingBrokerage: '',
+      listingAgent: '',
+      listingAgentPhone: '',
+      brokeragePhone: '',
+      lastUpdated: new Date().toISOString(),
+      priceHistory: [],
+    };
+  };
 
   // Fetch autocomplete suggestions
   useEffect(() => {
@@ -70,6 +127,15 @@ const Hero: React.FC = () => {
   const handleSelectPrediction = (prediction: AutocompletePrediction) => {
     setQuery(prediction.description);
     setShowDropdown(false);
+
+    // If it's an inventory home, open the property detail modal
+    if (prediction.type === 'inventory' && prediction.inventoryData) {
+      const property = convertInventoryToProperty(prediction.inventoryData);
+      setSelectedProperty(property);
+      return;
+    }
+
+    // Otherwise, perform search for locations
     performSearch(prediction.description, prediction);
   };
 
@@ -91,7 +157,20 @@ const Hero: React.FC = () => {
   };
 
   const getLocationIcon = (type: string) => {
+    if (type === 'inventory') {
+      return <Home size={16} className="text-compass-gold" />;
+    }
     return <MapPin size={16} className="text-gray-400" />;
+  };
+
+  const formatPrice = (price: string) => {
+    const num = parseInt(price.replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return price;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(num);
   };
 
   return (
@@ -158,15 +237,40 @@ const Hero: React.FC = () => {
                      key={index}
                      type="button"
                      onClick={() => handleSelectPrediction(prediction)}
-                     className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0"
+                     className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
+                       prediction.type === 'inventory' ? 'bg-amber-50/50' : ''
+                     }`}
                    >
-                     <div className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                       prediction.type === 'inventory' ? 'bg-amber-100' : 'bg-gray-100'
+                     }`}>
                        {getLocationIcon(prediction.type)}
                      </div>
                      <div className="flex-grow min-w-0">
                        <p className="text-gray-900 font-medium truncate">{prediction.description}</p>
-                       <p className="text-xs text-gray-500 capitalize">{prediction.type || 'Location'}</p>
+                       {prediction.type === 'inventory' && prediction.inventoryData ? (
+                         <div className="flex items-center gap-2 text-xs text-gray-500">
+                           <span className="text-compass-gold font-semibold">{formatPrice(prediction.inventoryData.price)}</span>
+                           <span className="text-gray-300">|</span>
+                           <span>{prediction.inventoryData.beds} bd</span>
+                           <span className="text-gray-300">|</span>
+                           <span>{prediction.inventoryData.baths} ba</span>
+                           {prediction.inventoryData.sqft && (
+                             <>
+                               <span className="text-gray-300">|</span>
+                               <span>{prediction.inventoryData.sqft} sqft</span>
+                             </>
+                           )}
+                         </div>
+                       ) : (
+                         <p className="text-xs text-gray-500 capitalize">{prediction.type || 'Location'}</p>
+                       )}
                      </div>
+                     {prediction.type === 'inventory' && (
+                       <span className="flex-shrink-0 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                         Available
+                       </span>
+                     )}
                    </button>
                  ))}
                </div>
@@ -181,6 +285,15 @@ const Hero: React.FC = () => {
           </div>
 
         </div>
+
+      {/* Property Detail Modal for inventory homes */}
+      {selectedProperty && (
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onPropertyClick={(property) => setSelectedProperty(property)}
+        />
+      )}
     </div>
   );
 };
