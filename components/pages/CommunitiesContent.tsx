@@ -237,8 +237,8 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
           </div>
        </div>
 
-       {/* Filters Section */}
-       <div className="sticky top-24 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all">
+       {/* Filters Section - Sticky below header */}
+       <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
              <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
 

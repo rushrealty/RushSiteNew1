@@ -136,8 +136,8 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
           </div>
        </div>
 
-       {/* Mobile Header / Controls */}
-       <div className="lg:hidden px-4 py-4 border-b border-gray-100 bg-white z-20 shrink-0">
+       {/* Mobile Header / Controls - Sticky below header */}
+       <div className="lg:hidden sticky top-20 px-4 py-4 border-b border-gray-100 bg-white z-40 shrink-0">
           <div className="flex gap-2 mb-4">
             <div className="relative flex-grow">
                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -246,8 +246,8 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
          </div>
        )}
 
-       {/* Desktop Filter Bar (Top of page) */}
-       <div className="hidden lg:flex flex-col z-30 bg-white border-b border-gray-200 shadow-sm shrink-0">
+       {/* Desktop Filter Bar - Sticky below header */}
+       <div className="hidden lg:flex sticky top-24 flex-col z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
            <div className="flex items-center gap-3 px-4 py-3">
                 {/* Search Input */}
                 <div className="relative w-80 xl:w-96">
