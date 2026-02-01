@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Home } from 'lucide-react';
 import PropertyDetailModal from './PropertyDetailModal';
-import { Property, PropertyStatus } from '../types';
+import { Property } from '../types';
 
 interface InventoryHome {
   id: string;
@@ -36,48 +36,31 @@ const Hero: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isLoadingProperty, setIsLoadingProperty] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Convert inventory home data to Property format for the modal
-  const convertInventoryToProperty = (inventory: InventoryHome): Property => {
-    return {
-      id: inventory.id,
-      title: 'New Construction Home',
-      price: parseInt(inventory.price.replace(/[^0-9]/g, '')) || 0,
-      address: inventory.address,
-      city: '',
-      state: 'DE',
-      zip: '',
-      county: '',
-      beds: parseInt(inventory.beds) || 0,
-      baths: parseFloat(inventory.baths) || 0,
-      sqft: parseInt(inventory.sqft.replace(/[^0-9]/g, '')) || 0,
-      lotSize: '',
-      yearBuilt: new Date().getFullYear(),
-      builder: '',
-      community: inventory.community_id,
-      status: PropertyStatus.MOVE_IN_READY,
-      description: '',
-      images: inventory.photo_url ? [inventory.photo_url] : [],
-      features: [],
-      heating: '',
-      cooling: '',
-      parking: '',
-      basement: '',
-      hoaFee: 0,
-      taxAssessment: 0,
-      schools: [],
-      isQuickMoveIn: true,
-      mlsId: '',
-      listingBrokerage: '',
-      listingAgent: '',
-      listingAgentPhone: '',
-      brokeragePhone: '',
-      lastUpdated: new Date().toISOString(),
-      priceHistory: [],
-    };
+  // Fetch the full property data from the quick-move-in API
+  const fetchPropertyByAddress = async (address: string): Promise<Property | null> => {
+    try {
+      const response = await fetch('/api/quick-move-in?includeAll=true');
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      const homes: Property[] = data.homes || [];
+
+      // Find the matching property by address (case-insensitive, trimmed)
+      const normalizedSearch = address.toLowerCase().trim();
+      const matchingProperty = homes.find(
+        (home) => home.address.toLowerCase().trim() === normalizedSearch
+      );
+
+      return matchingProperty || null;
+    } catch (error) {
+      console.error('Error fetching property:', error);
+      return null;
+    }
   };
 
   // Fetch autocomplete suggestions
@@ -124,14 +107,22 @@ const Hero: React.FC = () => {
     }
   };
 
-  const handleSelectPrediction = (prediction: AutocompletePrediction) => {
+  const handleSelectPrediction = async (prediction: AutocompletePrediction) => {
     setQuery(prediction.description);
     setShowDropdown(false);
 
-    // If it's an inventory home, open the property detail modal
+    // If it's an inventory home, fetch full property data and open modal
     if (prediction.type === 'inventory' && prediction.inventoryData) {
-      const property = convertInventoryToProperty(prediction.inventoryData);
-      setSelectedProperty(property);
+      setIsLoadingProperty(true);
+      const property = await fetchPropertyByAddress(prediction.inventoryData.address);
+      setIsLoadingProperty(false);
+
+      if (property) {
+        setSelectedProperty(property);
+      } else {
+        // If fetch failed, navigate to quick-move-in page with search
+        performSearch(prediction.inventoryData.address);
+      }
       return;
     }
 
@@ -285,6 +276,16 @@ const Hero: React.FC = () => {
           </div>
 
         </div>
+
+      {/* Loading overlay when fetching property */}
+      {isLoadingProperty && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-3 border-gray-300 border-t-compass-gold rounded-full animate-spin"></div>
+            <p className="text-gray-600">Loading property details...</p>
+          </div>
+        </div>
+      )}
 
       {/* Property Detail Modal for inventory homes */}
       {selectedProperty && (
