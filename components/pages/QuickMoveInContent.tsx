@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
@@ -25,6 +26,7 @@ interface QuickMoveInContentProps {
 }
 
 const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick, initialPropertyId }) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
@@ -32,6 +34,9 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
+  // Track if we've already processed the initial property ID
+  const hasProcessedInitialProperty = useRef(false);
 
   // State for fetched homes data
   const [allHomes, setAllHomes] = useState<Property[]>([]);
@@ -63,15 +68,25 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     fetchHomes();
   }, []);
 
-  // Auto-open property modal if initialPropertyId is provided
+  // Auto-open property modal if initialPropertyId is provided (only once)
   useEffect(() => {
-    if (initialPropertyId && allHomes.length > 0 && !selectedProperty) {
+    if (initialPropertyId && allHomes.length > 0 && !hasProcessedInitialProperty.current) {
       const property = allHomes.find(home => home.id === initialPropertyId);
       if (property) {
         setSelectedProperty(property);
+        hasProcessedInitialProperty.current = true;
       }
     }
-  }, [initialPropertyId, allHomes, selectedProperty]);
+  }, [initialPropertyId, allHomes]);
+
+  // Handle closing the modal - clear URL parameter
+  const handleCloseModal = () => {
+    setSelectedProperty(null);
+    // Clear the property parameter from URL without navigation
+    if (initialPropertyId) {
+      router.replace('/quick-move-in', { scroll: false });
+    }
+  };
 
   // State for desktop dropdown toggles
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -434,7 +449,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
        {selectedProperty && (
          <PropertyDetailModal
            property={selectedProperty}
-           onClose={() => setSelectedProperty(null)}
+           onClose={handleCloseModal}
            onPropertyClick={(property) => setSelectedProperty(property)}
          />
        )}
