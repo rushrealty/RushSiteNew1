@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function CommunitiesPage() {
-  return <CommunitiesContent />;
+interface PageProps {
+  searchParams: Promise<{ community?: string }>;
+}
+
+export default async function CommunitiesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  return <CommunitiesContent initialCommunityId={params.community} />;
 }

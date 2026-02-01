@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const REPLIERS_API_URL = 'https://api.repliers.io';
 const API_KEY = process.env.REPLIERS_API_KEY || '';
 
-// Google Sheet URL for inventory
-const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQq5kKLZrq1Ror-1rXh_krZnhcs_V1ssIm4uykHjgURw-Y4j2k-RrteDMqfvod9OkHu4hofA071UOJo/pub?output=csv&gid=1527336354';
+// Google Sheet URLs
+const PUBLISHED_SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '2PACX-1vQq5kKLZrq1Ror-1rXh_krZnhcs_V1ssIm4uykHjgURw-Y4j2k-RrteDMqfvod9OkHu4hofA071UOJo';
+const INVENTORY_GID = process.env.NEXT_PUBLIC_SHEET_GID_INVENTORY || '1527336354';
+const COMMUNITIES_GID = process.env.NEXT_PUBLIC_SHEET_GID_COMMUNITIES || '1651556845';
 
 interface InventoryHome {
   id: string;
@@ -18,6 +20,16 @@ interface InventoryHome {
   photo_url: string;
 }
 
+interface Community {
+  id: string;
+  name: string;
+  builder_id: string;
+  city: string;
+  county: string;
+  min_price: string;
+  description: string;
+}
+
 interface AutocompletePrediction {
   description: string;
   type: string;
@@ -28,6 +40,9 @@ interface AutocompletePrediction {
   // For inventory homes
   inventoryId?: string;
   inventoryData?: InventoryHome;
+  // For communities
+  communityId?: string;
+  communityData?: Community;
 }
 
 function parseCSVLine(line: string): string[] {
@@ -59,7 +74,8 @@ function parseCSVLine(line: string): string[] {
 
 async function fetchInventoryHomes(): Promise<InventoryHome[]> {
   try {
-    const response = await fetch(GOOGLE_SHEET_URL, {
+    const url = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?gid=${INVENTORY_GID}&single=true&output=csv`;
+    const response = await fetch(url, {
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
 
@@ -101,6 +117,53 @@ async function fetchInventoryHomes(): Promise<InventoryHome[]> {
     return data;
   } catch (error) {
     console.error('Error fetching inventory:', error);
+    return [];
+  }
+}
+
+async function fetchCommunities(): Promise<Community[]> {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?gid=${COMMUNITIES_GID}&single=true&output=csv`;
+    const response = await fetch(url, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+
+    if (!response.ok) return [];
+
+    const csvText = await response.text();
+    const lines = csvText.split('\n');
+    if (lines.length < 2) return [];
+
+    const headers = parseCSVLine(lines[0]);
+    const data: Community[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const values = parseCSVLine(line);
+      const row: Record<string, string> = {};
+
+      headers.forEach((header, index) => {
+        row[header.trim()] = values[index]?.trim() || '';
+      });
+
+      if (row['name'] || row['id']) {
+        data.push({
+          id: row['id'] || row['community_id'] || `com-${i}`,
+          name: row['name'] || '',
+          builder_id: row['builder_id'] || '',
+          city: row['city'] || '',
+          county: row['county'] || '',
+          min_price: row['min_price'] || '',
+          description: row['description'] || '',
+        });
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching communities:', error);
     return [];
   }
 }
@@ -156,11 +219,28 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Fetch both Repliers locations and inventory homes in parallel
-    const [repliersResults, inventoryHomes] = await Promise.all([
+    // Fetch Repliers locations, inventory homes, and communities in parallel
+    const [repliersResults, inventoryHomes, communities] = await Promise.all([
       fetchRepliersAutocomplete(query),
       fetchInventoryHomes(),
+      fetchCommunities(),
     ]);
+
+    // Filter communities that match the query
+    const matchingCommunities: AutocompletePrediction[] = communities
+      .filter(community =>
+        community.name.toLowerCase().includes(query) ||
+        community.city.toLowerCase().includes(query)
+      )
+      .slice(0, 3) // Limit to 3 community results
+      .map(community => ({
+        description: community.name,
+        type: 'community',
+        city: community.city,
+        area: community.county,
+        communityId: community.id,
+        communityData: community,
+      }));
 
     // Filter inventory homes that match the query
     const matchingInventory: AutocompletePrediction[] = inventoryHomes
@@ -176,10 +256,11 @@ export async function GET(request: NextRequest) {
         inventoryData: home,
       }));
 
-    // Combine results: inventory homes first, then Repliers locations
+    // Combine results: communities first, then inventory homes, then Repliers locations
+    const combinedLocal = [...matchingCommunities, ...matchingInventory];
     const predictions: AutocompletePrediction[] = [
-      ...matchingInventory,
-      ...repliersResults.slice(0, 10 - matchingInventory.length), // Fill remaining with Repliers
+      ...combinedLocal,
+      ...repliersResults.slice(0, 10 - combinedLocal.length), // Fill remaining with Repliers
     ];
 
     return NextResponse.json({ predictions });
