@@ -335,41 +335,41 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
        <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
-             {/* Row 1: Search + Filters */}
-             <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
+             {/* Filter Bar: Search | Dropdowns | Lifestyle 2x2 */}
+             <div className="flex items-center gap-3">
 
-                {/* Search Input + Mobile toggles */}
-                <div className="flex gap-3 w-full lg:w-auto">
-                   <div className="relative flex-grow lg:w-80">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                      <input
-                         type="text"
-                         placeholder="Address, neighborhood, city, ZIP"
-                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
-                         value={searchTerm}
-                         onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                   </div>
-                   <button
-                      className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"
-                      onClick={() => setShowFiltersMobile(!showFiltersMobile)}
-                   >
-                      <Filter size={20} />
-                   </button>
-                   <button
-                      onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
-                      className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"
-                   >
-                      <MapIcon size={20} />
-                   </button>
+                {/* LEFT: Search Input */}
+                <div className="relative shrink-0 w-64 xl:w-80">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                   <input
+                      type="text"
+                      placeholder="Address, neighborhood, city, ZIP"
+                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                   />
                 </div>
 
-                {/* Filters - hidden on mobile until toggled */}
-                <div className={`flex-col lg:flex-row gap-3 lg:flex ${showFiltersMobile ? 'flex' : 'hidden'} lg:items-center mt-3 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100 flex-wrap`}>
+                {/* Mobile filter/map toggles */}
+                <button
+                   className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 shrink-0"
+                   onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+                >
+                   <Filter size={20} />
+                </button>
+                <button
+                   onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+                   className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 shrink-0"
+                >
+                   <MapIcon size={20} />
+                </button>
+
+                {/* MIDDLE: Dropdown Filters - hidden on mobile until toggled */}
+                <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:flex items-center gap-4 flex-wrap lg:flex-nowrap`}>
 
                    {/* Price Dropdown */}
                    <div className="relative" ref={priceRef}>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                          <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</label>
                          <button
                             onClick={() => { closeOthers('price'); setPriceOpen(!priceOpen); }}
@@ -420,11 +420,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block shrink-0"></div>
 
                    {/* Bedrooms Dropdown */}
                    <div className="relative" ref={bedsRef}>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                          <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bedrooms</label>
                          <button
                             onClick={() => { closeOthers('beds'); setBedsOpen(!bedsOpen); }}
@@ -452,11 +452,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block shrink-0"></div>
 
                    {/* Bathrooms Dropdown */}
                    <div className="relative" ref={bathsRef}>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                          <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bathrooms</label>
                          <button
                             onClick={() => { closeOthers('baths'); setBathsOpen(!bathsOpen); }}
@@ -484,77 +484,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
-
-                   {/* County Dropdown */}
-                   <div className="relative" ref={countyRef}>
-                      <div className="flex flex-col gap-1">
-                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">County</label>
-                         <button
-                            onClick={() => { closeOthers('county'); setCountyOpen(!countyOpen); }}
-                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
-                         >
-                            {countyLabel}
-                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${countyOpen ? 'rotate-180' : ''}`} />
-                         </button>
-                      </div>
-
-                      {countyOpen && (
-                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
-                           {selectedCounties.length > 0 && (
-                              <button
-                                 onClick={() => { setSelectedCounties([]); setCountyOpen(false); }}
-                                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100 flex items-center gap-2"
-                              >
-                                 <X size={14} /> Clear
-                              </button>
-                           )}
-                           {COUNTIES.map(county => {
-                              const isActive = selectedCounties.includes(county);
-                              return (
-                                 <button
-                                    key={county}
-                                    onClick={() => toggleCounty(county)}
-                                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${isActive ? 'bg-gray-50' : ''}`}
-                                 >
-                                    <span className={isActive ? 'font-semibold text-black' : 'text-gray-700'}>{county}</span>
-                                    {isActive && <Check size={14} className="text-compass-gold" />}
-                                 </button>
-                              );
-                           })}
-                        </div>
-                      )}
-                   </div>
-
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
-
-                   {/* Lifestyle Filters (55+, Golf Course, Pool, Clubhouse) */}
-                   <div className="flex flex-wrap gap-2">
-                      {LIFESTYLE_FILTERS.map(filter => {
-                         const isActive = selectedLifestyles.includes(filter.id);
-                         return (
-                            <button
-                               key={filter.id}
-                               onClick={() => toggleLifestyle(filter.id)}
-                               className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
-                                  isActive
-                                     ? 'bg-black border-black text-white'
-                                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                               }`}
-                            >
-                               {filter.icon}
-                               {filter.label}
-                               {isActive && <Check size={12} />}
-                            </button>
-                         );
-                      })}
-                   </div>
-
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block shrink-0"></div>
 
                    {/* Home Type Dropdown */}
                    <div className="relative" ref={homeTypeRef}>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                          <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Home Type</label>
                          <button
                             onClick={() => { closeOthers('homeType'); setHomeTypeOpen(!homeTypeOpen); }}
@@ -592,11 +526,53 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block shrink-0"></div>
+
+                   {/* County Dropdown */}
+                   <div className="relative" ref={countyRef}>
+                      <div className="flex flex-col gap-0.5">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">County</label>
+                         <button
+                            onClick={() => { closeOthers('county'); setCountyOpen(!countyOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {countyLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${countyOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {countyOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
+                           {selectedCounties.length > 0 && (
+                              <button
+                                 onClick={() => { setSelectedCounties([]); setCountyOpen(false); }}
+                                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100 flex items-center gap-2"
+                              >
+                                 <X size={14} /> Clear
+                              </button>
+                           )}
+                           {COUNTIES.map(county => {
+                              const isActive = selectedCounties.includes(county);
+                              return (
+                                 <button
+                                    key={county}
+                                    onClick={() => toggleCounty(county)}
+                                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${isActive ? 'bg-gray-50' : ''}`}
+                                 >
+                                    <span className={isActive ? 'font-semibold text-black' : 'text-gray-700'}>{county}</span>
+                                    {isActive && <Check size={14} className="text-compass-gold" />}
+                                 </button>
+                              );
+                           })}
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block shrink-0"></div>
 
                    {/* More Dropdown */}
                    <div className="relative" ref={moreRef}>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-0.5">
                          <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">&nbsp;</label>
                          <button
                             onClick={() => { closeOthers('more'); setMoreOpen(!moreOpen); }}
@@ -611,7 +587,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       </div>
 
                       {moreOpen && (
-                        <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[340px] p-5">
+                        <div className="absolute top-full right-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[340px] p-5">
 
                            {/* Square Feet */}
                            <div className="mb-5">
@@ -702,6 +678,51 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                    </div>
 
                 </div>
+
+                {/* RIGHT: Lifestyle Filters - 2x2 grid */}
+                <div className="hidden lg:grid grid-cols-2 gap-1.5 ml-auto shrink-0">
+                   {LIFESTYLE_FILTERS.map(filter => {
+                      const isActive = selectedLifestyles.includes(filter.id);
+                      return (
+                         <button
+                            key={filter.id}
+                            onClick={() => toggleLifestyle(filter.id)}
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                               isActive
+                                  ? 'bg-black border-black text-white'
+                                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                            }`}
+                         >
+                            {filter.icon}
+                            {filter.label}
+                            {isActive && <Check size={10} />}
+                         </button>
+                      );
+                   })}
+                </div>
+
+             </div>
+
+             {/* Mobile lifestyle filters - shown below when filter panel open */}
+             <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:hidden flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100`}>
+                {LIFESTYLE_FILTERS.map(filter => {
+                   const isActive = selectedLifestyles.includes(filter.id);
+                   return (
+                      <button
+                         key={filter.id}
+                         onClick={() => toggleLifestyle(filter.id)}
+                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                            isActive
+                               ? 'bg-black border-black text-white'
+                               : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                         }`}
+                      >
+                         {filter.icon}
+                         {filter.label}
+                         {isActive && <Check size={12} />}
+                      </button>
+                   );
+                })}
              </div>
           </div>
        </div>
