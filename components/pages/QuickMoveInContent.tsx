@@ -88,9 +88,6 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     }
   };
 
-  // State for desktop dropdown toggles
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
   const toggleCounty = (county: string) => {
     setSelectedCounties(prev =>
       prev.includes(county) ? prev.filter(c => c !== county) : [...prev, county]
@@ -136,230 +133,97 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
           </div>
        </div>
 
-       {/* Mobile Header / Controls - Sticky below header */}
-       <div className="lg:hidden sticky top-20 px-4 py-4 border-b border-gray-100 bg-white z-40 shrink-0">
-          <div className="flex gap-2 mb-4">
-            <div className="relative flex-grow">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-               <input
-                  type="text"
-                  placeholder="Address, city, zip..."
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-black outline-none"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-               />
-            </div>
-            <button
-               onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
-               className="p-2 bg-gray-100 text-gray-900 rounded-lg flex items-center gap-2 font-medium text-sm"
-            >
-               {viewMode === 'list' ? 'Map' : 'List'}
-            </button>
-          </div>
+       {/* Filters Section - Sticky below header */}
+       <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+             <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
 
-          {/* Mobile Filter Pills Row */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-             <button
-                onClick={() => setShowFiltersMobile(true)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap ${selectedCounties.length > 0 || selectedPriceIdx > 0 || minBeds > 0 ? 'bg-black text-white border-black' : 'bg-white text-gray-700 border-gray-300'}`}
-             >
-                Filters {(selectedCounties.length > 0 || selectedPriceIdx > 0 || minBeds > 0) && '(Active)'}
-             </button>
-             {PRICE_RANGES.map((range, idx) => (
-                idx > 0 && (
+                {/* Search Input & Mobile Controls */}
+                <div className="flex gap-3 w-full lg:w-auto">
+                   <div className="relative flex-grow lg:w-80">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                      <input
+                         type="text"
+                         placeholder="Address, neighborhood, city, ZIP"
+                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
+                         value={searchTerm}
+                         onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                   </div>
                    <button
-                      key={idx}
-                      onClick={() => setSelectedPriceIdx(selectedPriceIdx === idx ? 0 : idx)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-full border text-sm font-medium whitespace-nowrap ${selectedPriceIdx === idx ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-700 border-gray-300'}`}
+                      className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"
+                      onClick={() => setShowFiltersMobile(!showFiltersMobile)}
                    >
-                      {range.label}
+                      <Filter size={20} />
                    </button>
-                )
-             ))}
+                   <button
+                      onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
+                      className="lg:hidden p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600"
+                   >
+                      <MapIcon size={20} />
+                   </button>
+                </div>
+
+                {/* Filters */}
+                <div className={`flex-col lg:flex-row gap-4 lg:flex ${showFiltersMobile ? 'flex' : 'hidden'} lg:items-center mt-4 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-gray-100`}>
+
+                   <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</label>
+                      <select
+                         className="bg-transparent font-semibold text-sm border-none focus:ring-0 p-0 cursor-pointer text-gray-900"
+                         value={selectedPriceIdx}
+                         onChange={(e) => setSelectedPriceIdx(Number(e.target.value))}
+                      >
+                         {PRICE_RANGES.map((range, idx) => (
+                            <option key={idx} value={idx}>{range.label}</option>
+                         ))}
+                      </select>
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block mx-2"></div>
+
+                   <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bedrooms</label>
+                      <select
+                         className="bg-transparent font-semibold text-sm border-none focus:ring-0 p-0 cursor-pointer text-gray-900"
+                         value={minBeds}
+                         onChange={(e) => setMinBeds(Number(e.target.value))}
+                      >
+                         <option value={0}>Any</option>
+                         {BEDROOM_OPTIONS.map(beds => (
+                            <option key={beds} value={beds}>{beds}+ Beds</option>
+                         ))}
+                      </select>
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block mx-2"></div>
+
+                   <div className="flex flex-wrap gap-2">
+                      {COUNTIES.map(county => {
+                         const isActive = selectedCounties.includes(county);
+                         return (
+                            <button
+                               key={county}
+                               onClick={() => toggleCounty(county)}
+                               className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                                  isActive
+                                     ? 'bg-black border-black text-white'
+                                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                               }`}
+                            >
+                               {county}
+                               {isActive && <Check size={12} />}
+                            </button>
+                         );
+                      })}
+                   </div>
+
+                </div>
+             </div>
           </div>
        </div>
 
-       {/* Mobile Filters Modal */}
-       {showFiltersMobile && (
-         <div className="fixed inset-0 z-50 bg-white p-6 overflow-y-auto lg:hidden animate-fade-in">
-            <div className="flex justify-between items-center mb-6">
-               <h2 className="text-xl font-bold font-serif">Filters</h2>
-               <button onClick={() => setShowFiltersMobile(false)} className="p-2 bg-gray-100 rounded-full">
-                 <X size={24} />
-               </button>
-            </div>
-            <div className="space-y-8">
-                <div>
-                   <h4 className="font-bold text-sm uppercase tracking-wider text-gray-900 mb-4">County</h4>
-                   <div className="space-y-3">
-                      {COUNTIES.map(county => (
-                        <label key={county} className="flex items-center gap-3 cursor-pointer group">
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedCounties.includes(county) ? 'bg-black border-black' : 'bg-white border-gray-300'}`}>
-                            {selectedCounties.includes(county) && <Check size={12} className="text-white" />}
-                          </div>
-                          <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={selectedCounties.includes(county)}
-                            onChange={() => toggleCounty(county)}
-                          />
-                          <span className="text-gray-600 font-medium text-sm">{county}</span>
-                        </label>
-                      ))}
-                   </div>
-                </div>
-                <div className="h-px bg-gray-100 w-full"></div>
-                <div>
-                   <h4 className="font-bold text-sm uppercase tracking-wider text-gray-900 mb-4">Price Range</h4>
-                   <select
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none"
-                      value={selectedPriceIdx}
-                      onChange={(e) => setSelectedPriceIdx(Number(e.target.value))}
-                   >
-                      {PRICE_RANGES.map((range, idx) => (
-                        <option key={idx} value={idx}>{range.label}</option>
-                      ))}
-                   </select>
-                </div>
-                <div className="h-px bg-gray-100 w-full"></div>
-                <div>
-                   <h4 className="font-bold text-sm uppercase tracking-wider text-gray-900 mb-4">Bedrooms</h4>
-                   <div className="flex gap-2">
-                      <button onClick={() => setMinBeds(0)} className={`px-3 py-2 rounded-lg text-sm font-medium border ${minBeds === 0 ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200'}`}>Any</button>
-                      {BEDROOM_OPTIONS.map(beds => (
-                        <button key={beds} onClick={() => setMinBeds(beds)} className={`px-3 py-2 rounded-lg text-sm font-medium border ${minBeds === beds ? 'bg-black text-white border-black' : 'bg-white text-gray-600 border-gray-200'}`}>{beds}+</button>
-                      ))}
-                   </div>
-                </div>
-                <button
-                   onClick={() => {
-                      setSelectedCounties([]);
-                      setSelectedPriceIdx(0);
-                      setMinBeds(0);
-                      setShowFiltersMobile(false);
-                   }}
-                   className="w-full py-3 bg-black text-white font-bold uppercase tracking-widest rounded-lg"
-                >
-                   Show Results
-                </button>
-            </div>
-         </div>
-       )}
 
-       {/* Desktop Filter Bar - Sticky below header */}
-       <div className="hidden lg:flex sticky top-24 flex-col z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
-           <div className="flex items-center gap-3 px-4 py-3">
-                {/* Search Input */}
-                <div className="relative w-80 xl:w-96">
-                    <input
-                       type="text"
-                       placeholder="Address, neighborhood, city, ZIP"
-                       className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none shadow-sm placeholder-gray-500"
-                       value={searchTerm}
-                       onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-blue-500" size={18} />
-                </div>
-
-                {/* Price Filter */}
-                <div className="relative">
-                    <button
-                       onClick={() => setActiveDropdown(activeDropdown === 'price' ? null : 'price')}
-                       className={`px-4 py-2 rounded-md border text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 ${selectedPriceIdx > 0 ? 'border-blue-500 text-blue-700 bg-blue-50' : 'border-gray-300 text-gray-700'}`}
-                    >
-                       {selectedPriceIdx === 0 ? 'Price' : PRICE_RANGES[selectedPriceIdx].label} <ChevronDown size={14} />
-                    </button>
-                    {activeDropdown === 'price' && (
-                       <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 animate-fade-in">
-                          <div className="space-y-1">
-                             {PRICE_RANGES.map((range, idx) => (
-                                <button
-                                   key={idx}
-                                   className={`w-full text-left px-3 py-2 rounded text-sm ${selectedPriceIdx === idx ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                   onClick={() => {
-                                      setSelectedPriceIdx(idx);
-                                      setActiveDropdown(null);
-                                   }}
-                                >
-                                   {range.label}
-                                </button>
-                             ))}
-                          </div>
-                       </div>
-                    )}
-                </div>
-
-                {/* Beds Filter */}
-                <div className="relative">
-                    <button
-                       onClick={() => setActiveDropdown(activeDropdown === 'beds' ? null : 'beds')}
-                       className={`px-4 py-2 rounded-md border text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 ${minBeds > 0 ? 'border-blue-500 text-blue-700 bg-blue-50' : 'border-gray-300 text-gray-700'}`}
-                    >
-                       {minBeds === 0 ? 'Beds & Baths' : `${minBeds}+ Beds`} <ChevronDown size={14} />
-                    </button>
-                    {activeDropdown === 'beds' && (
-                       <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 animate-fade-in">
-                          <div className="mb-2 text-xs font-bold uppercase text-gray-500">Bedrooms</div>
-                          <div className="space-y-1">
-                             <button onClick={() => { setMinBeds(0); setActiveDropdown(null); }} className={`w-full text-left px-3 py-2 rounded text-sm ${minBeds === 0 ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}>Any</button>
-                             {BEDROOM_OPTIONS.map(beds => (
-                                <button
-                                   key={beds}
-                                   className={`w-full text-left px-3 py-2 rounded text-sm ${minBeds === beds ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
-                                   onClick={() => {
-                                      setMinBeds(beds);
-                                      setActiveDropdown(null);
-                                   }}
-                                >
-                                   {beds}+ Beds
-                                </button>
-                             ))}
-                          </div>
-                       </div>
-                    )}
-                </div>
-
-                {/* County Filter */}
-                <div className="relative">
-                   <button
-                       onClick={() => setActiveDropdown(activeDropdown === 'county' ? null : 'county')}
-                       className={`px-4 py-2 rounded-md border text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 ${selectedCounties.length > 0 ? 'border-blue-500 text-blue-700 bg-blue-50' : 'border-gray-300 text-gray-700'}`}
-                    >
-                       County {selectedCounties.length > 0 && `(${selectedCounties.length})`} <ChevronDown size={14} />
-                    </button>
-                    {activeDropdown === 'county' && (
-                       <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 animate-fade-in">
-                          <div className="space-y-2">
-                             {COUNTIES.map(county => (
-                                <label key={county} className="flex items-center gap-3 cursor-pointer group hover:bg-gray-50 p-1 rounded">
-                                   <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedCounties.includes(county) ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}>
-                                      {selectedCounties.includes(county) && <Check size={10} className="text-white" />}
-                                   </div>
-                                   <input type="checkbox" className="hidden" checked={selectedCounties.includes(county)} onChange={() => toggleCounty(county)}/>
-                                   <span className="text-gray-700 text-sm">{county}</span>
-                                </label>
-                             ))}
-                          </div>
-                       </div>
-                    )}
-                </div>
-
-                {/* More Filters (Placeholder) */}
-                <button className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors">
-                   More
-                </button>
-
-                {/* Save Search */}
-                <button className="ml-auto px-4 py-2 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-700 transition-colors shadow-sm text-sm">
-                   Save search
-                </button>
-           </div>
-       </div>
-
-       {/* Invisible Overlay to close dropdowns when clicking outside */}
-       {activeDropdown && (
-          <div className="fixed inset-0 z-20 bg-transparent" onClick={() => setActiveDropdown(null)}></div>
-       )}
 
        {/* Desktop Split Layout */}
        <div className="flex-grow flex overflow-hidden relative">
@@ -383,7 +247,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
                 {loading ? (
                    <div className="flex flex-col items-center justify-center py-20">
-                      <Loader2 size={40} className="text-blue-600 animate-spin mb-4" />
+                      <Loader2 size={40} className="text-compass-gold animate-spin mb-4" />
                       <p className="text-gray-500">Loading homes...</p>
                    </div>
                 ) : filteredProperties.length > 0 ? (
@@ -413,7 +277,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                            setMinBeds(0);
                            setSearchTerm('');
                         }}
-                        className="mt-6 px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-md hover:bg-blue-700"
+                        className="mt-6 px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800"
                       >
                          Clear Filters
                       </button>
