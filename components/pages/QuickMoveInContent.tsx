@@ -420,10 +420,10 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 
              {/* Filter Bar: Search | Dropdowns | Lifestyle 2x2 */}
-             <div className="flex items-center gap-3">
+             <div className="flex items-center gap-6">
 
                 {/* LEFT: Search Input with Autocomplete */}
-                <div className="relative flex-1 min-w-0 max-w-md" ref={autocompleteRef}>
+                <div className="relative flex-1 min-w-0 max-w-xl" ref={autocompleteRef}>
                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                    <input
                       type="text"
@@ -516,7 +516,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                 </button>
 
                 {/* MIDDLE: Dropdown Filters - hidden on mobile until toggled */}
-                <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:flex items-center gap-4 flex-wrap lg:flex-nowrap`}>
+                <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:flex items-center gap-6 flex-wrap lg:flex-nowrap`}>
 
                    {/* Price Dropdown */}
                    <div className="relative" ref={priceRef}>
@@ -842,7 +842,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                 </div>
 
                 {/* RIGHT: Lifestyle Filters - 2x2 grid */}
-                <div className="hidden lg:grid grid-cols-2 gap-1.5 ml-auto shrink-0">
+                <div className="hidden lg:grid grid-cols-2 gap-2 ml-auto shrink-0">
                    {LIFESTYLE_FILTERS.map(filter => {
                       const isActive = selectedLifestyles.includes(filter.id);
                       return (
