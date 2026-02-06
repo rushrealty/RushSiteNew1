@@ -94,6 +94,10 @@ export interface RepliersListing {
     constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
   };
   images?: string[];
+  map?: {
+    latitude?: number;
+    longitude?: number;
+  };
   status: string;
   listDate?: string;
   daysOnMarket?: number;

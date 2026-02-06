@@ -3,6 +3,7 @@ import { RepliersListing, EnrichedInventoryHome } from './inventory-types';
 import { searchListings } from './repliers';
 import { fetchInventoryData } from './inventory';
 import { normalizeAddress } from './utils';
+import { COMMUNITIES_DATA } from '@/data/communities';
 
 export interface QuickMoveInResult {
   homes: Property[];
@@ -125,6 +126,8 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     schools: [],
     isQuickMoveIn: isQMI, // Set based on construction status check
     homeType: listing.details.propertyType || 'Single Family',
+    latitude: listing.map?.latitude,
+    longitude: listing.map?.longitude,
     mlsId: listing.mlsNumber,
     listingAgent: listing.agent?.name || '',
     listingAgentPhone: listing.agent?.phone || '',
@@ -140,6 +143,19 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
  */
 function transformInventoryHome(home: EnrichedInventoryHome): Property {
   const status = mapInventoryStatus(home.status);
+
+  // Look up community lat/lng from static communities data
+  let latitude: number | undefined;
+  let longitude: number | undefined;
+  if (home.community?.name) {
+    const communityEntry = Object.values(COMMUNITIES_DATA).find(
+      (c: any) => c.name?.toLowerCase() === home.community?.name?.toLowerCase()
+    );
+    if (communityEntry) {
+      latitude = (communityEntry as any).lat;
+      longitude = (communityEntry as any).lng;
+    }
+  }
 
   // Build images array - use home photo first, fall back to community model photos
   let images: string[] = [];
@@ -186,6 +202,8 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     hasClubhouse: home.community?.hasClubhouse || false,
     hasGolfCourse: home.community?.hasGolfCourse || false,
     hasCommunityPool: home.community?.hasCommunityPool || false,
+    latitude,
+    longitude,
     mlsId: home.mlsNumber || '',
     listingAgent: 'Rush Home Team',
     listingAgentPhone: '302-219-6707',

@@ -109,6 +109,8 @@ export interface Property {
   hasClubhouse?: boolean;
   hasGolfCourse?: boolean;
   hasCommunityPool?: boolean;
+  latitude?: number;
+  longitude?: number;
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;

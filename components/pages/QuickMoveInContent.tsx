@@ -142,6 +142,13 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const moreRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
+  // Map refs
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<any>(null);
+  const mapMarkersRef = useRef<any[]>([]);
+  const mapInfoWindowRef = useRef<any>(null);
+  const geocoderRef = useRef<any>(null);
+
   // Track if we've already processed the initial property ID
   const hasProcessedInitialProperty = useRef(false);
 
@@ -197,6 +204,55 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Initialize Google Map
+  useEffect(() => {
+    const initMap = async () => {
+      const g = (window as any).google;
+      if (!g?.maps?.importLibrary || !mapContainerRef.current) return;
+
+      try {
+        const { Map, InfoWindow } = await g.maps.importLibrary('maps');
+        const { AdvancedMarkerElement } = await g.maps.importLibrary('marker');
+        const { LatLngBounds } = await g.maps.importLibrary('core');
+        const { Geocoder } = await g.maps.importLibrary('geocoding');
+
+        // Store AdvancedMarkerElement class for later use
+        (window as any).__AdvancedMarkerElement = AdvancedMarkerElement;
+        (window as any).__LatLngBounds = LatLngBounds;
+
+        const center = { lat: 39.0, lng: -75.5 }; // Delaware center
+        googleMapRef.current = new Map(mapContainerRef.current, {
+          zoom: 9,
+          center,
+          mapId: '1ec478adee711142a6359ec3',
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
+
+        mapInfoWindowRef.current = new InfoWindow();
+        geocoderRef.current = new Geocoder();
+      } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+      }
+    };
+
+    // Wait for Google Maps script to load
+    if ((window as any).google?.maps) {
+      initMap();
+    } else {
+      const checkInterval = setInterval(() => {
+        if ((window as any).google?.maps) {
+          clearInterval(checkInterval);
+          initMap();
+        }
+      }, 200);
+      return () => clearInterval(checkInterval);
+    }
   }, []);
 
   const formatPrice = (price: string) => {
@@ -380,6 +436,102 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     return sorted;
   }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
     selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+
+  // Update map markers when filtered properties change
+  useEffect(() => {
+    if (!googleMapRef.current) return;
+
+    const AdvancedMarkerElement = (window as any).__AdvancedMarkerElement;
+    const LatLngBounds = (window as any).__LatLngBounds;
+    if (!AdvancedMarkerElement || !LatLngBounds) return;
+
+    // Clear existing markers
+    mapMarkersRef.current.forEach(m => (m.map = null));
+    mapMarkersRef.current = [];
+
+    const bounds = new LatLngBounds();
+    let hasMarkers = false;
+
+    const addMarker = (property: Property, position: { lat: number; lng: number }) => {
+      const label = document.createElement('div');
+      label.style.cssText = 'background:#111827;color:white;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700;font-family:sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.3);';
+      label.textContent = `$${(property.price / 1000).toFixed(0)}K`;
+
+      const marker = new AdvancedMarkerElement({
+        position,
+        map: googleMapRef.current,
+        title: property.address,
+        content: label,
+      });
+
+      marker.addListener('click', () => {
+        const markerId = `map-marker-${property.id}`;
+        const content = `
+          <div style="padding:8px;max-width:220px;font-family:sans-serif;">
+            ${property.images[0] ? `<img src="${property.images[0]}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;" referrerpolicy="no-referrer" />` : ''}
+            <div style="font-weight:700;font-size:16px;color:#111827;margin-bottom:2px;">$${property.price.toLocaleString()}</div>
+            <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">${property.address}, ${property.city}</div>
+            <div style="font-size:12px;color:#374151;margin-bottom:8px;">${property.beds} bd | ${property.baths} ba | ${property.sqft.toLocaleString()} sqft</div>
+            <button id="${markerId}" style="width:100%;padding:8px;background:#111827;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">View Details</button>
+          </div>
+        `;
+        mapInfoWindowRef.current.setContent(content);
+        mapInfoWindowRef.current.open(googleMapRef.current, marker);
+
+        setTimeout(() => {
+          const btn = document.getElementById(markerId);
+          if (btn) btn.onclick = () => handlePropertyClick(property);
+        }, 100);
+      });
+
+      mapMarkersRef.current.push(marker);
+      bounds.extend(position);
+      hasMarkers = true;
+    };
+
+    // Add markers for properties with coordinates
+    const toGeocode: Property[] = [];
+
+    filteredProperties.forEach(property => {
+      if (property.latitude && property.longitude) {
+        addMarker(property, { lat: property.latitude, lng: property.longitude });
+      } else {
+        toGeocode.push(property);
+      }
+    });
+
+    // Geocode properties without coordinates (batch with delay to avoid rate limits)
+    if (geocoderRef.current && toGeocode.length > 0) {
+      toGeocode.slice(0, 20).forEach((property, i) => {
+        setTimeout(() => {
+          const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zip}`;
+          geocoderRef.current.geocode({ address: fullAddress }, (results: any, status: any) => {
+            if (status === 'OK' && results[0] && googleMapRef.current) {
+              const pos = results[0].geometry.location;
+              addMarker(property, { lat: pos.lat(), lng: pos.lng() });
+              if (mapMarkersRef.current.length > 0) {
+                googleMapRef.current.fitBounds(bounds, { padding: 40 });
+                if (googleMapRef.current.getZoom() > 15) {
+                  googleMapRef.current.setZoom(15);
+                }
+              }
+            }
+          });
+        }, i * 100);
+      });
+    }
+
+    // Fit bounds if we have markers with coordinates
+    if (hasMarkers) {
+      googleMapRef.current.fitBounds(bounds, { padding: 40 });
+      const listener = googleMapRef.current.addListener('idle', () => {
+        if (googleMapRef.current.getZoom() > 15) {
+          googleMapRef.current.setZoom(15);
+        }
+        listener.remove();
+      });
+    }
+  }, [filteredProperties]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
@@ -1012,24 +1164,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
           {/* Right Panel: Map */}
           <div className={`w-full lg:w-[40%] bg-gray-200 relative ${viewMode === 'map' ? 'block' : 'hidden lg:block'}`}>
-             <iframe
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3132.8942203176517!2d-75.539787!3d39.158168!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus"
-                className="w-full h-full grayscale-[20%] hover:grayscale-0 transition-all duration-700"
-             >
-             </iframe>
-
-             {/* Map Controls Overlay */}
-             <div className="absolute top-4 right-4 flex flex-col gap-2">
-                 <button className="bg-white p-2 rounded shadow-md hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center justify-center w-10 h-10">
-                     <MapIcon size={20} />
-                 </button>
-             </div>
+             <div ref={mapContainerRef} className="w-full h-full" />
           </div>
        </div>
 
