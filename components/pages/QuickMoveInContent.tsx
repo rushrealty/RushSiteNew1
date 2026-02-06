@@ -588,7 +588,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   };
 
   return (
-    <div className="pt-24 min-h-[140vh] flex flex-col bg-white">
+    <div className="pt-24 min-h-screen flex flex-col bg-white">
 
        {/* Page Header - Fixed at Top */}
        <div className="bg-white py-8 px-4 border-b border-gray-100 shrink-0">
@@ -1078,13 +1078,13 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
 
        {/* Desktop Split Layout */}
-       <div className="flex-grow flex overflow-hidden relative">
+       <div className="flex-grow flex relative">
 
-          {/* Left Panel: Listings */}
-          <div className={`w-full lg:w-[60%] flex flex-col h-full bg-white border-r border-gray-200 overflow-hidden ${viewMode === 'map' ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Left Panel: Listings - scrolls naturally */}
+          <div className={`w-full lg:w-[60%] bg-white border-r border-gray-200 ${viewMode === 'map' ? 'hidden lg:block' : 'block'}`}>
 
              {/* Property Grid Content */}
-             <div className="flex-grow p-4 lg:p-8 overflow-y-auto bg-white">
+             <div className="p-4 lg:p-8 bg-white">
 
                 {/* Result Count Bar */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
@@ -1162,9 +1162,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
              </div>
           </div>
 
-          {/* Right Panel: Map */}
+          {/* Right Panel: Map - sticky so it stays in view while listings scroll */}
           <div className={`w-full lg:w-[40%] bg-gray-200 relative ${viewMode === 'map' ? 'block' : 'hidden lg:block'}`}>
-             <div ref={mapContainerRef} className="w-full h-full" />
+             <div className="lg:sticky lg:top-[136px] lg:h-[calc(100vh-136px)]">
+                <div ref={mapContainerRef} className="w-full h-full" />
+             </div>
           </div>
        </div>
 
