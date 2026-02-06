@@ -103,6 +103,12 @@ export interface Property {
   completionDate?: string;
   featured?: boolean;
   isQuickMoveIn?: boolean; // True for quick move-in homes (new construction ready or from sheet)
+  homeType?: string; // Single Family, Townhouse, Condo, etc.
+  stories?: number;
+  is55Plus?: boolean;
+  hasClubhouse?: boolean;
+  hasGolfCourse?: boolean;
+  hasCommunityPool?: boolean;
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;

@@ -124,6 +124,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     taxAssessment: 0,
     schools: [],
     isQuickMoveIn: isQMI, // Set based on construction status check
+    homeType: listing.details.propertyType || 'Single Family',
     mlsId: listing.mlsNumber,
     listingAgent: listing.agent?.name || '',
     listingAgentPhone: listing.agent?.phone || '',
@@ -180,6 +181,11 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     completionDate: home.moveInDate,
     featured: home.featured,
     isQuickMoveIn: true, // Sheet homes are always quick move-in
+    homeType: 'Single Family', // Default for inventory homes
+    is55Plus: home.community?.is55Plus || false,
+    hasClubhouse: home.community?.hasClubhouse || false,
+    hasGolfCourse: home.community?.hasGolfCourse || false,
+    hasCommunityPool: home.community?.hasCommunityPool || false,
     mlsId: home.mlsNumber || '',
     listingAgent: 'Rush Home Team',
     listingAgentPhone: '302-219-6707',

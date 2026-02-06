@@ -1,24 +1,76 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_PROPERTIES } from '../../constants';
-import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, Loader2, Home, Waves, SlidersHorizontal } from 'lucide-react';
 
 const COUNTIES = ['New Castle', 'Kent', 'Sussex'];
 
-const PRICE_RANGES = [
-  { label: 'Any Price', min: 0, max: Infinity },
-  { label: 'Under $400k', min: 0, max: 400000 },
-  { label: '$400k - $600k', min: 400000, max: 600000 },
-  { label: '$600k - $800k', min: 600000, max: 800000 },
-  { label: '$800k+', min: 800000, max: Infinity },
+const MIN_PRICES = [
+  { label: 'No Min', value: null as number | null },
+  { label: '$100K', value: 100000 },
+  { label: '$300K', value: 300000 },
+  { label: '$500K', value: 500000 },
+  { label: '$700K', value: 700000 },
+  { label: '$800K', value: 800000 },
+];
+
+const MAX_PRICES = [
+  { label: '$250K', value: 250000 as number | null },
+  { label: '$500K', value: 500000 },
+  { label: '$750K', value: 750000 },
+  { label: '$1M', value: 1000000 },
+  { label: 'No Max', value: null },
 ];
 
 const BEDROOM_OPTIONS = [2, 3, 4, 5];
+const BATHROOM_OPTIONS = [1, 1.5, 2, 2.5, 3, 4];
+
+const LIFESTYLE_FILTERS = [
+  { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
+  { id: 'Golf Course', label: 'Golf Course', icon: <Waves size={14} /> },
+  { id: 'Pool', label: 'Community Pool', icon: <Waves size={14} /> },
+  { id: 'Clubhouse', label: 'Clubhouse', icon: <Waves size={14} /> },
+];
+
+const HOME_TYPES = ['Single Family', 'Townhouse', 'Condo'];
+
+const SQFT_MIN_OPTIONS = [
+  { label: 'No Min', value: null as number | null },
+  { label: '1,000', value: 1000 },
+  { label: '1,500', value: 1500 },
+  { label: '2,000', value: 2000 },
+  { label: '2,500', value: 2500 },
+  { label: '3,000', value: 3000 },
+];
+
+const SQFT_MAX_OPTIONS = [
+  { label: '1,500', value: 1500 as number | null },
+  { label: '2,000', value: 2000 },
+  { label: '2,500', value: 2500 },
+  { label: '3,000', value: 3000 },
+  { label: '4,000', value: 4000 },
+  { label: 'No Max', value: null },
+];
+
+const LOT_SIZE_OPTIONS = [
+  { label: 'Any', value: null as number | null },
+  { label: '0.25+ Acres', value: 0.25 },
+  { label: '0.5+ Acres', value: 0.5 },
+  { label: '1+ Acre', value: 1 },
+  { label: '2+ Acres', value: 2 },
+  { label: '5+ Acres', value: 5 },
+];
+
+function parseLotSize(lotSize: string): number {
+  if (!lotSize) return 0;
+  const match = lotSize.match(/([\d.]+)/);
+  return match ? parseFloat(match[1]) : 0;
+}
 
 interface QuickMoveInContentProps {
   onPropertyClick?: (property: Property) => void;
@@ -29,11 +81,36 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
-  const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
+  const [priceMin, setPriceMin] = useState<number | null>(null);
+  const [priceMax, setPriceMax] = useState<number | null>(null);
   const [minBeds, setMinBeds] = useState(0);
+  const [minBaths, setMinBaths] = useState(0);
+  const [selectedLifestyles, setSelectedLifestyles] = useState<string[]>([]);
+  const [selectedHomeTypes, setSelectedHomeTypes] = useState<string[]>([...HOME_TYPES]);
+  const [sqftMin, setSqftMin] = useState<number | null>(null);
+  const [sqftMax, setSqftMax] = useState<number | null>(null);
+  const [lotSizeMin, setLotSizeMin] = useState<number | null>(null);
+  const [basementFilter, setBasementFilter] = useState<boolean | null>(null);
+  const [singleStoryOnly, setSingleStoryOnly] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
+  // Dropdown open states
+  const [priceOpen, setPriceOpen] = useState(false);
+  const [countyOpen, setCountyOpen] = useState(false);
+  const [bedsOpen, setBedsOpen] = useState(false);
+  const [bathsOpen, setBathsOpen] = useState(false);
+  const [homeTypeOpen, setHomeTypeOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Refs for click-outside
+  const priceRef = useRef<HTMLDivElement>(null);
+  const countyRef = useRef<HTMLDivElement>(null);
+  const bedsRef = useRef<HTMLDivElement>(null);
+  const bathsRef = useRef<HTMLDivElement>(null);
+  const homeTypeRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
   // Track if we've already processed the initial property ID
   const hasProcessedInitialProperty = useRef(false);
@@ -41,6 +118,29 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   // State for fetched homes data
   const [allHomes, setAllHomes] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (priceRef.current && !priceRef.current.contains(e.target as Node)) setPriceOpen(false);
+      if (countyRef.current && !countyRef.current.contains(e.target as Node)) setCountyOpen(false);
+      if (bedsRef.current && !bedsRef.current.contains(e.target as Node)) setBedsOpen(false);
+      if (bathsRef.current && !bathsRef.current.contains(e.target as Node)) setBathsOpen(false);
+      if (homeTypeRef.current && !homeTypeRef.current.contains(e.target as Node)) setHomeTypeOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const closeOthers = useCallback((except: string) => {
+    if (except !== 'price') setPriceOpen(false);
+    if (except !== 'county') setCountyOpen(false);
+    if (except !== 'beds') setBedsOpen(false);
+    if (except !== 'baths') setBathsOpen(false);
+    if (except !== 'homeType') setHomeTypeOpen(false);
+    if (except !== 'more') setMoreOpen(false);
+  }, []);
 
   // Fetch homes from API on mount
   useEffect(() => {
@@ -52,7 +152,6 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
           if (data.homes && data.homes.length > 0) {
             setAllHomes(data.homes);
           } else {
-            // Fall back to mock data if no real data
             setAllHomes(MOCK_PROPERTIES);
           }
         } else {
@@ -82,7 +181,6 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   // Handle closing the modal - clear URL parameter
   const handleCloseModal = () => {
     setSelectedProperty(null);
-    // Clear the property parameter from URL without navigation
     if (initialPropertyId) {
       router.replace('/quick-move-in', { scroll: false });
     }
@@ -94,29 +192,129 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     );
   };
 
+  const toggleLifestyle = (tag: string) => {
+    setSelectedLifestyles(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const toggleHomeType = (type: string) => {
+    setSelectedHomeTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
   const filteredProperties = useMemo(() => {
     return allHomes.filter(property => {
+      // Text search
       const matchesSearch = searchTerm === '' ||
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.builder.toLowerCase().includes(searchTerm.toLowerCase());
+        property.builder.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.zip.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.community.toLowerCase().includes(searchTerm.toLowerCase());
 
+      // Price range
+      const matchesPriceMin = priceMin === null || property.price >= priceMin;
+      const matchesPriceMax = priceMax === null || property.price <= priceMax;
+
+      // County
       const matchesCounty = selectedCounties.length === 0 || selectedCounties.includes(property.county);
 
-      const priceRange = PRICE_RANGES[selectedPriceIdx];
-      const matchesPrice = property.price >= priceRange.min && property.price <= priceRange.max;
-
+      // Beds & Baths
       const matchesBeds = property.beds >= minBeds;
+      const matchesBaths = property.baths >= minBaths;
 
-      return matchesSearch && matchesCounty && matchesPrice && matchesBeds;
+      // Lifestyle filters (OR logic - show if ANY selected filter matches)
+      const matchesLifestyle = selectedLifestyles.length === 0 ||
+        selectedLifestyles.some(tag => {
+          switch (tag) {
+            case '55+': return property.is55Plus === true;
+            case 'Golf Course': return property.hasGolfCourse === true;
+            case 'Pool': return property.hasCommunityPool === true;
+            case 'Clubhouse': return property.hasClubhouse === true;
+            default: return false;
+          }
+        });
+
+      // Home type (OR filter, all selected = no filter)
+      const matchesHomeType = selectedHomeTypes.length === HOME_TYPES.length ||
+        selectedHomeTypes.length === 0 ||
+        selectedHomeTypes.some(type =>
+          (property.homeType || 'Single Family').toLowerCase().includes(type.toLowerCase())
+        );
+
+      // More filters
+      const matchesSqftMin = sqftMin === null || property.sqft >= sqftMin;
+      const matchesSqftMax = sqftMax === null || property.sqft <= sqftMax;
+      const matchesLotSize = lotSizeMin === null || parseLotSize(property.lotSize) >= lotSizeMin;
+      const matchesBasement = basementFilter === null ||
+        (basementFilter === true
+          ? property.basement !== '' && property.basement.toLowerCase() !== 'none' && property.basement.toLowerCase() !== 'no'
+          : property.basement === '' || property.basement.toLowerCase() === 'none' || property.basement.toLowerCase() === 'no');
+      const matchesStory = !singleStoryOnly ||
+        (property.stories !== undefined && property.stories <= 1);
+
+      return matchesSearch && matchesPriceMin && matchesPriceMax && matchesCounty &&
+        matchesBeds && matchesBaths && matchesLifestyle && matchesHomeType &&
+        matchesSqftMin && matchesSqftMax && matchesLotSize && matchesBasement && matchesStory;
     });
-  }, [allHomes, searchTerm, selectedCounties, selectedPriceIdx, minBeds]);
+  }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
+    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
     if (onPropertyClick) {
       onPropertyClick(property);
     }
+  };
+
+  // Label helpers
+  const priceLabel = (() => {
+    if (priceMin === null && priceMax === null) return 'Any Price';
+    const minL = MIN_PRICES.find(p => p.value === priceMin)?.label || 'No Min';
+    const maxL = MAX_PRICES.find(p => p.value === priceMax)?.label || 'No Max';
+    return `${minL} – ${maxL}`;
+  })();
+
+  const countyLabel = selectedCounties.length === 0
+    ? 'County'
+    : selectedCounties.length === 1
+      ? selectedCounties[0]
+      : `${selectedCounties.length} Counties`;
+
+  const bedsLabel = minBeds === 0 ? 'Any' : `${minBeds}+`;
+  const bathsLabel = minBaths === 0 ? 'Any' : `${minBaths}+`;
+
+  const homeTypeLabel = (() => {
+    if (selectedHomeTypes.length === HOME_TYPES.length || selectedHomeTypes.length === 0) return 'Home Type';
+    if (selectedHomeTypes.length === 1) return selectedHomeTypes[0];
+    return `${selectedHomeTypes.length} Types`;
+  })();
+
+  const moreCount = [sqftMin, sqftMax, lotSizeMin, basementFilter !== null ? true : null, singleStoryOnly ? true : null].filter(Boolean).length;
+  const moreLabel = moreCount > 0 ? `More (${moreCount})` : 'More';
+
+  const hasActiveFilters = priceMin !== null || priceMax !== null || selectedCounties.length > 0 ||
+    minBeds > 0 || minBaths > 0 || selectedLifestyles.length > 0 ||
+    selectedHomeTypes.length < HOME_TYPES.length || sqftMin !== null || sqftMax !== null ||
+    lotSizeMin !== null || basementFilter !== null || singleStoryOnly || searchTerm !== '';
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setPriceMin(null);
+    setPriceMax(null);
+    setSelectedCounties([]);
+    setMinBeds(0);
+    setMinBaths(0);
+    setSelectedLifestyles([]);
+    setSelectedHomeTypes([...HOME_TYPES]);
+    setSqftMin(null);
+    setSqftMax(null);
+    setLotSizeMin(null);
+    setBasementFilter(null);
+    setSingleStoryOnly(false);
   };
 
   return (
@@ -136,9 +334,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
        {/* Filters Section - Sticky below header */}
        <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-             <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
 
-                {/* Search Input & Mobile Controls */}
+             {/* Row 1: Search + Filters */}
+             <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
+
+                {/* Search Input + Mobile toggles */}
                 <div className="flex gap-3 w-full lg:w-auto">
                    <div className="relative flex-grow lg:w-80">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -164,58 +364,341 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                    </button>
                 </div>
 
-                {/* Filters */}
-                <div className={`flex-col lg:flex-row gap-4 lg:flex ${showFiltersMobile ? 'flex' : 'hidden'} lg:items-center mt-4 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-gray-100`}>
+                {/* Filters - hidden on mobile until toggled */}
+                <div className={`flex-col lg:flex-row gap-3 lg:flex ${showFiltersMobile ? 'flex' : 'hidden'} lg:items-center mt-3 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-gray-100 flex-wrap`}>
 
-                   <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</label>
-                      <select
-                         className="bg-transparent font-semibold text-sm border-none focus:ring-0 p-0 cursor-pointer text-gray-900"
-                         value={selectedPriceIdx}
-                         onChange={(e) => setSelectedPriceIdx(Number(e.target.value))}
-                      >
-                         {PRICE_RANGES.map((range, idx) => (
-                            <option key={idx} value={idx}>{range.label}</option>
-                         ))}
-                      </select>
+                   {/* Price Dropdown */}
+                   <div className="relative" ref={priceRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</label>
+                         <button
+                            onClick={() => { closeOthers('price'); setPriceOpen(!priceOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {priceLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${priceOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {priceOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[320px] p-4">
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Minimum</div>
+                                 <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                                    {MIN_PRICES.map(p => (
+                                       <button
+                                          key={p.label}
+                                          onClick={() => setPriceMin(p.value)}
+                                          className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                             priceMin === p.value
+                                                ? 'bg-black text-white font-semibold'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                          }`}
+                                       >{p.label}</button>
+                                    ))}
+                                 </div>
+                              </div>
+                              <div>
+                                 <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Maximum</div>
+                                 <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                                    {MAX_PRICES.map(p => (
+                                       <button
+                                          key={p.label}
+                                          onClick={() => setPriceMax(p.value)}
+                                          className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                             priceMax === p.value
+                                                ? 'bg-black text-white font-semibold'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                          }`}
+                                       >{p.label}</button>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                      )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block mx-2"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
 
-                   <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bedrooms</label>
-                      <select
-                         className="bg-transparent font-semibold text-sm border-none focus:ring-0 p-0 cursor-pointer text-gray-900"
-                         value={minBeds}
-                         onChange={(e) => setMinBeds(Number(e.target.value))}
-                      >
-                         <option value={0}>Any</option>
-                         {BEDROOM_OPTIONS.map(beds => (
-                            <option key={beds} value={beds}>{beds}+ Beds</option>
-                         ))}
-                      </select>
+                   {/* Bedrooms Dropdown */}
+                   <div className="relative" ref={bedsRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bedrooms</label>
+                         <button
+                            onClick={() => { closeOthers('beds'); setBedsOpen(!bedsOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {bedsLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${bedsOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {bedsOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[140px] py-2">
+                           <button
+                              onClick={() => { setMinBeds(0); setBedsOpen(false); }}
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBeds === 0 ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                           >Any</button>
+                           {BEDROOM_OPTIONS.map(beds => (
+                              <button
+                                 key={beds}
+                                 onClick={() => { setMinBeds(beds); setBedsOpen(false); }}
+                                 className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBeds === beds ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                              >{beds}+ Beds</button>
+                           ))}
+                        </div>
+                      )}
                    </div>
 
-                   <div className="h-8 w-px bg-gray-200 hidden lg:block mx-2"></div>
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
 
+                   {/* Bathrooms Dropdown */}
+                   <div className="relative" ref={bathsRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bathrooms</label>
+                         <button
+                            onClick={() => { closeOthers('baths'); setBathsOpen(!bathsOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {bathsLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${bathsOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {bathsOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[140px] py-2">
+                           <button
+                              onClick={() => { setMinBaths(0); setBathsOpen(false); }}
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBaths === 0 ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                           >Any</button>
+                           {BATHROOM_OPTIONS.map(baths => (
+                              <button
+                                 key={baths}
+                                 onClick={() => { setMinBaths(baths); setBathsOpen(false); }}
+                                 className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBaths === baths ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                              >{baths}+ Baths</button>
+                           ))}
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+
+                   {/* County Dropdown */}
+                   <div className="relative" ref={countyRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">County</label>
+                         <button
+                            onClick={() => { closeOthers('county'); setCountyOpen(!countyOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {countyLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${countyOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {countyOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
+                           {selectedCounties.length > 0 && (
+                              <button
+                                 onClick={() => { setSelectedCounties([]); setCountyOpen(false); }}
+                                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100 flex items-center gap-2"
+                              >
+                                 <X size={14} /> Clear
+                              </button>
+                           )}
+                           {COUNTIES.map(county => {
+                              const isActive = selectedCounties.includes(county);
+                              return (
+                                 <button
+                                    key={county}
+                                    onClick={() => toggleCounty(county)}
+                                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${isActive ? 'bg-gray-50' : ''}`}
+                                 >
+                                    <span className={isActive ? 'font-semibold text-black' : 'text-gray-700'}>{county}</span>
+                                    {isActive && <Check size={14} className="text-compass-gold" />}
+                                 </button>
+                              );
+                           })}
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+
+                   {/* Lifestyle Filters (55+, Golf Course, Pool, Clubhouse) */}
                    <div className="flex flex-wrap gap-2">
-                      {COUNTIES.map(county => {
-                         const isActive = selectedCounties.includes(county);
+                      {LIFESTYLE_FILTERS.map(filter => {
+                         const isActive = selectedLifestyles.includes(filter.id);
                          return (
                             <button
-                               key={county}
-                               onClick={() => toggleCounty(county)}
+                               key={filter.id}
+                               onClick={() => toggleLifestyle(filter.id)}
                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
                                   isActive
                                      ? 'bg-black border-black text-white'
                                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
                                }`}
                             >
-                               {county}
+                               {filter.icon}
+                               {filter.label}
                                {isActive && <Check size={12} />}
                             </button>
                          );
                       })}
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+
+                   {/* Home Type Dropdown */}
+                   <div className="relative" ref={homeTypeRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Home Type</label>
+                         <button
+                            onClick={() => { closeOthers('homeType'); setHomeTypeOpen(!homeTypeOpen); }}
+                            className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                         >
+                            {homeTypeLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${homeTypeOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {homeTypeOpen && (
+                        <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[200px] py-2">
+                           {HOME_TYPES.map(type => {
+                              const isActive = selectedHomeTypes.includes(type);
+                              return (
+                                 <button
+                                    key={type}
+                                    onClick={() => toggleHomeType(type)}
+                                    className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                                 >
+                                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                       isActive ? 'bg-black border-black' : 'border-gray-300'
+                                    }`}>
+                                       {isActive && (
+                                          <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
+                                             <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                          </svg>
+                                       )}
+                                    </div>
+                                    <span className={isActive ? 'font-medium text-gray-900' : 'text-gray-700'}>{type}</span>
+                                 </button>
+                              );
+                           })}
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="h-8 w-px bg-gray-200 hidden lg:block"></div>
+
+                   {/* More Dropdown */}
+                   <div className="relative" ref={moreRef}>
+                      <div className="flex flex-col gap-1">
+                         <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">&nbsp;</label>
+                         <button
+                            onClick={() => { closeOthers('more'); setMoreOpen(!moreOpen); }}
+                            className={`flex items-center gap-1.5 font-semibold text-sm transition-colors whitespace-nowrap ${
+                               moreCount > 0 ? 'text-black' : 'text-gray-600 hover:text-black'
+                            }`}
+                         >
+                            <SlidersHorizontal size={14} />
+                            {moreLabel}
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                      </div>
+
+                      {moreOpen && (
+                        <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[340px] p-5">
+
+                           {/* Square Feet */}
+                           <div className="mb-5">
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Square Feet</div>
+                              <div className="flex items-center gap-2">
+                                 <select
+                                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer"
+                                    value={sqftMin ?? ''}
+                                    onChange={e => setSqftMin(e.target.value ? Number(e.target.value) : null)}
+                                 >
+                                    {SQFT_MIN_OPTIONS.map(o => (
+                                       <option key={o.label} value={o.value ?? ''}>{o.label}</option>
+                                    ))}
+                                 </select>
+                                 <span className="text-xs text-gray-400 font-semibold">to</span>
+                                 <select
+                                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer"
+                                    value={sqftMax ?? ''}
+                                    onChange={e => setSqftMax(e.target.value ? Number(e.target.value) : null)}
+                                 >
+                                    {SQFT_MAX_OPTIONS.map(o => (
+                                       <option key={o.label} value={o.value ?? ''}>{o.label}</option>
+                                    ))}
+                                 </select>
+                              </div>
+                           </div>
+
+                           {/* Lot Size */}
+                           <div className="mb-5">
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Lot Size</div>
+                              <select
+                                 className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer"
+                                 value={lotSizeMin ?? ''}
+                                 onChange={e => setLotSizeMin(e.target.value ? Number(e.target.value) : null)}
+                              >
+                                 {LOT_SIZE_OPTIONS.map(o => (
+                                    <option key={o.label} value={o.value ?? ''}>{o.label}</option>
+                                 ))}
+                              </select>
+                           </div>
+
+                           {/* Basement */}
+                           <div className="mb-5">
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Basement</div>
+                              <div className="flex gap-2">
+                                 {([
+                                    { label: 'Any', value: null },
+                                    { label: 'Yes', value: true },
+                                    { label: 'No', value: false },
+                                 ] as { label: string; value: boolean | null }[]).map(opt => (
+                                    <button
+                                       key={opt.label}
+                                       onClick={() => setBasementFilter(opt.value)}
+                                       className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                          basementFilter === opt.value
+                                             ? 'bg-black border-black text-white'
+                                             : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                       }`}
+                                    >{opt.label}</button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           {/* Single Story */}
+                           <div>
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Single Story</div>
+                              <div className="flex gap-2">
+                                 <button
+                                    onClick={() => setSingleStoryOnly(false)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       !singleStoryOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >Any</button>
+                                 <button
+                                    onClick={() => setSingleStoryOnly(true)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       singleStoryOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >Single Story Only</button>
+                              </div>
+                           </div>
+                        </div>
+                      )}
                    </div>
 
                 </div>
@@ -239,9 +722,19 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                    <span className="font-bold text-gray-900">
                      {loading ? 'Loading...' : `${filteredProperties.length} Homes Available`}
                    </span>
-                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <span>Sort by:</span>
-                      <button className="font-bold text-gray-900 flex items-center gap-1">Newest <ChevronDown size={14}/></button>
+                   <div className="flex items-center gap-3">
+                      {hasActiveFilters && (
+                        <button
+                           onClick={clearAllFilters}
+                           className="text-xs font-semibold text-gray-500 hover:text-black flex items-center gap-1 transition-colors"
+                        >
+                           <X size={12} /> Reset Filters
+                        </button>
+                      )}
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                         <span>Sort by:</span>
+                         <button className="font-bold text-gray-900 flex items-center gap-1">Newest <ChevronDown size={14}/></button>
+                      </div>
                    </div>
                 </div>
 
@@ -271,13 +764,8 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                          Try adjusting your filters to see more results.
                       </p>
                       <button
-                         onClick={() => {
-                           setSelectedCounties([]);
-                           setSelectedPriceIdx(0);
-                           setMinBeds(0);
-                           setSearchTerm('');
-                        }}
-                        className="mt-6 px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800"
+                         onClick={clearAllFilters}
+                         className="mt-6 px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800"
                       >
                          Clear Filters
                       </button>
