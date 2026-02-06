@@ -41,7 +41,7 @@ const MAX_PRICES = [
 ];
 
 const BEDROOM_OPTIONS = [2, 3, 4, 5];
-const BATHROOM_OPTIONS = [1, 1.5, 2, 2.5, 3, 4];
+const BATHROOM_OPTIONS = [1, 2, 3, 4];
 
 const LIFESTYLE_FILTERS = [
   { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
@@ -51,6 +51,14 @@ const LIFESTYLE_FILTERS = [
 ];
 
 const HOME_TYPES = ['Single Family', 'Townhouse', 'Condo'];
+
+const SORT_OPTIONS = [
+  { label: 'Newest', value: 'newest' },
+  { label: 'Price Highest', value: 'price-high' },
+  { label: 'Price Lowest', value: 'price-low' },
+  { label: 'Size Biggest', value: 'size-big' },
+  { label: 'Size Smallest', value: 'size-small' },
+];
 
 const SQFT_MIN_OPTIONS = [
   { label: 'No Min', value: null as number | null },
@@ -107,6 +115,8 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const [singleStoryOnly, setSingleStoryOnly] = useState(false);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [sortBy, setSortBy] = useState('newest');
+  const [sortOpen, setSortOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Autocomplete state
@@ -130,6 +140,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const bathsRef = useRef<HTMLDivElement>(null);
   const homeTypeRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   // Track if we've already processed the initial property ID
   const hasProcessedInitialProperty = useRef(false);
@@ -147,6 +158,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
       if (bathsRef.current && !bathsRef.current.contains(e.target as Node)) setBathsOpen(false);
       if (homeTypeRef.current && !homeTypeRef.current.contains(e.target as Node)) setHomeTypeOpen(false);
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -289,7 +301,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   };
 
   const filteredProperties = useMemo(() => {
-    return allHomes.filter(property => {
+    const filtered = allHomes.filter(property => {
       // Text search
       const matchesSearch = searchTerm === '' ||
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -344,8 +356,30 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
         matchesBeds && matchesBaths && matchesLifestyle && matchesHomeType &&
         matchesSqftMin && matchesSqftMax && matchesLotSize && matchesBasement && matchesStory;
     });
+
+    // Sort
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case 'price-high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'price-low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'size-big':
+        sorted.sort((a, b) => b.sqft - a.sqft);
+        break;
+      case 'size-small':
+        sorted.sort((a, b) => a.sqft - b.sqft);
+        break;
+      case 'newest':
+      default:
+        // Keep original order (newest first from API)
+        break;
+    }
+    return sorted;
   }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
-    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly]);
+    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
@@ -914,9 +948,28 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                            <X size={12} /> Reset Filters
                         </button>
                       )}
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="relative flex items-center gap-2 text-sm text-gray-500" ref={sortRef}>
                          <span>Sort by:</span>
-                         <button className="font-bold text-gray-900 flex items-center gap-1">Newest <ChevronDown size={14}/></button>
+                         <button
+                            onClick={() => setSortOpen(!sortOpen)}
+                            className="font-bold text-gray-900 flex items-center gap-1"
+                         >
+                            {SORT_OPTIONS.find(o => o.value === sortBy)?.label || 'Newest'}
+                            <ChevronDown size={14} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
+                         </button>
+                         {sortOpen && (
+                           <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
+                              {SORT_OPTIONS.map(option => (
+                                 <button
+                                    key={option.value}
+                                    onClick={() => { setSortBy(option.value); setSortOpen(false); }}
+                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                       sortBy === option.value ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                 >{option.label}</button>
+                              ))}
+                           </div>
+                         )}
                       </div>
                    </div>
                 </div>
