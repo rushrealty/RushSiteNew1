@@ -417,13 +417,13 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
 
        {/* Filters Section - Sticky below header */}
        <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 py-4">
 
              {/* Filter Bar: Search | Dropdowns | Lifestyle 2x2 */}
-             <div className="flex items-center gap-6">
+             <div className="flex items-center gap-5 lg:gap-6">
 
                 {/* LEFT: Search Input with Autocomplete */}
-                <div className="relative flex-1 min-w-0 max-w-xl" ref={autocompleteRef}>
+                <div className="relative shrink-0 w-full lg:w-[340px] xl:w-[420px] 2xl:w-[480px]" ref={autocompleteRef}>
                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                    <input
                       type="text"
