@@ -496,7 +496,6 @@ const AbbottsPondContent: React.FC = () => {
                 </div>
                 <div className="floorplan-action">
                   <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
-                  <button className="btn-floorplan" style={{marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.4rem 1rem'}} onClick={() => openModal('request', home.title)}>Request Info</button>
                 </div>
               </div>
             </div>

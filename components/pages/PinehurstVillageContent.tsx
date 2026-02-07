@@ -13,6 +13,7 @@ const PinehurstVillageContent = () => {
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [activeSection, setActiveSection] = useState('about');
   const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -153,7 +154,7 @@ const PinehurstVillageContent = () => {
   useEffect(() => {
     async function fetchInventoryHomes() {
       try {
-        const response = await fetch('/api/quick-move-in?communityId=pinehurst');
+        const response = await fetch('/api/quick-move-in?communityId=pinehurst-village');
         const data = await response.json();
         setInventoryHomes(data.homes || []);
       } catch (error) {
@@ -163,6 +164,21 @@ const PinehurstVillageContent = () => {
       }
     }
     fetchInventoryHomes();
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const handleScroll = () => {
+      const sections = ['about', 'floorplans', 'movein', 'map', 'location'];
+      let current = 'about';
+      sections.forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (section && window.scrollY >= section.offsetTop - 200) current = sectionId;
+      });
+      setActiveSection(current);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const openModal = (type: string, subtitle?: string) => {
@@ -1184,11 +1200,11 @@ const PinehurstVillageContent = () => {
         {/* Sub Navigation */}
         <nav className="sub-nav">
           <div className="sub-nav-content">
-            <a href="#about" className="sub-nav-link active" onClick={(e) => scrollToSection(e, 'about')}>Overview</a>
-            <a href="#floorplans" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'floorplans')}>Floor Plans</a>
-            <a href="#movein" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'movein')}>Move-In Ready</a>
-            <a href="#map" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'map')}>Site Map</a>
-            <a href="#location" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'location')}>Location</a>
+            <a href="#about" className={`sub-nav-link ${activeSection === 'about' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'about')}>Overview</a>
+            <a href="#floorplans" className={`sub-nav-link ${activeSection === 'floorplans' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'floorplans')}>Floor Plans</a>
+            <a href="#movein" className={`sub-nav-link ${activeSection === 'movein' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'movein')}>Move-In Ready</a>
+            <a href="#map" className={`sub-nav-link ${activeSection === 'map' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'map')}>Site Map</a>
+            <a href="#location" className={`sub-nav-link ${activeSection === 'location' ? 'active' : ''}`} onClick={(e) => scrollToSection(e, 'location')}>Location</a>
           </div>
         </nav>
 
@@ -1370,7 +1386,6 @@ const PinehurstVillageContent = () => {
                     </div>
                     <div className="floorplan-action">
                       <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
-                      <button className="btn-floorplan" style={{marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.4rem 1rem'}} onClick={() => openModal('request', home.title)}>Request Info</button>
                     </div>
                   </div>
                 </div>
