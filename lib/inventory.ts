@@ -232,6 +232,9 @@ function parseInventory(data: Record<string, string>[]): InventoryHome[] {
     description: row.description || undefined,
     photoUrl: row.photo_url ? convertGoogleDriveUrl(row.photo_url) : undefined,
     featured: row.featured?.toLowerCase() === 'true',
+    basement: row.basement || undefined,
+    heating: row.heating || undefined,
+    cooling: row.cooling || undefined,
   })).filter(h => h.id && h.communityId);
 }
 

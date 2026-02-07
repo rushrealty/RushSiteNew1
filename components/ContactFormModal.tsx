@@ -30,6 +30,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     lastName: '',
     email: '',
     phone: '',
+    message: '',
     preferredDate: '',
     preferredTime: ''
   });
@@ -88,7 +89,9 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           lastName: formData.lastName,
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
-          phone: formData.phone
+          phone: formData.phone || '',
+          // Message (for Ask a Question)
+          ...(formData.message && { message: formData.message })
         })
       });
 
@@ -112,6 +115,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
       lastName: '',
       email: '',
       phone: '',
+      message: '',
       preferredDate: '',
       preferredTime: ''
     });
@@ -302,10 +306,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                Phone Number <span className="text-red-500">*</span>
+                Phone Number {isTourRequest && <span className="text-red-500">*</span>}
               </label>
               <input
-                required
+                required={isTourRequest}
                 type="tel"
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all"
                 value={formData.phone}
@@ -313,6 +317,23 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                 placeholder="(302) 555-0123"
               />
             </div>
+
+            {/* Message field - shown for Ask a Question */}
+            {!isTourRequest && (
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                  Message <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all resize-none"
+                  value={formData.message}
+                  onChange={e => setFormData({ ...formData, message: e.target.value })}
+                  placeholder="What would you like to know about this property?"
+                />
+              </div>
+            )}
 
             <button
               type="submit"
