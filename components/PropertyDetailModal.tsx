@@ -403,33 +403,37 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                       {/* Legal Info */}
                       <div className="mb-12 pt-8 border-t border-gray-200">
                           <div className="space-y-2 text-sm text-gray-500">
-                             {hasMlsData ? (
+                             {/* Builder info - shown for all homes with builder data */}
+                             {property.builder && (
+                               <p>Listed by: {property.builder}</p>
+                             )}
+                             {property.builderWebsite && (
+                               <p>Source:{' '}
+                                 <a
+                                   href={property.builderWebsite.startsWith('http') ? property.builderWebsite : `https://${property.builderWebsite}`}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="underline text-blue-600"
+                                 >
+                                   {property.builder || 'Builder'} Website
+                                 </a>
+                               </p>
+                             )}
+                             {!property.builder && !hasMlsData && (
                                <>
-                                 <p>Listing updated: {property.lastUpdated}</p>
-                                 <p>Also listed on <a href="#" className="underline text-blue-600">{property.listingBrokerage} Broker Feed</a></p>
+                                 <p>Listed by: Builder</p>
+                                 <p>Source: Builder</p>
+                               </>
+                             )}
+                             {/* MLS info - shown for homes with MLS data */}
+                             {hasMlsData && (
+                               <>
+                                 <p className="mt-3">Listing updated: {property.lastUpdated}</p>
                                  <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
                                  <div className="flex items-center gap-2 mt-4">
                                     <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
                                     <span className="font-serif font-bold italic text-gray-400">bright</span>
                                  </div>
-                               </>
-                             ) : (
-                               <>
-                                 <p>Listed by: {property.builder || 'Builder'}</p>
-                                 <p>Source:{' '}
-                                   {property.builderWebsite ? (
-                                     <a
-                                       href={property.builderWebsite.startsWith('http') ? property.builderWebsite : `https://${property.builderWebsite}`}
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="underline text-blue-600"
-                                     >
-                                       {property.builder || 'Builder'} Website
-                                     </a>
-                                   ) : (
-                                     <span>{property.builder || 'Builder'}</span>
-                                   )}
-                                 </p>
                                </>
                              )}
                           </div>
