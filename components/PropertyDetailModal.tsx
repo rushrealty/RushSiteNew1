@@ -416,9 +416,20 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                              ) : (
                                <>
                                  <p>Listed by: {property.builder || 'Builder'}</p>
-                                 {property.builderWebsite && (
-                                   <p>Source: <a href={property.builderWebsite} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{property.builder || 'Builder'} Website</a></p>
-                                 )}
+                                 <p>Source:{' '}
+                                   {property.builderWebsite ? (
+                                     <a
+                                       href={property.builderWebsite.startsWith('http') ? property.builderWebsite : `https://${property.builderWebsite}`}
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       className="underline text-blue-600"
+                                     >
+                                       {property.builder || 'Builder'} Website
+                                     </a>
+                                   ) : (
+                                     <span>{property.builder || 'Builder'}</span>
+                                   )}
+                                 </p>
                                </>
                              )}
                           </div>
