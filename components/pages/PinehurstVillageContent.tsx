@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Property } from '@/types';
+import PropertyDetailModal from '@/components/PropertyDetailModal';
 
 const PinehurstVillageContent = () => {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -11,6 +13,9 @@ const PinehurstVillageContent = () => {
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Gallery images from Google Drive
   const galleryImages = [
@@ -144,6 +149,21 @@ const PinehurstVillageContent = () => {
   // State for viewing images with navigation
   const [viewingImages, setViewingImages] = useState<string[]>([]);
   const [viewingIndex, setViewingIndex] = useState(0);
+
+  useEffect(() => {
+    async function fetchInventoryHomes() {
+      try {
+        const response = await fetch('/api/quick-move-in?communityId=pinehurst');
+        const data = await response.json();
+        setInventoryHomes(data.homes || []);
+      } catch (error) {
+        console.error('Error fetching inventory homes:', error);
+      } finally {
+        setInventoryLoading(false);
+      }
+    }
+    fetchInventoryHomes();
+  }, []);
 
   const openModal = (type: string, subtitle?: string) => {
     setActiveModal(type);
@@ -1166,6 +1186,7 @@ const PinehurstVillageContent = () => {
           <div className="sub-nav-content">
             <a href="#about" className="sub-nav-link active" onClick={(e) => scrollToSection(e, 'about')}>Overview</a>
             <a href="#floorplans" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'floorplans')}>Floor Plans</a>
+            <a href="#movein" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'movein')}>Move-In Ready</a>
             <a href="#map" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'map')}>Site Map</a>
             <a href="#location" className="sub-nav-link" onClick={(e) => scrollToSection(e, 'location')}>Location</a>
           </div>
@@ -1315,6 +1336,56 @@ const PinehurstVillageContent = () => {
             </div>
           </div>
         </section>
+
+        {/* Move-In Ready Section */}
+        <section className="movein-section" id="movein">
+          <div className="container">
+            <div className="section-header"><h2>Homes for sale in this community ({inventoryLoading ? '...' : inventoryHomes.length})</h2></div>
+            {inventoryLoading ? (
+              <div style={{textAlign: 'center', padding: '2rem', color: '#6b7280'}}>Loading available homes...</div>
+            ) : inventoryHomes.length === 0 ? (
+              <div style={{textAlign: 'center', padding: '2rem', color: '#6b7280'}}>No homes currently available. Check back soon!</div>
+            ) : (
+              <div className="movein-list">{inventoryHomes.map(home => (
+                <div key={home.id} className="floorplan-card">
+                  <div className="floorplan-main">
+                    <div className="floorplan-image">
+                      {home.images && home.images.length > 0 ? (
+                        <img src={home.images[0]} alt={home.title} referrerPolicy="no-referrer" />
+                      ) : (
+                        <div style={{width: '100%', height: '100%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af'}}>No Photo</div>
+                      )}
+                      <span className="movein-badge">{home.status}</span>
+                    </div>
+                    <div className="floorplan-content">
+                      <h3 className="floorplan-name">${home.price.toLocaleString()}</h3>
+                      <div className="floorplan-price">{home.title}{home.lotNumber ? ` - ${home.lotNumber}` : ''}</div>
+                      <div className="floorplan-specs">
+                        <span>{home.beds} Bed</span><span className="divider">|</span>
+                        <span>{home.baths} Bath</span><span className="divider">|</span>
+                        {home.parking && <><span>{home.parking}</span><span className="divider">|</span></>}
+                        <span>{home.sqft.toLocaleString()} Sq. Ft.</span>
+                      </div>
+                      {home.completionDate && <div style={{fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem'}}>Move-in: {home.completionDate}</div>}
+                    </div>
+                    <div className="floorplan-action">
+                      <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
+                      <button className="btn-floorplan" style={{marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.4rem 1rem'}} onClick={() => openModal('request', home.title)}>Request Info</button>
+                    </div>
+                  </div>
+                </div>
+              ))}</div>
+            )}
+          </div>
+        </section>
+
+        {selectedProperty && (
+          <PropertyDetailModal
+            property={selectedProperty}
+            onClose={() => setSelectedProperty(null)}
+            onPropertyClick={(prop) => setSelectedProperty(prop)}
+          />
+        )}
 
         {/* Site Map Section */}
         <section className="map-section" id="map">

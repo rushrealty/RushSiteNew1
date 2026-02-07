@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Property } from '@/types';
+import PropertyDetailModal from '@/components/PropertyDetailModal';
 
 const AbbottsPondContent: React.FC = () => {
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
   const [expandedFloorPlan, setExpandedFloorPlan] = useState<string | null>(null);
-  const [expandedMoveIn, setExpandedMoveIn] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestSubtitle, setRequestSubtitle] = useState("Abbott's Pond Acres");
@@ -85,19 +86,9 @@ const AbbottsPondContent: React.FC = () => {
       ] }
   ];
 
-  const moveInReadyHomes = [
-    { id: 'hampshire', name: 'Hampshire', address: 'Hampshire Inventory Home', lot: 'Available Now', price: '$475,900', status: 'Ready Now',
-      beds: '4', baths: '2.5', garage: '2', stories: '2', sqft: '2,415',
-      description: "This Hampshire model features 4 bedrooms, 2 and a half bath and is beautifully designed. What better way to relax than in your master suite, which has an amazing en-suite full sized bathroom with tub and shower! The Hampshire's main floor also boasts an eat-in kitchen with dramatic maple 42\" cabinetry. Spacious 9 foot high ceilings make the open floor plan bright and welcoming. The great room is built for hosting or just relaxing and taking in your beautiful new home.",
-      img: 'https://drive.google.com/thumbnail?id=17SgJm_eAMsAWMjMIFQIku6vcDizZzpVz&sz=w1000',
-      floorPlanImg: 'https://drive.google.com/thumbnail?id=1hY4VDlMQgKMhIwqdnqDP2oj6IHMUXWHS&sz=w1000',
-      elevations: [
-        'https://drive.google.com/thumbnail?id=1nKN9-gYEntJ4NqpuN4WbsTFjk8FrYJN2&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1CfElppr3yD2ISfBmxL9kiJwSP4pvzjj4&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1Cn-xYMBupcddQEyUfzu-wdyd073U9utX&sz=w1000',
-        'https://drive.google.com/thumbnail?id=1CfFrsoeYdRLDlMYuqwYA7uuAR2ilZyqZ&sz=w1000'
-      ] }
-  ];
+  const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
+  const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -125,6 +116,21 @@ const AbbottsPondContent: React.FC = () => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isLightboxOpen]);
+
+  useEffect(() => {
+    async function fetchInventoryHomes() {
+      try {
+        const response = await fetch('/api/quick-move-in?communityId=abbotts-pond');
+        const data = await response.json();
+        setInventoryHomes(data.homes || []);
+      } catch (error) {
+        console.error('Error fetching inventory homes:', error);
+      } finally {
+        setInventoryLoading(false);
+      }
+    }
+    fetchInventoryHomes();
+  }, []);
 
   const openModal = (type: 'share' | 'request', subtitle?: string) => {
     if (type === 'share') setIsShareModalOpen(true);
@@ -460,33 +466,51 @@ const AbbottsPondContent: React.FC = () => {
       </div></section>
 
       <section className="movein-section" id="movein"><div className="container">
-        <div className="section-header"><h2>Homes for sale in this community ({moveInReadyHomes.length})</h2></div>
-        <div className="movein-list">{moveInReadyHomes.map(home => (
-          <div key={home.id} className={`floorplan-card ${expandedMoveIn === home.id ? 'expanded' : ''}`}>
-            <div className="floorplan-main" onClick={() => setExpandedMoveIn(expandedMoveIn === home.id ? null : home.id)}>
-              <div className="floorplan-image"><img src={home.img} alt={home.name} /><span className="movein-badge">{home.status}</span></div>
-              <div className="floorplan-content">
-                <h3 className="floorplan-name">{home.price}</h3>
-                <div className="floorplan-price">{home.address}</div>
-                <div className="floorplan-specs"><span>{home.beds} Bed</span><span className="divider">|</span><span>{home.baths} Bath</span><span className="divider">|</span><span>{home.garage} Garage</span><span className="divider">|</span><span>{home.stories} Story</span><span className="divider">|</span><span>{home.sqft} Sq. Ft.</span></div>
-              </div>
-              <div className="floorplan-action"><button className="floorplan-view-btn">View Details</button></div>
-            </div>
-            <div className="floorplan-details"><div className="floorplan-details-content">
-              <div className="details-left">
-                <h4>About {home.name}</h4><p>{home.description}</p>
-                <h4>Other Images</h4>
-                <div className="elevation-options">{home.elevations.slice(0, 4).map((elev, i) => <div key={i} className={`elevation-thumb ${i === 0 ? 'active' : ''}`} onClick={(e) => {e.stopPropagation(); openLightbox(i, home.elevations);}}><img src={elev} alt={`${home.name} view ${i + 1}`} /></div>)}</div>
-                <div className="details-actions">
-                  <button className="btn-floorplan" onClick={(e) => {e.stopPropagation(); openModal('request', home.name);}}>Request Info</button>
-                  <button className="btn-floorplan-outline" onClick={(e) => {e.stopPropagation(); openLightbox(0, [home.floorPlanImg]);}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>View Floor Plan</button>
+        <div className="section-header"><h2>Homes for sale in this community ({inventoryLoading ? '...' : inventoryHomes.length})</h2></div>
+        {inventoryLoading ? (
+          <div style={{textAlign: 'center', padding: '2rem', color: '#6b7280'}}>Loading available homes...</div>
+        ) : inventoryHomes.length === 0 ? (
+          <div style={{textAlign: 'center', padding: '2rem', color: '#6b7280'}}>No homes currently available. Check back soon!</div>
+        ) : (
+          <div className="movein-list">{inventoryHomes.map(home => (
+            <div key={home.id} className="floorplan-card">
+              <div className="floorplan-main">
+                <div className="floorplan-image">
+                  {home.images && home.images.length > 0 ? (
+                    <img src={home.images[0]} alt={home.title} referrerPolicy="no-referrer" />
+                  ) : (
+                    <div style={{width: '100%', height: '100%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af'}}>No Photo</div>
+                  )}
+                  <span className="movein-badge">{home.status}</span>
+                </div>
+                <div className="floorplan-content">
+                  <h3 className="floorplan-name">${home.price.toLocaleString()}</h3>
+                  <div className="floorplan-price">{home.title}{home.lotNumber ? ` - ${home.lotNumber}` : ''}</div>
+                  <div className="floorplan-specs">
+                    <span>{home.beds} Bed</span><span className="divider">|</span>
+                    <span>{home.baths} Bath</span><span className="divider">|</span>
+                    {home.parking && <><span>{home.parking}</span><span className="divider">|</span></>}
+                    <span>{home.sqft.toLocaleString()} Sq. Ft.</span>
+                  </div>
+                  {home.completionDate && <div style={{fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem'}}>Move-in: {home.completionDate}</div>}
+                </div>
+                <div className="floorplan-action">
+                  <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
+                  <button className="btn-floorplan" style={{marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.4rem 1rem'}} onClick={() => openModal('request', home.title)}>Request Info</button>
                 </div>
               </div>
-              <div className="details-right"><div className="floorplan-diagram" onClick={(e) => {e.stopPropagation(); openLightbox(0, [home.floorPlanImg]);}}><img src={home.floorPlanImg} alt={`${home.name} floor plan`} /></div></div>
-            </div></div>
-          </div>
-        ))}</div>
+            </div>
+          ))}</div>
+        )}
       </div></section>
+
+      {selectedProperty && (
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onPropertyClick={(prop) => setSelectedProperty(prop)}
+        />
+      )}
 
       <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/vqGWerxzkAp9d0B6/sales-map" title="Site Map" /></div></div></section>
 
