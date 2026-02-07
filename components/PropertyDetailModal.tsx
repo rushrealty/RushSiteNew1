@@ -403,13 +403,24 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                       {/* Legal Info */}
                       <div className="mb-12 pt-8 border-t border-gray-200">
                           <div className="space-y-2 text-sm text-gray-500">
-                             <p>Listing updated: {property.lastUpdated}</p>
-                             <p>Also listed on <a href="#" className="underline text-blue-600">{property.listingBrokerage} Broker Feed</a></p>
-                             <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
-                             <div className="flex items-center gap-2 mt-4">
-                                <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
-                                <span className="font-serif font-bold italic text-gray-400">bright</span>
-                             </div>
+                             {hasMlsData ? (
+                               <>
+                                 <p>Listing updated: {property.lastUpdated}</p>
+                                 <p>Also listed on <a href="#" className="underline text-blue-600">{property.listingBrokerage} Broker Feed</a></p>
+                                 <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
+                                 <div className="flex items-center gap-2 mt-4">
+                                    <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
+                                    <span className="font-serif font-bold italic text-gray-400">bright</span>
+                                 </div>
+                               </>
+                             ) : (
+                               <>
+                                 <p>Listed by: {property.builder || 'Builder'}</p>
+                                 {property.builderWebsite && (
+                                   <p>Source: <a href={property.builderWebsite} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{property.builder || 'Builder'} Website</a></p>
+                                 )}
+                               </>
+                             )}
                           </div>
                       </div>
 
@@ -501,13 +512,15 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                   </div>
                 )}
 
-                {/* Bright MLS Disclaimer Footer */}
-                <div className="mt-20 p-8 bg-gray-100 rounded-xl text-[10px] text-gray-500 leading-relaxed font-light">
-                   <div className="mb-4 font-bold text-gray-700 text-lg font-serif">bright<span className="text-xs align-top">MLS</span></div>
-                   <p>
-                     The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms, and is provided by BRIGHT through a licensing agreement. Listing information is from various brokers who participate in the Bright MLS IDX program and not all listings may be visible on the site. The property information being provided on or through the website is for the personal, non-commercial use of consumers and such information may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. Some properties which appear for sale on the website may no longer be available because they are for instance, under contract, sold or are no longer being offered for sale. Property information displayed is deemed reliable but is not guaranteed. Copyright 2026 Bright MLS, Inc.
-                   </p>
-                </div>
+                {/* Bright MLS Disclaimer Footer - Only for MLS listings */}
+                {hasMlsData && (
+                  <div className="mt-20 p-8 bg-gray-100 rounded-xl text-[10px] text-gray-500 leading-relaxed font-light">
+                     <div className="mb-4 font-bold text-gray-700 text-lg font-serif">bright<span className="text-xs align-top">MLS</span></div>
+                     <p>
+                       The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms, and is provided by BRIGHT through a licensing agreement. Listing information is from various brokers who participate in the Bright MLS IDX program and not all listings may be visible on the site. The property information being provided on or through the website is for the personal, non-commercial use of consumers and such information may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. Some properties which appear for sale on the website may no longer be available because they are for instance, under contract, sold or are no longer being offered for sale. Property information displayed is deemed reliable but is not guaranteed. Copyright 2026 Bright MLS, Inc.
+                     </p>
+                  </div>
+                )}
 
               </div>
           </div>

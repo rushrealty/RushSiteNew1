@@ -111,6 +111,7 @@ export interface Property {
   hasCommunityPool?: boolean;
   latitude?: number;
   longitude?: number;
+  builderWebsite?: string;
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;

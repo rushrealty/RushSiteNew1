@@ -53,6 +53,9 @@ export interface InventoryHome {
   description?: string;
   photoUrl?: string;
   featured: boolean;
+  basement?: string;
+  heating?: string;
+  cooling?: string;
 }
 
 // Enriched inventory home with builder and community data
