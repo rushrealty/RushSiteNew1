@@ -234,14 +234,20 @@ export async function getQuickMoveInListings(
       fetchInventoryData(),
     ]);
 
-    // Build Google Sheet address lookup set (normalized)
+    // Build Google Sheet address lookup set (normalized) and address-to-home map
     const sheetAddressSet = new Set(
       inventoryData.homes.map((h) => normalizeAddress(h.address))
+    );
+    const sheetAddressMap = new Map(
+      inventoryData.homes.map((h) => [normalizeAddress(h.address), h])
     );
 
     // Create lookup maps for enrichment
     const communitiesMap = new Map(inventoryData.communities.map((c) => [c.id, c]));
     const buildersMap = new Map(inventoryData.builders.map((b) => [b.id, b]));
+
+    // Log builder data for debugging
+    console.log('[QMI] Builder websites:', inventoryData.builders.map(b => `${b.name}: "${b.website}"`).join(', '));
 
     // Filter Repliers listings for Quick Move-Ins
     const repliersQMIs: Property[] = [];
@@ -252,7 +258,29 @@ export async function getQuickMoveInListings(
       const inSheet = sheetAddressSet.has(normalizedAddr);
 
       if (isQuickMoveIn(listing, inSheet)) {
-        repliersQMIs.push(transformRepliersListing(listing, true));
+        const property = transformRepliersListing(listing, true);
+
+        // Enrich with builder data from sheet if this address matches a sheet home
+        if (inSheet) {
+          const sheetHome = sheetAddressMap.get(normalizedAddr);
+          if (sheetHome) {
+            const community = communitiesMap.get(sheetHome.communityId);
+            const builder = community ? buildersMap.get(community.builderId) : undefined;
+            if (builder) {
+              property.builder = builder.name;
+              property.builderWebsite = builder.website || '';
+            }
+            if (community) {
+              property.community = community.name;
+              property.is55Plus = community.is55Plus;
+              property.hasClubhouse = community.hasClubhouse;
+              property.hasGolfCourse = community.hasGolfCourse;
+              property.hasCommunityPool = community.hasCommunityPool;
+            }
+          }
+        }
+
+        repliersQMIs.push(property);
         repliersAddressSet.add(normalizedAddr);
       }
     }
