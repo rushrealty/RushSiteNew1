@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
-import PropertyDetailModal from '@/components/PropertyDetailModal';
 
 const AbbottsPondContent: React.FC = () => {
   const [isAboutCollapsed, setIsAboutCollapsed] = useState(true);
@@ -88,7 +87,6 @@ const AbbottsPondContent: React.FC = () => {
 
   const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -495,7 +493,10 @@ const AbbottsPondContent: React.FC = () => {
                   {home.completionDate && <div style={{fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem'}}>Move-in: {home.completionDate}</div>}
                 </div>
                 <div className="floorplan-action">
-                  <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
+                  <button className="floorplan-view-btn" onClick={() => {
+                    const url = `/quick-move-in?propertyId=${home.id}`;
+                    try { if (window.self !== window.top && window.top) { window.top.location.href = url; } else { window.location.href = url; } } catch { window.location.href = url; }
+                  }}>View Details</button>
                 </div>
               </div>
             </div>
@@ -503,13 +504,7 @@ const AbbottsPondContent: React.FC = () => {
         )}
       </div></section>
 
-      {selectedProperty && (
-        <PropertyDetailModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onPropertyClick={(prop) => setSelectedProperty(prop)}
-        />
-      )}
+
 
       <section className="map-section" id="map"><div className="container"><div className="map-header"><h2>Interactive Site Map</h2></div><div className="map-container"><iframe src="https://app.higharc.com/builders/NrnKLBX5m3X2WpAR/locations/vqGWerxzkAp9d0B6/sales-map" title="Site Map" /></div></div></section>
 

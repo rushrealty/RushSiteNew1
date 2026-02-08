@@ -43,15 +43,6 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [isTourRequest, setIsTourRequest] = useState(false);
-  const [isInIframe, setIsInIframe] = useState(false);
-
-  useEffect(() => {
-    try {
-      setIsInIframe(window.self !== window.top);
-    } catch {
-      setIsInIframe(true);
-    }
-  }, []);
 
   const openContactForm = (forTour: boolean) => {
     setIsTourRequest(forTour);
@@ -123,9 +114,9 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   const totalMonthly = mortgagePayment + propertyTax + insurance + hoa;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center ${isInIframe ? '' : 'md:p-4'} bg-black/60 backdrop-blur-xl animate-fade-in font-sans`}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/60 backdrop-blur-xl animate-fade-in font-sans">
        <div
-         className={`bg-[#F9F9F9] w-full max-w-7xl h-full ${isInIframe ? '' : 'md:h-[95vh] md:rounded-[2rem]'} shadow-2xl relative overflow-hidden flex flex-col`}
+         className="bg-[#F9F9F9] w-full max-w-7xl h-full md:h-[95vh] rounded-none md:rounded-[2rem] shadow-2xl relative overflow-hidden flex flex-col"
          onClick={(e) => e.stopPropagation()}
        >
           {/* Modal Header Bar */}

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Property } from '@/types';
-import PropertyDetailModal from '@/components/PropertyDetailModal';
 
 const PinehurstVillageContent = () => {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -16,7 +15,6 @@ const PinehurstVillageContent = () => {
   const [activeSection, setActiveSection] = useState('about');
   const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Gallery images from Google Drive
   const galleryImages = [
@@ -1385,7 +1383,10 @@ const PinehurstVillageContent = () => {
                       {home.completionDate && <div style={{fontSize: '0.85rem', color: '#6b7280', marginTop: '0.25rem'}}>Move-in: {home.completionDate}</div>}
                     </div>
                     <div className="floorplan-action">
-                      <button className="floorplan-view-btn" onClick={() => setSelectedProperty(home)}>View Details</button>
+                      <button className="floorplan-view-btn" onClick={() => {
+                        const url = `/quick-move-in?propertyId=${home.id}`;
+                        try { if (window.self !== window.top && window.top) { window.top.location.href = url; } else { window.location.href = url; } } catch { window.location.href = url; }
+                      }}>View Details</button>
                     </div>
                   </div>
                 </div>
@@ -1394,13 +1395,6 @@ const PinehurstVillageContent = () => {
           </div>
         </section>
 
-        {selectedProperty && (
-          <PropertyDetailModal
-            property={selectedProperty}
-            onClose={() => setSelectedProperty(null)}
-            onPropertyClick={(prop) => setSelectedProperty(prop)}
-          />
-        )}
 
         {/* Site Map Section */}
         <section className="map-section" id="map">
