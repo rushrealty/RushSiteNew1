@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
@@ -100,6 +100,7 @@ interface QuickMoveInContentProps {
 
 const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick, initialPropertyId }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
   const [priceMin, setPriceMin] = useState<number | null>(null);
@@ -319,21 +320,24 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     fetchHomes();
   }, []);
 
-  // Auto-open property modal if initialPropertyId is provided (only once)
+  // Auto-open property modal if initialPropertyId or URL param is provided (only once)
+  const urlPropertyId = searchParams.get('propertyId');
+  const targetPropertyId = initialPropertyId || urlPropertyId;
+
   useEffect(() => {
-    if (initialPropertyId && allHomes.length > 0 && !hasProcessedInitialProperty.current) {
-      const property = allHomes.find(home => home.id === initialPropertyId);
+    if (targetPropertyId && allHomes.length > 0 && !hasProcessedInitialProperty.current) {
+      const property = allHomes.find(home => home.id === targetPropertyId);
       if (property) {
         setSelectedProperty(property);
         hasProcessedInitialProperty.current = true;
       }
     }
-  }, [initialPropertyId, allHomes]);
+  }, [targetPropertyId, allHomes]);
 
   // Handle closing the modal - clear URL parameter
   const handleCloseModal = () => {
     setSelectedProperty(null);
-    if (initialPropertyId) {
+    if (targetPropertyId) {
       router.replace('/quick-move-in', { scroll: false });
     }
   };
