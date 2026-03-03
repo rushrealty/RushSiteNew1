@@ -179,9 +179,11 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
     // Check multiple possible column names for community pool
     const hasCommunityPool = isYes(row['community_pool']) || isYes(row['communitypool']) || isYes(row['Community Pool']) || isYes(row['has_community_pool']) || isYes(row['pool']);
 
-    // Parse school names from semicolon-separated format (check multiple column name variations)
+    // Parse schools - either a Niche URL or semicolon-separated school names
     const schoolsValue = row['schools'] || row['Schools'] || row['school_names'] || row['schoolNames'] || '';
-    const schoolNames = parseSchoolNames(schoolsValue);
+    const isSchoolsUrl = schoolsValue.trim().startsWith('http');
+    const schoolNames = isSchoolsUrl ? [] : parseSchoolNames(schoolsValue);
+    const schoolsUrl = isSchoolsUrl ? schoolsValue.trim() : undefined;
 
     // Support both 'id' and 'community_id' column names
     const id = row.id || row.community_id || '';
@@ -202,6 +204,7 @@ function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] 
       address: row.address || '',
       schoolDistrict: row.school_district || '',
       schoolNames,
+      schoolsUrl,
       modelPhotos: [
         row.model_photo_1,
         row.model_photo_2,

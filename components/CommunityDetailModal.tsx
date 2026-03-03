@@ -131,11 +131,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     fetchNearbyPlaces();
   }, [community.address, community.city, community.state]);
 
-  // Fetch schools from Google Places API
+  // Fetch schools from Google Places API via communityId (API handles Niche URL vs school names lookup)
   useEffect(() => {
     async function fetchSchools() {
-      // If no school names provided, don't fetch
-      if (!community.schoolNames || community.schoolNames.length === 0) {
+      if (!community.id) {
         setSchools([]);
         setLoadingSchools(false);
         return;
@@ -143,9 +142,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
 
       setLoadingSchools(true);
       try {
-        const address = community.address || `${community.city}, ${community.state}`;
-        const schoolNamesParam = community.schoolNames.join(';');
-        const response = await fetch(`/api/schools?address=${encodeURIComponent(address)}&schools=${encodeURIComponent(schoolNamesParam)}`);
+        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(community.id)}`);
         if (response.ok) {
           const data = await response.json();
           setSchools(data.schools || []);
@@ -160,7 +157,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
       }
     }
     fetchSchools();
-  }, [community.address, community.city, community.state, community.schoolNames]);
+  }, [community.id]);
 
   // Fetch quick move-in homes from inventory API
   useEffect(() => {
