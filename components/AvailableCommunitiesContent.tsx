@@ -420,13 +420,14 @@ const AvailableCommunitiesContent: React.FC = () => {
               const cardInner = (
                 <div className="community-card-inner">
                   <div className="community-logo-wrapper">
-                    <img 
-                      src={community.img} 
-                      alt={community.name} 
-                      style={{ 
+                    <img
+                      src={community.img}
+                      alt={community.name}
+                      referrerPolicy="no-referrer"
+                      style={{
                         objectFit: community.mainImageContain ? 'contain' : 'cover',
-                        padding: community.mainImageContain ? '1rem' : '0' 
-                      }} 
+                        padding: community.mainImageContain ? '1rem' : '0'
+                      }}
                     />
                   </div>
                   <div className="community-info">
