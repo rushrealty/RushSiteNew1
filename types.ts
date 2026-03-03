@@ -56,6 +56,7 @@ export interface Community {
   address: string;
   schoolDistrict: string;
   schoolNames: string[]; // Simple school names - details fetched via API
+  schoolsUrl?: string; // Niche.com URL with lat/lng for nearby school search
   features: string[];
 }
 

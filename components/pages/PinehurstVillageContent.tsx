@@ -15,6 +15,8 @@ const PinehurstVillageContent = () => {
   const [activeSection, setActiveSection] = useState('about');
   const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [schools, setSchools] = useState<{name: string; grades: string; distance: string}[]>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
 
   // Gallery images from Google Drive
   const galleryImages = [
@@ -162,6 +164,23 @@ const PinehurstVillageContent = () => {
       }
     }
     fetchInventoryHomes();
+  }, []);
+
+  useEffect(() => {
+    async function fetchSchools() {
+      try {
+        const response = await fetch('/api/schools?communityId=pinehurst-village');
+        if (response.ok) {
+          const data = await response.json();
+          setSchools(data.schools || []);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+      } finally {
+        setSchoolsLoading(false);
+      }
+    }
+    fetchSchools();
   }, []);
 
   useEffect(() => {
@@ -1418,12 +1437,25 @@ const PinehurstVillageContent = () => {
                   Schools
                 </h3>
                 <p className="school-district-name">Served by <strong>Lake Forest School District</strong></p>
-                <ul className="school-list">
-                  <li className="school-item"><div><div className="school-name">Lake Forest North Elementary</div><div className="school-grades">Grades PK, K-3</div></div><span className="school-distance">1.1 mi</span></li>
-                  <li className="school-item"><div><div className="school-name">Lake Forest Central Elementary</div><div className="school-grades">Grades 4-5</div></div><span className="school-distance">2.5 mi</span></li>
-                  <li className="school-item"><div><div className="school-name">W.T. Chipman Middle School</div><div className="school-grades">Grades 6-8</div></div><span className="school-distance">2.8 mi</span></li>
-                  <li className="school-item"><div><div className="school-name">Lake Forest High School</div><div className="school-grades">Grades 9-12</div></div><span className="school-distance">3.1 mi</span></li>
-                </ul>
+                {schoolsLoading ? (
+                  <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem' }}>Loading schools...</p>
+                ) : schools.length > 0 ? (
+                  <ul className="school-list">
+                    {schools.map((school, idx) => (
+                      <li key={idx} className="school-item">
+                        <div><div className="school-name">{school.name}</div>{school.grades && <div className="school-grades">Grades {school.grades}</div>}</div>
+                        <span className="school-distance">{school.distance}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="school-list">
+                    <li className="school-item"><div><div className="school-name">Lake Forest North Elementary</div><div className="school-grades">Grades PK, K-3</div></div><span className="school-distance">1.1 mi</span></li>
+                    <li className="school-item"><div><div className="school-name">Lake Forest Central Elementary</div><div className="school-grades">Grades 4-5</div></div><span className="school-distance">2.5 mi</span></li>
+                    <li className="school-item"><div><div className="school-name">W.T. Chipman Middle School</div><div className="school-grades">Grades 6-8</div></div><span className="school-distance">2.8 mi</span></li>
+                    <li className="school-item"><div><div className="school-name">Lake Forest High School</div><div className="school-grades">Grades 9-12</div></div><span className="school-distance">3.1 mi</span></li>
+                  </ul>
+                )}
               </div>
               <div className="location-card">
                 <h3>

@@ -87,6 +87,8 @@ const AbbottsPondContent: React.FC = () => {
 
   const [inventoryHomes, setInventoryHomes] = useState<Property[]>([]);
   const [inventoryLoading, setInventoryLoading] = useState(true);
+  const [schools, setSchools] = useState<{name: string; grades: string; distance: string}[]>([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -128,6 +130,23 @@ const AbbottsPondContent: React.FC = () => {
       }
     }
     fetchInventoryHomes();
+  }, []);
+
+  useEffect(() => {
+    async function fetchSchools() {
+      try {
+        const response = await fetch('/api/schools?communityId=abbotts-pond');
+        if (response.ok) {
+          const data = await response.json();
+          setSchools(data.schools || []);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+      } finally {
+        setSchoolsLoading(false);
+      }
+    }
+    fetchSchools();
   }, []);
 
   const openModal = (type: 'share' | 'request', subtitle?: string) => {
@@ -512,12 +531,25 @@ const AbbottsPondContent: React.FC = () => {
         <div className="location-card">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Schools</h3>
           <p className="school-district-name">Served by <strong>Milford School District</strong></p>
-          <ul className="school-list">
-            <li className="school-item"><div><div className="school-name">Evelyn I. Morris Early Childhood</div><div className="school-grades">Grades PK, K</div></div><div className="school-distance">10.6 mi</div></li>
-            <li className="school-item"><div><div className="school-name">Mispillion Elementary School</div><div className="school-grades">Grades 1-5</div></div><div className="school-distance">11.7 mi</div></li>
-            <li className="school-item"><div><div className="school-name">Milford Central Academy</div><div className="school-grades">Grades 6-8</div></div><div className="school-distance">11.2 mi</div></li>
-            <li className="school-item"><div><div className="school-name">Milford Senior High School</div><div className="school-grades">Grades 9-12</div></div><div className="school-distance">11.2 mi</div></li>
-          </ul>
+          {schoolsLoading ? (
+            <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem' }}>Loading schools...</p>
+          ) : schools.length > 0 ? (
+            <ul className="school-list">
+              {schools.map((school, idx) => (
+                <li key={idx} className="school-item">
+                  <div><div className="school-name">{school.name}</div>{school.grades && <div className="school-grades">Grades {school.grades}</div>}</div>
+                  <div className="school-distance">{school.distance}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul className="school-list">
+              <li className="school-item"><div><div className="school-name">Evelyn I. Morris Early Childhood</div><div className="school-grades">Grades PK, K</div></div><div className="school-distance">10.6 mi</div></li>
+              <li className="school-item"><div><div className="school-name">Mispillion Elementary School</div><div className="school-grades">Grades 1-5</div></div><div className="school-distance">11.7 mi</div></li>
+              <li className="school-item"><div><div className="school-name">Milford Central Academy</div><div className="school-grades">Grades 6-8</div></div><div className="school-distance">11.2 mi</div></li>
+              <li className="school-item"><div><div className="school-name">Milford Senior High School</div><div className="school-grades">Grades 9-12</div></div><div className="school-distance">11.2 mi</div></li>
+            </ul>
+          )}
         </div>
         <div className="location-card">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>What&apos;s Nearby</h3>

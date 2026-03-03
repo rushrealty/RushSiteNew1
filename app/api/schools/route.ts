@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchInventoryData } from '@/lib/inventory';
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
@@ -105,17 +106,111 @@ function inferGrades(schoolName: string): string {
   return '';
 }
 
+// Parse lat/lng from a Niche.com URL like: https://niche.com/k12/schools-near-you/?center=-75.53289,39.04721
+function parseNicheUrl(url: string): { lat: number; lng: number } | null {
+  try {
+    const parsed = new URL(url);
+    const center = parsed.searchParams.get('center');
+    if (!center) return null;
+    const [lng, lat] = center.split(',').map(Number);
+    if (isNaN(lat) || isNaN(lng)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
+}
+
+// Find nearby schools using Google Places Nearby Search
+async function findNearbySchools(lat: number, lng: number, radius: number = 16000): Promise<GooglePlace[]> {
+  const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=school&key=${GOOGLE_MAPS_API_KEY}`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (data.status === 'OK' && data.results.length > 0) {
+    // Filter to likely K-12 schools (exclude driving schools, dance schools, etc.)
+    return data.results.filter((place: any) => {
+      const name = place.name.toLowerCase();
+      return name.includes('elementary') || name.includes('middle') || name.includes('high school') ||
+             name.includes('academy') || name.includes('school district') || name.includes('early childhood') ||
+             name.includes('intermediate') || name.includes('junior high') || name.includes('senior high') ||
+             (place.types && place.types.includes('school') && !name.includes('driving') && !name.includes('dance') &&
+              !name.includes('beauty') && !name.includes('cosmetology') && !name.includes('music') &&
+              !name.includes('martial') && !name.includes('karate') && !name.includes('swim'));
+    });
+  }
+  return [];
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const address = searchParams.get('address');
-  const schoolNames = searchParams.get('schools'); // Semicolon-separated school names
+  let address = searchParams.get('address');
+  let schoolNames = searchParams.get('schools'); // Semicolon-separated school names
+  let nicheUrl = searchParams.get('nicheUrl'); // Niche.com URL with lat/lng
+  const communityId = searchParams.get('communityId'); // Community ID to look up from Sheet
 
   if (!GOOGLE_MAPS_API_KEY) {
     return NextResponse.json({ error: 'Google Maps API key not configured' }, { status: 500 });
   }
 
+  // If communityId is provided, look up school data from Google Sheet
+  if (communityId) {
+    try {
+      const inventoryData = await fetchInventoryData();
+      const community = inventoryData.communities.find(c => c.id === communityId);
+      if (community) {
+        if (community.schoolsUrl) {
+          nicheUrl = community.schoolsUrl;
+        } else if (community.schoolNames && community.schoolNames.length > 0) {
+          schoolNames = community.schoolNames.join(';');
+          address = community.address || `${community.city}, DE`;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching community data for schools:', error);
+    }
+  }
+
+  // Mode 1: Nearby search using Niche URL coordinates
+  if (nicheUrl) {
+    const coords = parseNicheUrl(nicheUrl);
+    if (!coords) {
+      return NextResponse.json({ error: 'Could not parse coordinates from Niche URL' }, { status: 400 });
+    }
+
+    const nearbyPlaces = await findNearbySchools(coords.lat, coords.lng);
+    const schools: SchoolResult[] = [];
+
+    for (const place of nearbyPlaces.slice(0, 8)) {
+      const distance = await getDrivingDistance(
+        coords.lat, coords.lng,
+        place.geometry.location.lat, place.geometry.location.lng
+      );
+
+      schools.push({
+        name: place.name,
+        grades: inferGrades(place.name),
+        distance: distance || 'N/A',
+        placeId: place.place_id,
+      });
+    }
+
+    // Sort by distance
+    schools.sort((a, b) => {
+      const distA = parseFloat(a.distance) || 999;
+      const distB = parseFloat(b.distance) || 999;
+      return distA - distB;
+    });
+
+    return NextResponse.json({
+      schools,
+      origin: coords,
+    });
+  }
+
+  // Mode 2: Named school search (original behavior)
   if (!address) {
-    return NextResponse.json({ error: 'Address is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Address or nicheUrl is required' }, { status: 400 });
   }
 
   if (!schoolNames) {
