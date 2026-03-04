@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { sendFubEvent } from '@/lib/fub';
 
 const WiggsinsMillContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -544,6 +545,29 @@ const WiggsinsMillContent: React.FC = () => {
                             headers: { 'Accept': 'application/json' }
                         });
                         if (response.ok) {
+                            // Send event to Follow Up Boss CRM (fire-and-forget)
+                            const formData = new FormData(form);
+                            const fullName = String(formData.get('name') || '');
+                            const nameParts = fullName.trim().split(/\s+/);
+                            const firstName = nameParts[0] || '';
+                            const lastName = nameParts.slice(1).join(' ') || '';
+                            sendFubEvent({
+                              type: 'Property Inquiry',
+                              firstName,
+                              lastName,
+                              email: String(formData.get('email') || ''),
+                              phone: String(formData.get('phone') || '') || undefined,
+                              message: String(formData.get('message') || '') || undefined,
+                              description: `Showing Request | 404 Wiggins Mill Rd, Townsend, DE | Preferred: ${formData.get('preferred_time') || 'Flexible'}`,
+                              tags: ['Showing Request', 'Wiggins Mill'],
+                              property: {
+                                street: '404 Wiggins Mill Rd',
+                                city: 'Townsend',
+                                state: 'DE',
+                                code: '19734',
+                                type: 'Residential',
+                              },
+                            });
                             form.innerHTML = '<div style="text-align: center; padding: 2rem 0;"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" width="48" height="48" style="margin: 0 auto 1rem; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-weight: 700;">Request Sent!</h3><p style="color: #525252; margin-bottom: 1.5rem;">Marcus will be in touch shortly to schedule your showing.</p></div>';
                         } else { throw new Error('Failed'); }
                     } catch (error) {

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Loader2, CheckCircle2, Home, Building2, Calendar, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { sendFubEvent } from '@/lib/fub';
 
 interface ContactFormModalProps {
   isOpen: boolean;
@@ -97,6 +98,40 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
       if (response.ok) {
         setSubmitted(true);
+
+        // Send event to Follow Up Boss CRM (fire-and-forget)
+        const fubEventType = isTourRequest
+          ? (subjectType === 'property' ? 'Property Inquiry' : 'Inquiry')
+          : 'General Inquiry';
+
+        const tourInfo = isTourRequest && formData.preferredDate
+          ? `Preferred: ${formattedDate} at ${formData.preferredTime}`
+          : undefined;
+
+        sendFubEvent({
+          type: fubEventType,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          message: formData.message || undefined,
+          description: [
+            isTourRequest ? 'Tour Request' : 'Information Request',
+            `${subjectType === 'property' ? 'Property' : 'Community'}: ${subjectName}`,
+            subjectDetails,
+            tourInfo,
+          ].filter(Boolean).join(' | '),
+          tags: [
+            isTourRequest ? 'Tour Request' : 'Inquiry',
+            subjectType === 'property' ? 'Property' : 'Community',
+          ],
+          ...(subjectType === 'property' && {
+            property: {
+              street: subjectName,
+              type: 'Residential',
+            },
+          }),
+        });
       } else {
         const data = await response.json();
         setError(data.error || 'Something went wrong. Please try again.');
