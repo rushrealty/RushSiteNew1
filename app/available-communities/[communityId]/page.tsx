@@ -3,6 +3,7 @@
 import React, { use, useState, useEffect } from 'react';
 import { COMMUNITIES_DATA } from '../../../data/communities';
 import { ShieldCheck, CheckCircle2, Share2, Home, Bed, Bath, Car, Square, Calendar } from 'lucide-react';
+import ShareDropdown from '@/components/ShareDropdown';
 import Link from 'next/link';
 
 interface InventoryHome {
@@ -96,6 +97,7 @@ export default function Page({ params }: { params: Promise<{ communityId: string
   const [sheetCommunity, setSheetCommunity] = useState<SheetCommunity | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedHome, setExpandedHome] = useState<string | null>(null);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
   // Try to get community from hardcoded data first
   const hardcodedCommunity = COMMUNITIES_DATA[communityId];
@@ -315,9 +317,22 @@ export default function Page({ params }: { params: Promise<{ communityId: string
             <span className="text-black font-bold">{communityName}</span>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 font-bold transition-colors">
-              <Share2 size={18} /> Share
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowShareDropdown(!showShareDropdown)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 font-bold transition-colors"
+              >
+                <Share2 size={18} /> Share
+              </button>
+              {showShareDropdown && (
+                <ShareDropdown
+                  url={`https://rushhome.com/available-communities/${communityId}`}
+                  title={`${communityName} - New Homes in ${communityLocation}`}
+                  description={communityDescription}
+                  onClose={() => setShowShareDropdown(false)}
+                />
+              )}
+            </div>
           </div>
         </div>
 
