@@ -5,7 +5,7 @@ import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
 import { Property } from '../types';
-import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle } from 'lucide-react';
+import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle, MapPin, Clock, Loader2 } from 'lucide-react';
 
 // Simple Line Chart Component for Market History
 const MarketChart = () => {
@@ -33,16 +33,38 @@ const MarketChart = () => {
   );
 };
 
+// School type from API
+interface ApiSchoolInfo {
+  name: string;
+  grades: string;
+  distance: string;
+}
+
+// Nearby place type from API
+interface NearbyPlace {
+  name: string;
+  location?: string;
+  time: string;
+  type: string;
+}
+
 interface PropertyDetailModalProps {
   property: Property;
   onClose: () => void;
   onPropertyClick: (property: Property) => void;
+  allProperties?: Property[];
 }
 
-const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick }) => {
+const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick, allProperties }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [isTourRequest, setIsTourRequest] = useState(false);
+
+  // State for schools and nearby places from API
+  const [apiSchools, setApiSchools] = useState<ApiSchoolInfo[]>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(true);
 
   const openContactForm = (forTour: boolean) => {
     setIsTourRequest(forTour);
@@ -66,7 +88,8 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
       return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     };
 
-    const others = MOCK_PROPERTIES.filter(p => p.id !== property.id);
+    const propertyList = allProperties && allProperties.length > 0 ? allProperties : MOCK_PROPERTIES;
+    const others = propertyList.filter(p => p.id !== property.id);
 
     // Priority 1: Homes in the same community
     const sameCommunity = others.filter(p => p.community && p.community === property.community);
@@ -80,14 +103,79 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
         })
       : [];
 
-    return [...sameCommunity, ...nearbyHomes];
-  }, [property]);
+    const results = [...sameCommunity, ...nearbyHomes];
+
+    // Fallback: if no community/nearby matches, show homes in same county with similar price/beds
+    if (results.length === 0) {
+      return others
+        .filter(p => {
+          const sameCounty = p.county === property.county;
+          const similarPrice = Math.abs(p.price - property.price) < 75000;
+          const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+          const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
+          return matchScore >= 3;
+        })
+        .slice(0, 6);
+    }
+
+    return results;
+  }, [property, allProperties]);
 
   // Check if this is a quick move-in home (no amenities/price history)
   const isQuickMoveIn = property.isQuickMoveIn ||
     (property.priceHistory.length === 0 && !property.mlsId);
 
   const community = MOCK_COMMUNITIES.find(c => c.name === property.community);
+
+  // Fetch schools from API using community ID
+  useEffect(() => {
+    async function fetchSchools() {
+      if (!community?.id) {
+        setApiSchools([]);
+        setLoadingSchools(false);
+        return;
+      }
+      setLoadingSchools(true);
+      try {
+        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(community.id)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setApiSchools(data.schools || []);
+        } else {
+          setApiSchools([]);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        setApiSchools([]);
+      } finally {
+        setLoadingSchools(false);
+      }
+    }
+    fetchSchools();
+  }, [community?.id]);
+
+  // Fetch nearby places from API using property address
+  useEffect(() => {
+    async function fetchNearbyPlaces() {
+      const address = community?.address || `${property.address}, ${property.city}, ${property.state}`;
+      setLoadingNearby(true);
+      try {
+        const response = await fetch(`/api/nearby-places?address=${encodeURIComponent(address)}&limit=7`);
+        if (response.ok) {
+          const data = await response.json();
+          setNearbyPlaces(data.places || []);
+        } else {
+          setNearbyPlaces([]);
+        }
+      } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        setNearbyPlaces([]);
+      } finally {
+        setLoadingNearby(false);
+      }
+    }
+    fetchNearbyPlaces();
+  }, [community?.address, property.address, property.city, property.state]);
 
   // Check if this property has MLS data (for tax/HOA information)
   const hasMlsData = !!property.mlsId;
@@ -362,28 +450,69 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                         </div>
                       )}
 
-                      {/* Schools */}
-                      <div className="mb-12">
-                         <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Nearby Schools</h2>
-                         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm p-6">
-                            {property.schools.map((school, i) => (
-                               <div key={i} className={`flex items-center justify-between py-4 ${i !== property.schools.length -1 ? 'border-b border-gray-50' : ''}`}>
-                                  <div className="flex items-center gap-4">
-                                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-900 text-lg">
-                                        {school.rating}
-                                     </div>
-                                     <div>
-                                        <p className="font-bold text-gray-900">{school.name}</p>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide">{school.level}</p>
-                                     </div>
-                                  </div>
-                                  <span className="text-sm text-gray-500 font-medium">{school.distance}</span>
-                               </div>
-                            ))}
-                            <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400 text-center">
-                               School ratings and boundaries are subject to change. Please verify with the local school district.
-                            </div>
-                         </div>
+                      {/* Schools and Nearby Section */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                          {/* Schools */}
+                          <div>
+                              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <CheckCircle className="text-compass-gold" size={24}/> Schools
+                              </h2>
+                              {community?.schoolDistrict && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{community.schoolDistrict}</span></p>
+                                </div>
+                              )}
+                              <div className="space-y-4">
+                                  {loadingSchools ? (
+                                    <div className="flex items-center py-4">
+                                      <Loader2 className="w-5 h-5 animate-spin text-compass-gold mr-2" />
+                                      <span className="text-sm text-gray-500">Loading school information...</span>
+                                    </div>
+                                  ) : apiSchools.length > 0 ? (
+                                    apiSchools.map((school, i) => (
+                                      <div key={i} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+                                          <div>
+                                              <p className="font-bold text-gray-900 text-sm">{school.name}</p>
+                                              {school.grades && <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>}
+                                          </div>
+                                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{school.distance}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500">School information coming soon</p>
+                                  )}
+                              </div>
+                          </div>
+
+                          {/* Nearby */}
+                          <div>
+                              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <MapPin className="text-compass-gold" size={24}/> What&apos;s Nearby
+                              </h2>
+                              <div className="space-y-4 bg-white rounded-2xl border border-gray-100 p-6">
+                                  {loadingNearby ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="w-6 h-6 animate-spin text-compass-gold" />
+                                      <span className="ml-2 text-sm text-gray-500">Finding nearby places...</span>
+                                    </div>
+                                  ) : nearbyPlaces.length > 0 ? (
+                                    nearbyPlaces.map((item, i) => (
+                                      <div key={i} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
+                                          <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
+                                              <Clock size={14} />
+                                          </div>
+                                          <div className="flex-grow">
+                                              <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                                              {item.location && <p className="text-xs text-gray-500">({item.location})</p>}
+                                          </div>
+                                          <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{item.time}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500 py-4">Nearby places information unavailable</p>
+                                  )}
+                              </div>
+                          </div>
                       </div>
 
                       {/* Market History Graph */}

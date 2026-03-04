@@ -1180,6 +1180,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
            property={selectedProperty}
            onClose={handleCloseModal}
            onPropertyClick={(property) => setSelectedProperty(property)}
+           allProperties={allHomes}
          />
        )}
     </div>
