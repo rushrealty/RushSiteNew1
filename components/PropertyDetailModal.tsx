@@ -66,6 +66,12 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(true);
 
+  // State for community data fetched from API (for schoolDistrict, address, etc.)
+  const [apiCommunityData, setApiCommunityData] = useState<{ schoolDistrict?: string; address?: string } | null>(null);
+
+  // State for similar homes fetched from API
+  const [similarHomes, setSimilarHomes] = useState<Property[]>([]);
+
   const openContactForm = (forTour: boolean) => {
     setIsTourRequest(forTour);
     setShowContactForm(true);
@@ -77,48 +83,72 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
     }
   }, [property]);
 
-  const similarHomes = useMemo(() => {
-    // Haversine distance in miles between two lat/lng points
-    const getDistanceMiles = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-      const toRad = (deg: number) => deg * (Math.PI / 180);
-      const R = 3958.8; // Earth radius in miles
-      const dLat = toRad(lat2 - lat1);
-      const dLng = toRad(lng2 - lng1);
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    };
+  // Fetch similar homes from API by community, with fallback to local matching
+  useEffect(() => {
+    async function fetchSimilarHomes() {
+      // Try fetching community homes from the API first
+      if (property.communityId) {
+        try {
+          const response = await fetch(`/api/quick-move-in?communityId=${encodeURIComponent(property.communityId)}`);
+          if (response.ok) {
+            const data = await response.json();
+            const communityHomes = (data.homes || []).filter((h: Property) => h.id !== property.id);
+            if (communityHomes.length > 0) {
+              setSimilarHomes(communityHomes);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching community homes:', error);
+        }
+      }
 
-    const propertyList = allProperties && allProperties.length > 0 ? allProperties : MOCK_PROPERTIES;
-    const others = propertyList.filter(p => p.id !== property.id);
+      // Fallback: use allProperties prop or MOCK_PROPERTIES for local matching
+      const propertyList = allProperties && allProperties.length > 0 ? allProperties : MOCK_PROPERTIES;
+      const others = propertyList.filter(p => p.id !== property.id);
 
-    // Priority 1: Homes in the same community
-    const sameCommunity = others.filter(p => p.community && p.community === property.community);
+      // Priority 1: Homes in the same community (by name)
+      const sameCommunity = others.filter(p => p.community && p.community === property.community);
 
-    // Priority 2: Homes within 0.5 mile radius (if current property has coordinates)
-    const nearbyHomes = (property.latitude && property.longitude)
-      ? others.filter(p => {
-          if (sameCommunity.some(sc => sc.id === p.id)) return false; // avoid duplicates
-          if (!p.latitude || !p.longitude) return false;
-          return getDistanceMiles(property.latitude!, property.longitude!, p.latitude, p.longitude) <= 0.5;
-        })
-      : [];
+      // Priority 2: Homes within 0.5 mile radius
+      const getDistanceMiles = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+        const toRad = (deg: number) => deg * (Math.PI / 180);
+        const R = 3958.8;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      };
 
-    const results = [...sameCommunity, ...nearbyHomes];
+      const nearbyHomes = (property.latitude && property.longitude)
+        ? others.filter(p => {
+            if (sameCommunity.some(sc => sc.id === p.id)) return false;
+            if (!p.latitude || !p.longitude) return false;
+            return getDistanceMiles(property.latitude!, property.longitude!, p.latitude, p.longitude) <= 0.5;
+          })
+        : [];
 
-    // Fallback: if no community/nearby matches, show homes in same county with similar price/beds
-    if (results.length === 0) {
-      return others
-        .filter(p => {
-          const sameCounty = p.county === property.county;
-          const similarPrice = Math.abs(p.price - property.price) < 75000;
-          const similarBeds = Math.abs(p.beds - property.beds) <= 1;
-          const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
-          return matchScore >= 3;
-        })
-        .slice(0, 6);
+      const results = [...sameCommunity, ...nearbyHomes];
+
+      if (results.length > 0) {
+        setSimilarHomes(results);
+        return;
+      }
+
+      // Final fallback: same county with similar price/beds
+      setSimilarHomes(
+        others
+          .filter(p => {
+            const sameCounty = p.county === property.county;
+            const similarPrice = Math.abs(p.price - property.price) < 75000;
+            const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+            const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
+            return matchScore >= 3;
+          })
+          .slice(0, 6)
+      );
     }
-
-    return results;
+    fetchSimilarHomes();
   }, [property, allProperties]);
 
   // Check if this is a quick move-in home (no amenities/price history)
@@ -127,17 +157,44 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
 
   const community = MOCK_COMMUNITIES.find(c => c.name === property.community);
 
+  // The communityId from the property itself (set by transformInventoryHome) takes priority
+  const effectiveCommunityId = property.communityId || community?.id;
+
+  // Fetch community data from API when not found in static MOCK_COMMUNITIES
+  useEffect(() => {
+    async function fetchCommunityData() {
+      if (community || !effectiveCommunityId) return; // Already have it from MOCK_COMMUNITIES
+      try {
+        const response = await fetch('/api/communities');
+        if (response.ok) {
+          const data = await response.json();
+          const found = (data.communities || []).find((c: { id: string }) => c.id === effectiveCommunityId);
+          if (found) {
+            setApiCommunityData({ schoolDistrict: found.schoolDistrict, address: found.address });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching community data:', error);
+      }
+    }
+    fetchCommunityData();
+  }, [community, effectiveCommunityId]);
+
+  // Resolved community address and school district (from static or API data)
+  const communityAddress = community?.address || apiCommunityData?.address;
+  const communitySchoolDistrict = community?.schoolDistrict || apiCommunityData?.schoolDistrict;
+
   // Fetch schools from API using community ID
   useEffect(() => {
     async function fetchSchools() {
-      if (!community?.id) {
+      if (!effectiveCommunityId) {
         setApiSchools([]);
         setLoadingSchools(false);
         return;
       }
       setLoadingSchools(true);
       try {
-        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(community.id)}`);
+        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(effectiveCommunityId)}`);
         if (response.ok) {
           const data = await response.json();
           setApiSchools(data.schools || []);
@@ -152,12 +209,12 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
       }
     }
     fetchSchools();
-  }, [community?.id]);
+  }, [effectiveCommunityId]);
 
-  // Fetch nearby places from API using property address
+  // Fetch nearby places from API using community or property address
   useEffect(() => {
     async function fetchNearbyPlaces() {
-      const address = community?.address || `${property.address}, ${property.city}, ${property.state}`;
+      const address = communityAddress || `${property.address}, ${property.city}, ${property.state}`;
       setLoadingNearby(true);
       try {
         const response = await fetch(`/api/nearby-places?address=${encodeURIComponent(address)}&limit=7`);
@@ -175,7 +232,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
       }
     }
     fetchNearbyPlaces();
-  }, [community?.address, property.address, property.city, property.state]);
+  }, [communityAddress, property.address, property.city, property.state]);
 
   // Check if this property has MLS data (for tax/HOA information)
   const hasMlsData = !!property.mlsId;
@@ -457,9 +514,9 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                               <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <CheckCircle className="text-compass-gold" size={24}/> Schools
                               </h2>
-                              {community?.schoolDistrict && (
+                              {communitySchoolDistrict && (
                                 <div className="mb-4">
-                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{community.schoolDistrict}</span></p>
+                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{communitySchoolDistrict}</span></p>
                                 </div>
                               )}
                               <div className="space-y-4">

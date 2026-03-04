@@ -90,6 +90,7 @@ export interface Property {
   yearBuilt: number;
   builder: string;
   community: string;
+  communityId?: string; // Community ID for API lookups (e.g., schools, similar homes)
   status: PropertyStatus;
   description: string;
   images: string[];

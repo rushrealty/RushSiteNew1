@@ -183,6 +183,7 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     yearBuilt: new Date().getFullYear(),
     builder: home.builder?.name || '',
     community: home.community?.name || '',
+    communityId: home.communityId || home.community?.id || '',
     status,
     description: home.description || '',
     images,
