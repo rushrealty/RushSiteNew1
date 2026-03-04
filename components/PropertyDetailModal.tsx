@@ -80,7 +80,22 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
         })
       : [];
 
-    return [...sameCommunity, ...nearbyHomes];
+    const results = [...sameCommunity, ...nearbyHomes];
+
+    // Fallback: if no community/nearby matches, show homes in same county with similar price/beds
+    if (results.length === 0) {
+      return others
+        .filter(p => {
+          const sameCounty = p.county === property.county;
+          const similarPrice = Math.abs(p.price - property.price) < 75000;
+          const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+          const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
+          return matchScore >= 3;
+        })
+        .slice(0, 6);
+    }
+
+    return results;
   }, [property]);
 
   // Check if this is a quick move-in home (no amenities/price history)
