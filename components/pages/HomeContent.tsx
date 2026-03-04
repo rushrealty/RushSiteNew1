@@ -265,6 +265,7 @@ const HomeContent: React.FC = () => {
           property={selectedProperty}
           onClose={() => setSelectedProperty(null)}
           onPropertyClick={setSelectedProperty}
+          allProperties={quickMoveInHomes}
         />
       )}
     </>
