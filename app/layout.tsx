@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import LocalBusinessSchema from "../components/LocalBusinessSchema";
 import Script from "next/script";
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { Suspense } from 'react';
+import FubTracker from '@/components/FubTracker';
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -98,6 +100,9 @@ export default function RootLayout({
       </head>
       <body className={`${montserrat.variable} ${playfair.variable} font-sans antialiased bg-white text-gray-900`}>
         <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <FubTracker />
+        </Suspense>
         <LocalBusinessSchema />
         <Header />
         <main>{children}</main>
