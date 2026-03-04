@@ -56,29 +56,31 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   }, [property]);
 
   const similarHomes = useMemo(() => {
-    // Find similar homes based on: same county, similar price range, similar bed count
-    return MOCK_PROPERTIES
-      .filter(p => {
-        if (p.id === property.id) return false;
+    // Haversine distance in miles between two lat/lng points
+    const getDistanceMiles = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+      const toRad = (deg: number) => deg * (Math.PI / 180);
+      const R = 3958.8; // Earth radius in miles
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
 
-        // Must be in same county or nearby price range
-        const sameCounty = p.county === property.county;
-        const similarPrice = Math.abs(p.price - property.price) < 75000;
-        const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+    const others = MOCK_PROPERTIES.filter(p => p.id !== property.id);
 
-        // Score based on similarity
-        const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
-        return matchScore >= 3; // Must match at least 3 points
-      })
-      .sort((a, b) => {
-        // Sort by similarity to current property
-        const aScore = (a.county === property.county ? 2 : 0) +
-                       (Math.abs(a.beds - property.beds) <= 1 ? 1 : 0);
-        const bScore = (b.county === property.county ? 2 : 0) +
-                       (Math.abs(b.beds - property.beds) <= 1 ? 1 : 0);
-        return bScore - aScore;
-      })
-      .slice(0, 3);
+    // Priority 1: Homes in the same community
+    const sameCommunity = others.filter(p => p.community && p.community === property.community);
+
+    // Priority 2: Homes within 0.5 mile radius (if current property has coordinates)
+    const nearbyHomes = (property.latitude && property.longitude)
+      ? others.filter(p => {
+          if (sameCommunity.some(sc => sc.id === p.id)) return false; // avoid duplicates
+          if (!p.latitude || !p.longitude) return false;
+          return getDistanceMiles(property.latitude!, property.longitude!, p.latitude, p.longitude) <= 0.5;
+        })
+      : [];
+
+    return [...sameCommunity, ...nearbyHomes];
   }, [property]);
 
   // Check if this is a quick move-in home (no amenities/price history)
@@ -517,9 +519,9 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                 {similarHomes.length > 0 && (
                   <div className="mt-16 pt-16 border-t border-gray-200">
                      <h2 className="text-3xl font-serif font-bold text-gray-900 mb-8">Similar Homes You Might Like</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
                         {similarHomes.map(home => (
-                           <div key={home.id} className="h-full">
+                           <div key={home.id} className="flex-shrink-0 w-[300px] md:w-[340px] snap-start">
                               <PropertyCard property={home} onClick={onPropertyClick} />
                            </div>
                         ))}
