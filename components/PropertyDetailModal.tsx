@@ -5,6 +5,7 @@ import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
 import ShareDropdown from './ShareDropdown';
+import { trackFubPageView } from './FubTracker';
 import { Property } from '../types';
 import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle, MapPin, Clock, Loader2 } from 'lucide-react';
 
@@ -83,6 +84,15 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
     if (modalRef.current) {
       modalRef.current.scrollTop = 0;
     }
+  }, [property]);
+
+  // Track virtual pageview in FUB when property modal opens
+  useEffect(() => {
+    const originalTitle = document.title;
+    trackFubPageView(`${property.title} - ${property.address}, ${property.city}, ${property.state} | Rush Home Team`);
+    return () => {
+      document.title = originalTitle;
+    };
   }, [property]);
 
   // Fetch similar homes from API by community, with fallback to local matching

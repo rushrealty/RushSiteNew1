@@ -5,6 +5,7 @@ import { Community, Property } from '../types';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
 import ShareDropdown from './ShareDropdown';
+import { trackFubPageView } from './FubTracker';
 import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2, Share2 } from 'lucide-react';
 
 // School type from API
@@ -85,6 +86,15 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     if (modalRef.current) {
       modalRef.current.scrollTop = 0;
     }
+  }, [community]);
+
+  // Track virtual pageview in FUB when community modal opens
+  useEffect(() => {
+    const originalTitle = document.title;
+    trackFubPageView(`${community.name} - ${community.city}, ${community.state} | Rush Home Team`);
+    return () => {
+      document.title = originalTitle;
+    };
   }, [community]);
 
   // Fetch new construction homes for this community
