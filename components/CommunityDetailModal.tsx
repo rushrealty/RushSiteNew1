@@ -4,7 +4,8 @@ import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
-import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2 } from 'lucide-react';
+import ShareDropdown from './ShareDropdown';
+import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2, Share2 } from 'lucide-react';
 
 // School type from API
 interface SchoolInfo {
@@ -57,6 +58,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [isTourRequest, setIsTourRequest] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
   const openContactForm = (forTour: boolean) => {
     setIsTourRequest(forTour);
@@ -199,9 +201,27 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                     </span>
                   </div>
               </div>
-              <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-black hover:text-white rounded-full text-gray-900 transition-colors">
-                  <X size={24} />
-              </button>
+              <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowShareDropdown(!showShareDropdown)}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                    >
+                      <Share2 size={20} />
+                    </button>
+                    {showShareDropdown && (
+                      <ShareDropdown
+                        url={`https://rushhome.com/available-communities/${community.slug || community.id}`}
+                        title={`${community.name} - New Homes in ${community.city}, ${community.state}`}
+                        description={community.description || `New construction community in ${community.city}, ${community.state}. ${community.priceRange}`}
+                        onClose={() => setShowShareDropdown(false)}
+                      />
+                    )}
+                  </div>
+                  <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-black hover:text-white rounded-full text-gray-900 transition-colors">
+                      <X size={24} />
+                  </button>
+              </div>
           </div>
 
           {/* Scrollable Content */}

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../constants';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
+import ShareDropdown from './ShareDropdown';
 import { Property } from '../types';
 import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle, MapPin, Clock, Loader2 } from 'lucide-react';
 
@@ -59,6 +60,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [isTourRequest, setIsTourRequest] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
 
   // State for schools and nearby places from API
   const [apiSchools, setApiSchools] = useState<ApiSchoolInfo[]>([]);
@@ -278,9 +280,22 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                   </div>
               </div>
               <div className="flex items-center gap-3">
-                  <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors hidden sm:block">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowShareDropdown(!showShareDropdown)}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                    >
                       <Share2 size={20} />
-                  </button>
+                    </button>
+                    {showShareDropdown && (
+                      <ShareDropdown
+                        url={`https://rushhome.com/property/${property.id}`}
+                        title={`${property.title} - ${property.address}, ${property.city}, ${property.state}`}
+                        description={`${property.beds} bed, ${property.baths} bath, ${property.sqft.toLocaleString()} sqft home in ${property.community || property.city}. $${property.price.toLocaleString()}`}
+                        onClose={() => setShowShareDropdown(false)}
+                      />
+                    )}
+                  </div>
                   <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors hidden sm:block">
                       <Heart size={20} />
                   </button>
