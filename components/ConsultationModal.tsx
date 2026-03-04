@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { sendFubEvent } from '@/lib/fub';
 
 interface ConsultationModalProps {
   onClose: () => void;
@@ -122,6 +123,21 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ onClose, isOpen }
 
       if (response.ok) {
         setSubmitted(true);
+
+        // Send event to Follow Up Boss CRM (fire-and-forget)
+        sendFubEvent({
+          type: 'Seller Inquiry',
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          description: `Selling Consultation Request | Property: ${formData.address}`,
+          tags: ['Seller', 'Consultation Request'],
+          property: {
+            street: formData.address,
+            type: 'Residential',
+          },
+        });
       } else {
         const data = await response.json();
         setError(data.error || 'Something went wrong. Please try again.');
