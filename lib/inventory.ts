@@ -236,6 +236,7 @@ function parseInventory(data: Record<string, string>[]): InventoryHome[] {
     photoUrl: row.photo_url ? convertGoogleDriveUrl(row.photo_url) : undefined,
     featured: row.featured?.toLowerCase() === 'true',
     homeType: row.home_type || row.homeType || row['Home Type'] || undefined,
+    stories: row.stories ? parseInt(row.stories, 10) || undefined : undefined,
     basement: row.basement || undefined,
     heating: row.heating || undefined,
     cooling: row.cooling || undefined,
