@@ -202,7 +202,7 @@ const HomeContent: React.FC = () => {
               className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory px-4 md:px-8"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {communities.map((community) => (
+              {communities.slice(0, 10).map((community) => (
                 <div key={community.id} className="w-[55vw] md:w-[240px] snap-center flex-shrink-0">
                   <CommunityCard community={community} onClick={handleCommunityClick} />
                 </div>
