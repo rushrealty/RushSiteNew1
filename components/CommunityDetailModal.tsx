@@ -390,21 +390,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          )}
                       </div>
 
-                      {/* Market History Graph */}
-                      <div className="mb-16">
-                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Market Trends</h3>
-                          <p className="text-gray-500 text-sm mb-6">Average Home Value in {community.city}, {community.state}</p>
-                          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                              <div className="flex justify-between items-end mb-4">
-                                 <div>
-                                    <span className="text-3xl font-bold text-gray-900">$429k</span>
-                                    <span className="text-green-500 text-sm font-bold ml-2">+4.2%</span>
-                                 </div>
-                                 <div className="text-xs text-gray-400 uppercase tracking-widest">5 Year Trend</div>
-                              </div>
-                              <MarketChart />
-                          </div>
-                      </div>
+                      {/* Market History Graph - hidden until Repliers MLS data is connected */}
 
                       {/* Schools and Nearby Section */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
