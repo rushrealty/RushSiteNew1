@@ -6,7 +6,7 @@ import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_PROPERTIES } from '../../constants';
-import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, Loader2, Home, Waves, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
+import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, ChevronLeft, ChevronRight, Loader2, Home, Waves, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
 
 interface AutocompletePrediction {
   description: string;
@@ -118,6 +118,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [sortBy, setSortBy] = useState('newest');
   const [sortOpen, setSortOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Autocomplete state
@@ -439,6 +440,20 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     }
     return sorted;
   }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
+    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+
+  // Pagination
+  const ITEMS_PER_PAGE = 12;
+  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / ITEMS_PER_PAGE));
+  const paginatedProperties = filteredProperties.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
     selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
 
   // Update map markers when filtered properties change
@@ -1268,8 +1283,9 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                       <p className="text-gray-500">Loading homes...</p>
                    </div>
                 ) : filteredProperties.length > 0 ? (
+                   <>
                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                      {filteredProperties.map(property => (
+                      {paginatedProperties.map(property => (
                          <div key={property.id} className="h-full">
                             <PropertyCard
                                property={property}
@@ -1278,6 +1294,50 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                          </div>
                       ))}
                    </div>
+
+                   {/* Pagination */}
+                   {totalPages > 1 && (
+                     <div className="flex items-center justify-center gap-2 mt-10 pt-8 border-t border-gray-100">
+                       <button
+                         onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                         disabled={currentPage === 1}
+                         className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
+                           currentPage === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
+                         }`}
+                       >
+                         <ChevronLeft size={18} />
+                       </button>
+
+                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                         <button
+                           key={page}
+                           onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                           className={`w-10 h-10 rounded-full text-sm font-semibold transition-all ${
+                             currentPage === page
+                               ? 'bg-black text-white'
+                               : 'text-gray-600 hover:bg-gray-100'
+                           }`}
+                         >
+                           {page}
+                         </button>
+                       ))}
+
+                       <button
+                         onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                         disabled={currentPage === totalPages}
+                         className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
+                           currentPage === totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
+                         }`}
+                       >
+                         <ChevronRight size={18} />
+                       </button>
+
+                       <span className="ml-4 text-sm text-gray-400">
+                         Page {currentPage} of {totalPages}
+                       </span>
+                     </div>
+                   )}
+                   </>
                 ) : (
                    <div className="flex flex-col items-center justify-center text-center py-20 text-gray-500 h-full">
                       <div className="bg-gray-50 p-6 rounded-full mb-6">
