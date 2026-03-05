@@ -173,7 +173,7 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     address: home.address,
     city: home.community?.city || '',
     state: 'DE',
-    zip: '',
+    zip: (home.community?.address?.match(/\b(\d{5})\b/) || [])[1] || '',
     county: home.community?.county || '',
     beds: home.beds,
     baths: home.baths,

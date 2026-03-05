@@ -523,8 +523,11 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
     if (geocoderRef.current && toGeocode.length > 0) {
       toGeocode.slice(0, 20).forEach((property, i) => {
         setTimeout(() => {
-          const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zip}`;
-          geocoderRef.current.geocode({ address: fullAddress }, (results: any, status: any) => {
+          const fullAddress = `${property.address}, ${property.city}, ${property.state} ${property.zip}`.trim();
+          const geocodeAddress = fullAddress.toLowerCase().includes('delaware') || fullAddress.includes(' DE ')
+            ? fullAddress
+            : `${fullAddress}, Delaware`;
+          geocoderRef.current.geocode({ address: geocodeAddress }, (results: any, status: any) => {
             if (status === 'OK' && results[0] && googleMapRef.current) {
               const pos = results[0].geometry.location;
               addMarker(property, { lat: pos.lat(), lng: pos.lng() });
