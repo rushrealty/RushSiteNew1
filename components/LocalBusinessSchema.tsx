@@ -29,7 +29,7 @@ const LocalBusinessSchema = () => {
         "@id": "https://rushhome.com/#realestate-agent",
         "name": "Rush Home Team",
         "alternateName": "Rush Home Team at Compass",
-        "description": "Delaware's trusted real estate experts specializing in new construction, guaranteed home sales, and personalized service. Helping families buy and sell homes across New Castle, Kent, and Sussex counties.",
+        "description": "Delaware's new construction experts. Browse builder communities, find quick move-in homes, and get expert guidance buying new construction across New Castle, Kent, and Sussex counties.",
         "url": "https://rushhome.com",
         "logo": {
           "@type": "ImageObject",
@@ -184,7 +184,7 @@ const LocalBusinessSchema = () => {
         "@id": "https://rushhome.com/#website",
         "url": "https://rushhome.com",
         "name": "Rush Home Team",
-        "description": "Delaware Real Estate - Guaranteed Home Sales, New Construction, Buy & Sell",
+        "description": "Delaware's New Construction Experts - Browse Communities, Quick Move-In Homes & Builder Guides",
         "publisher": {
           "@id": "https://rushhome.com/#realestate-agent"
         },

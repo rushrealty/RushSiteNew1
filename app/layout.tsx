@@ -44,8 +44,8 @@ export const metadata: Metadata = {
   },
   
   // Default page metadata
-  title: "Your Home. Sold. Guaranteed. | Rush Home Team",
-  description: "Get an instant cash offer on your Delaware home. Buy your next home before selling. No showings, no stress, your timeline.",
+  title: "Delaware's New Construction Experts | Rush Home Team at Compass",
+  description: "Find your dream new construction home in Delaware. Browse move-in ready homes, builder communities, and quick move-in opportunities across all three counties.",
   
   // Additional SEO
   icons: {
