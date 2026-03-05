@@ -8,7 +8,11 @@ export const metadata: Metadata = {
     title: 'Property Details | Rush Home Team',
     description: 'View property details, photos, and information.',
     type: 'website',
-    siteName: 'Rush Home Team',
+    siteName: 'Rush Home Team at Compass',
+  },
+  robots: {
+    index: false,
+    follow: true,
   },
 };
 
