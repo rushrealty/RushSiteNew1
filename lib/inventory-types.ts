@@ -54,6 +54,7 @@ export interface InventoryHome {
   description?: string;
   photoUrl?: string;
   featured: boolean;
+  homeType?: string;
   basement?: string;
   heating?: string;
   cooling?: string;

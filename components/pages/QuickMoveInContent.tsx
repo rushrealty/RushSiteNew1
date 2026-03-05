@@ -609,7 +609,7 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
        <div className="sticky top-20 md:top-24 z-40 bg-white border-b border-gray-200 shadow-sm shrink-0">
           <div className="mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 py-4">
 
-             {/* Filter Bar: Search | Dropdowns | Lifestyle 2x2 */}
+             {/* Filter Bar: Search | Toggles on mobile, full row on desktop */}
              <div className="flex items-center gap-5 lg:gap-6">
 
                 {/* LEFT: Search Input with Autocomplete */}
@@ -705,8 +705,8 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                    <MapIcon size={20} />
                 </button>
 
-                {/* MIDDLE: Dropdown Filters - hidden on mobile until toggled */}
-                <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:flex items-center gap-6 flex-wrap lg:flex-nowrap`}>
+                {/* Desktop Dropdown Filters - always visible on lg+ */}
+                <div className="hidden lg:flex items-center gap-6 flex-nowrap">
 
                    {/* Price Dropdown */}
                    <div className="relative" ref={priceRef}>
@@ -1054,6 +1054,263 @@ const QuickMoveInContent: React.FC<QuickMoveInContentProps> = ({ onPropertyClick
                 </div>
 
              </div>
+
+             {/* Mobile filter dropdowns - shown below search bar when toggled */}
+             {showFiltersMobile && (
+               <div className="lg:hidden mt-4 pt-4 border-t border-gray-100">
+                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+
+                   {/* Price Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Price</label>
+                       <button
+                         onClick={() => { closeOthers('price'); setPriceOpen(!priceOpen); }}
+                         className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                       >
+                         {priceLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${priceOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {priceOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[280px] p-4">
+                         <div className="grid grid-cols-2 gap-4">
+                           <div>
+                             <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Minimum</div>
+                             <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                               {MIN_PRICES.map(p => (
+                                 <button
+                                   key={p.label}
+                                   onClick={() => {
+                                     setPriceMin(p.value);
+                                     if (p.value !== null && priceMax !== null && priceMax < p.value) {
+                                       setPriceMax(null);
+                                     }
+                                   }}
+                                   className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                     priceMin === p.value ? 'bg-black text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                                   }`}
+                                 >{p.label}</button>
+                               ))}
+                             </div>
+                           </div>
+                           <div>
+                             <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Maximum</div>
+                             <div className="flex flex-col gap-0.5 max-h-52 overflow-y-auto">
+                               {MAX_PRICES.map(p => {
+                                 const isDisabled = priceMin !== null && p.value !== null && p.value < priceMin;
+                                 return (
+                                   <button
+                                     key={p.label}
+                                     onClick={() => !isDisabled && setPriceMax(p.value)}
+                                     disabled={isDisabled}
+                                     className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                                       isDisabled ? 'text-gray-300 cursor-not-allowed'
+                                         : priceMax === p.value ? 'bg-black text-white font-semibold' : 'text-gray-700 hover:bg-gray-100'
+                                     }`}
+                                   >{p.label}</button>
+                                 );
+                               })}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+
+                   {/* Bedrooms Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bedrooms</label>
+                       <button
+                         onClick={() => { closeOthers('beds'); setBedsOpen(!bedsOpen); }}
+                         className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                       >
+                         {bedsLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${bedsOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {bedsOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[140px] py-2">
+                         <button
+                           onClick={() => { setMinBeds(0); setBedsOpen(false); }}
+                           className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBeds === 0 ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                         >Any</button>
+                         {BEDROOM_OPTIONS.map(beds => (
+                           <button
+                             key={beds}
+                             onClick={() => { setMinBeds(beds); setBedsOpen(false); }}
+                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBeds === beds ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                           >{beds}+ Beds</button>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+
+                   {/* Bathrooms Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Bathrooms</label>
+                       <button
+                         onClick={() => { closeOthers('baths'); setBathsOpen(!bathsOpen); }}
+                         className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                       >
+                         {bathsLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${bathsOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {bathsOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[140px] py-2">
+                         <button
+                           onClick={() => { setMinBaths(0); setBathsOpen(false); }}
+                           className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBaths === 0 ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                         >Any</button>
+                         {BATHROOM_OPTIONS.map(baths => (
+                           <button
+                             key={baths}
+                             onClick={() => { setMinBaths(baths); setBathsOpen(false); }}
+                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${minBaths === baths ? 'bg-gray-50 font-semibold text-black' : 'text-gray-700 hover:bg-gray-50'}`}
+                           >{baths}+ Baths</button>
+                         ))}
+                       </div>
+                     )}
+                   </div>
+
+                   {/* Home Type Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Home Type</label>
+                       <button
+                         onClick={() => { closeOthers('homeType'); setHomeTypeOpen(!homeTypeOpen); }}
+                         className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                       >
+                         {homeTypeLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${homeTypeOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {homeTypeOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[200px] py-2">
+                         {HOME_TYPES.map(type => {
+                           const isActive = selectedHomeTypes.includes(type);
+                           return (
+                             <button
+                               key={type}
+                               onClick={() => toggleHomeType(type)}
+                               className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                             >
+                               <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
+                                 isActive ? 'bg-black border-black' : 'border-gray-300'
+                               }`}>
+                                 {isActive && (
+                                   <svg viewBox="0 0 12 12" fill="none" className="w-3 h-3">
+                                     <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                   </svg>
+                                 )}
+                               </div>
+                               <span className={isActive ? 'font-medium text-gray-900' : 'text-gray-700'}>{type}</span>
+                             </button>
+                           );
+                         })}
+                       </div>
+                     )}
+                   </div>
+
+                   {/* County Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">County</label>
+                       <button
+                         onClick={() => { closeOthers('county'); setCountyOpen(!countyOpen); }}
+                         className="flex items-center gap-1.5 font-semibold text-sm text-gray-900 hover:text-black transition-colors whitespace-nowrap"
+                       >
+                         {countyLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${countyOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {countyOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 min-w-[180px] py-2">
+                         {selectedCounties.length > 0 && (
+                           <button
+                             onClick={() => { setSelectedCounties([]); setCountyOpen(false); }}
+                             className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 border-b border-gray-100 flex items-center gap-2"
+                           >
+                             <X size={14} /> Clear
+                           </button>
+                         )}
+                         {COUNTIES.map(county => {
+                           const isActive = selectedCounties.includes(county);
+                           return (
+                             <button
+                               key={county}
+                               onClick={() => toggleCounty(county)}
+                               className={`w-full px-4 py-2.5 text-left text-sm flex items-center justify-between hover:bg-gray-50 transition-colors ${isActive ? 'bg-gray-50' : ''}`}
+                             >
+                               <span className={isActive ? 'font-semibold text-black' : 'text-gray-700'}>{county}</span>
+                               {isActive && <Check size={14} className="text-compass-gold" />}
+                             </button>
+                           );
+                         })}
+                       </div>
+                     )}
+                   </div>
+
+                   {/* More Dropdown - Mobile */}
+                   <div className="relative">
+                     <div className="flex flex-col gap-0.5">
+                       <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">&nbsp;</label>
+                       <button
+                         onClick={() => { closeOthers('more'); setMoreOpen(!moreOpen); }}
+                         className={`flex items-center gap-1.5 font-semibold text-sm transition-colors whitespace-nowrap ${
+                           moreCount > 0 ? 'text-black' : 'text-gray-600 hover:text-black'
+                         }`}
+                       >
+                         <SlidersHorizontal size={14} />
+                         {moreLabel}
+                         <ChevronDown size={14} className={`text-gray-400 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+                       </button>
+                     </div>
+                     {moreOpen && (
+                       <div className="absolute top-full left-0 mt-3 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-[280px] p-5">
+                         <div className="mb-5">
+                           <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Square Feet</div>
+                           <div className="flex items-center gap-2">
+                             <select className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer" value={sqftMin ?? ''} onChange={e => setSqftMin(e.target.value ? Number(e.target.value) : null)}>
+                               {SQFT_MIN_OPTIONS.map(o => (<option key={o.label} value={o.value ?? ''}>{o.label}</option>))}
+                             </select>
+                             <span className="text-xs text-gray-400 font-semibold">to</span>
+                             <select className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer" value={sqftMax ?? ''} onChange={e => setSqftMax(e.target.value ? Number(e.target.value) : null)}>
+                               {SQFT_MAX_OPTIONS.map(o => (<option key={o.label} value={o.value ?? ''}>{o.label}</option>))}
+                             </select>
+                           </div>
+                         </div>
+                         <div className="mb-5">
+                           <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Lot Size</div>
+                           <select className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-1 focus:ring-black outline-none cursor-pointer" value={lotSizeMin ?? ''} onChange={e => setLotSizeMin(e.target.value ? Number(e.target.value) : null)}>
+                             {LOT_SIZE_OPTIONS.map(o => (<option key={o.label} value={o.value ?? ''}>{o.label}</option>))}
+                           </select>
+                         </div>
+                         <div className="mb-5">
+                           <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Basement</div>
+                           <div className="flex gap-2">
+                             {([{ label: 'Any', value: null }, { label: 'Yes', value: true }, { label: 'No', value: false }] as { label: string; value: boolean | null }[]).map(opt => (
+                               <button key={opt.label} onClick={() => setBasementFilter(opt.value)} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${basementFilter === opt.value ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>{opt.label}</button>
+                             ))}
+                           </div>
+                         </div>
+                         <div>
+                           <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Single Story</div>
+                           <div className="flex gap-2">
+                             <button onClick={() => setSingleStoryOnly(false)} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${!singleStoryOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
+                             <button onClick={() => setSingleStoryOnly(true)} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${singleStoryOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Single Story Only</button>
+                           </div>
+                         </div>
+                       </div>
+                     )}
+                   </div>
+
+                 </div>
+               </div>
+             )}
 
              {/* Mobile lifestyle filters - shown below when filter panel open */}
              <div className={`${showFiltersMobile ? 'flex' : 'hidden'} lg:hidden flex-wrap gap-2 mt-3 pt-3 border-t border-gray-100`}>

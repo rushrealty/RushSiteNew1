@@ -198,7 +198,7 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
     completionDate: home.moveInDate,
     featured: home.featured,
     isQuickMoveIn: true, // Sheet homes are always quick move-in
-    homeType: 'Single Family', // Default for inventory homes
+    homeType: home.homeType || 'Single Family',
     is55Plus: home.community?.is55Plus || false,
     hasClubhouse: home.community?.hasClubhouse || false,
     hasGolfCourse: home.community?.hasGolfCourse || false,
