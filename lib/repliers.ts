@@ -5,7 +5,7 @@ import {
 } from './inventory-types';
 
 const REPLIERS_API_URL = 'https://api.repliers.io';
-const API_KEY = process.env.NEXT_PUBLIC_REPLIERS_API_KEY || 'YcsOFcoJD7i5uFHwCumzdXobhNamFz';
+const API_KEY = process.env.REPLIERS_API_KEY || '';
 
 /**
  * Make a request to the Repliers API
