@@ -1241,7 +1241,7 @@ export default function HowToBuyContent() {
               </svg>
               Call 302-219-6707
             </a>
-            <a href="/buy" className="htb-cta-btn htb-cta-btn-secondary">
+            <a href="/search" className="htb-cta-btn htb-cta-btn-secondary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/>

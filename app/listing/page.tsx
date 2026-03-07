@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import ListingContent from '@/components/pages/ListingContent';
 
 export const metadata: Metadata = {
@@ -17,5 +18,9 @@ export const metadata: Metadata = {
 };
 
 export default function ListingPage() {
-  return <ListingContent />;
+  return (
+    <Suspense fallback={null}>
+      <ListingContent />
+    </Suspense>
+  );
 }
