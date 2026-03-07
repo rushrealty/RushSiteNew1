@@ -9,7 +9,7 @@ const ListingContent: React.FC = () => {
 
   useEffect(() => {
     // The /listing page was previously used by iHomeFinder IDX.
-    // Now redirect to /buy with any search params preserved.
+    // Now redirect to /search with any search params preserved.
     const params = new URLSearchParams();
     const mlsNumber = searchParams.get('mlsNumber') || searchParams.get('mls');
     const address = searchParams.get('address');
@@ -20,7 +20,7 @@ const ListingContent: React.FC = () => {
       params.set('search', address);
     }
 
-    const target = params.toString() ? `/buy?${params.toString()}` : '/buy';
+    const target = params.toString() ? `/search?${params.toString()}` : '/search';
     router.replace(target);
   }, [router, searchParams]);
 

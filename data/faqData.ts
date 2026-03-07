@@ -71,7 +71,7 @@ export const getOfferFaqs = [
 
 // ============================================
 // 3. HOW TO BUY PAGE FAQs
-// File: app/buy/page.tsx (or similar)
+// File: app/how-to-buy/page.tsx
 // ============================================
 export const howToBuyFaqs = [
   {

@@ -107,12 +107,12 @@ const Hero: React.FC = () => {
       return;
     }
 
-    // If it's an MLS listing, navigate to buy page search
+    // If it's an MLS listing, navigate to search page
     if (prediction.type === 'property') {
       const params = new URLSearchParams();
       params.set('search', prediction.description);
       if (prediction.city) params.set('city', prediction.city);
-      router.push(`/buy?${params.toString()}`);
+      router.push(`/search?${params.toString()}`);
       return;
     }
 
