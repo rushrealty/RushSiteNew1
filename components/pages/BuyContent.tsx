@@ -1,123 +1,29 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import ListingsPageContent, { ListingsPageConfig } from './ListingsPageContent';
 
-const BuyContent: React.FC = () => {
-  const idxContainerRef = useRef<HTMLDivElement>(null);
+const BUY_CONFIG: ListingsPageConfig = {
+  apiEndpoint: '/api/search',
+  basePath: '/buy',
+  heroLabel: 'All Listings',
+  heroTitle: 'Find Your Dream Home',
+  heroDescription: 'Search all available homes for sale across Delaware with Rush Home Team.',
+};
 
-  useEffect(() => {
-    // Wait for ihfKestrel to be available, then render the Market Report Widget
-    const renderIDX = () => {
-      if (typeof window !== 'undefined' && window.ihfKestrel && idxContainerRef.current) {
-        try {
-          // Render the Market Report Widget
-          const rendered = window.ihfKestrel.render({
-            component: "marketReportWidget",
-            id: 2967664,
-            marketReportTypeId: 1
-          });
-          if (rendered && idxContainerRef.current) {
-            idxContainerRef.current.innerHTML = '';
-            idxContainerRef.current.appendChild(rendered);
-          }
-        } catch (error) {
-          console.error('iHomeFinder IDX render error:', error);
-        }
-      }
-    };
+interface BuyContentProps {
+  onPropertyClick?: (property: import('../../types').Property) => void;
+  initialPropertyId?: string;
+}
 
-    // Try immediately, then retry if not ready
-    if (window.ihfKestrel) {
-      renderIDX();
-    } else {
-      // Poll for ihfKestrel to be ready
-      const checkInterval = setInterval(() => {
-        if (window.ihfKestrel) {
-          clearInterval(checkInterval);
-          renderIDX();
-        }
-      }, 100);
-
-      // Stop checking after 10 seconds
-      setTimeout(() => clearInterval(checkInterval), 10000);
-    }
-  }, []);
-
+const BuyContent: React.FC<BuyContentProps> = ({ onPropertyClick, initialPropertyId }) => {
   return (
-    <div className="buy-page">
-      <style jsx>{`
-        .buy-page {
-          min-height: 100vh;
-          padding-top: 100px;
-        }
-
-        .buy-hero {
-          text-align: center;
-          padding: 2rem 2rem 3rem;
-          background: #FAFAFA;
-        }
-
-        .buy-hero h1 {
-          font-size: clamp(2rem, 4vw, 3rem);
-          font-weight: 800;
-          color: #171717;
-          margin-bottom: 0.5rem;
-          letter-spacing: -0.02em;
-        }
-
-        .buy-hero p {
-          font-size: 1.1rem;
-          color: #737373;
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        .idx-container {
-          padding: 2rem;
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        /* iHomeFinder widget overrides for brand consistency */
-        :global(.ihf-container) {
-          font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }
-      `}</style>
-
-      {/* Hero Section */}
-      <section className="buy-hero">
-        <h1>Find Your Dream Home</h1>
-        <p>Search all available listings across Delaware with Rush Home Team</p>
-      </section>
-
-      {/* IDX Container */}
-      <div className="idx-container">
-        <div ref={idxContainerRef} id="ihf-main-container">
-          {/* iHomeFinder Market Report Widget will render here */}
-          <p style={{ textAlign: 'center', color: '#737373', padding: '2rem' }}>
-            Loading market data...
-          </p>
-        </div>
-      </div>
-    </div>
+    <ListingsPageContent
+      config={BUY_CONFIG}
+      onPropertyClick={onPropertyClick}
+      initialPropertyId={initialPropertyId}
+    />
   );
 };
 
 export default BuyContent;
-
-// TypeScript declaration for ihfKestrel
-declare global {
-  interface Window {
-    ihfKestrel: {
-      render: (options?: { 
-        component?: string;
-        id?: number;
-        marketReportTypeId?: number;
-      }) => HTMLElement;
-      config: {
-        platform: string;
-        activationToken: string;
-      };
-    };
-  }
-}
