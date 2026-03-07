@@ -78,7 +78,7 @@ export async function searchListings(
     // Request raw Bright MLS fields for new construction detection
     // Must include standard fields too, otherwise API only returns the raw fields
     // Include 'class' for home type mapping (ResidentialProperty, CondoProperty, etc.)
-    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN',
+    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType',
   };
 
   // Board ID for multi-MLS accounts
@@ -196,19 +196,19 @@ function toTitleCase(str: string): string {
 
 /**
  * Map Repliers listing to home type label.
- * Checks details.propertyType first for townhouse variants from Bright MLS
+ * Checks raw.StructureDesignType for townhouse variants from Bright MLS
  * (Twin/Semi-Detached, End of Row/Townhouse, Interior Row/Townhouse),
  * then falls back to the listing class.
  */
-export function mapHomeType(listingClass?: string, propertyType?: string): string {
-  // Check propertyType for townhouse variants first
-  if (propertyType) {
-    const pt = propertyType.toLowerCase();
+export function mapHomeType(listingClass?: string, structureDesignType?: string): string {
+  // Check StructureDesignType for townhouse variants first
+  if (structureDesignType) {
+    const sdt = structureDesignType.toLowerCase();
     if (
-      pt.includes('townhouse') ||
-      pt.includes('row/') ||
-      pt.includes('semi-detached') ||
-      pt.includes('twin')
+      sdt.includes('townhouse') ||
+      sdt.includes('row/') ||
+      sdt.includes('semi-detached') ||
+      sdt.includes('twin')
     ) {
       return 'Townhouse';
     }
@@ -254,7 +254,7 @@ export function transformListing(listing: RepliersListing) {
     yearBuilt: details.yearBuilt || new Date().getFullYear(),
     builder: '', // Not provided by MLS
     community: toTitleCase(address.neighborhood || ''),
-    homeType: mapHomeType(listing.class, details.propertyType),
+    homeType: mapHomeType(listing.class, listing.raw?.StructureDesignType),
     status: listing.status === 'A' ? 'Active' : listing.status,
     description: details.description || '',
     images,
@@ -266,6 +266,14 @@ export function transformListing(listing: RepliersListing) {
     listingAgentPhone: listing.agent?.phone || '',
     brokeragePhone: listing.office?.phone || '',
     lastUpdated: listing.listDate || new Date().toISOString(),
+    heating: '',
+    cooling: '',
+    parking: details.numGarageSpaces ? `${details.numGarageSpaces} Car Garage` : '',
+    basement: '',
+    hoaFee: 0,
+    taxAssessment: 0,
+    schools: [],
+    priceHistory: [],
   };
 }
 

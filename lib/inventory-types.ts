@@ -123,6 +123,7 @@ export interface RepliersListing {
   raw?: {
     NewConstructionYN?: string; // "Y" or "N" - from Bright MLS
     ConstructionCompletedYN?: string; // "Y" or "N" - from Bright MLS
+    StructureDesignType?: string; // e.g. "Detached", "Interior Row/Townhouse", "Twin/Semi-Detached"
     [key: string]: string | undefined;
   };
 }

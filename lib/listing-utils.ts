@@ -1,5 +1,6 @@
 import { Property, PropertyStatus } from '@/types';
 import { RepliersListing } from './inventory-types';
+import { mapHomeType } from './repliers';
 
 /**
  * Build full address string from Repliers address object
@@ -62,6 +63,7 @@ export function transformRepliersListing(listing: RepliersListing): Property {
     hoaFee: 0,
     taxAssessment: 0,
     schools: [],
+    homeType: mapHomeType(listing.class, listing.raw?.StructureDesignType),
     mlsId: listing.mlsNumber,
     listingAgent: listing.agent?.name || '',
     listingAgentPhone: listing.agent?.phone || '',
