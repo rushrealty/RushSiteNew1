@@ -14,14 +14,18 @@ const SEARCH_CONFIG: ListingsPageConfig = {
 interface SearchContentProps {
   onPropertyClick?: (property: import('../../types').Property) => void;
   initialPropertyId?: string;
+  initialSearch?: string;
+  initialCounty?: string;
 }
 
-const SearchContent: React.FC<SearchContentProps> = ({ onPropertyClick, initialPropertyId }) => {
+const SearchContent: React.FC<SearchContentProps> = ({ onPropertyClick, initialPropertyId, initialSearch, initialCounty }) => {
   return (
     <ListingsPageContent
       config={SEARCH_CONFIG}
       onPropertyClick={onPropertyClick}
       initialPropertyId={initialPropertyId}
+      initialSearchTerm={initialSearch}
+      initialCounty={initialCounty}
     />
   );
 };

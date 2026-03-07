@@ -105,13 +105,15 @@ interface ListingsPageContentProps {
   config: ListingsPageConfig;
   onPropertyClick?: (property: Property) => void;
   initialPropertyId?: string;
+  initialSearchTerm?: string;
+  initialCounty?: string;
 }
 
-const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPropertyClick, initialPropertyId }) => {
+const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPropertyClick, initialPropertyId, initialSearchTerm, initialCounty }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCounties, setSelectedCounties] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
+  const [selectedCounties, setSelectedCounties] = useState<string[]>(initialCounty ? [initialCounty] : []);
   const [priceMin, setPriceMin] = useState<number | null>(null);
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [minBeds, setMinBeds] = useState(0);
@@ -644,7 +646,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                    <input
                       type="text"
-                      placeholder="Address, neighborhood, city, ZIP"
+                      placeholder="Address, city, ZIP, or school district"
                       className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
