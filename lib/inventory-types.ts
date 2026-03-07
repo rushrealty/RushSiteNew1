@@ -77,6 +77,7 @@ export interface RepliersListing {
     description?: string;
   };
   images?: string[];
+  constructionStatus?: string;
   status: string;
   listDate?: string;
   daysOnMarket?: number;
@@ -114,6 +115,7 @@ export interface RepliersSearchFilters {
   maxSqft?: number;
   propertyType?: string;
   status?: string;
+  state?: string;
   mlsNumber?: string;
   page?: number;
   resultsPerPage?: number;

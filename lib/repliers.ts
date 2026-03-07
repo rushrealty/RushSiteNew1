@@ -5,7 +5,11 @@ import {
 } from './inventory-types';
 
 const REPLIERS_API_URL = 'https://api.repliers.io';
-const API_KEY = process.env.NEXT_PUBLIC_REPLIERS_API_KEY || 'YcsOFcoJD7i5uFHwCumzdXobhNamFz';
+function getApiKey(): string {
+  const key = process.env.REPLIERS_API_KEY;
+  if (!key) throw new Error('REPLIERS_API_KEY environment variable is not set');
+  return key;
+}
 
 /**
  * Make a request to the Repliers API
@@ -28,7 +32,7 @@ async function repliersRequest<T>(
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
-      'REPLIERS-API-KEY': API_KEY,
+      'REPLIERS-API-KEY': getApiKey(),
       'Content-Type': 'application/json',
     },
     next: { revalidate: 60 }, // Cache for 1 minute
@@ -51,6 +55,7 @@ export async function searchListings(
   const params: Record<string, string | number | undefined> = {
     resultsPerPage: filters.resultsPerPage || 20,
     page: filters.page || 1,
+    state: filters.state || 'DE',
   };
 
   // Location filters
