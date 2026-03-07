@@ -142,7 +142,7 @@ const Hero: React.FC = () => {
       if (prediction.zip) params.set('zip', prediction.zip);
     }
 
-    router.push(`/quick-move-in?${params.toString()}`);
+    router.push(`/search?${params.toString()}`);
   };
 
   const getLocationIcon = (type: string) => {
@@ -206,7 +206,7 @@ const Hero: React.FC = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => predictions.length > 0 && setShowDropdown(true)}
-                    placeholder="Search by city, neighborhood, or ZIP code..."
+                    placeholder="Search by address, city, ZIP, or school district..."
                     className="w-full px-2 md:px-4 py-3 md:py-4 bg-transparent border-none focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-sm md:text-lg"
                     autoComplete="off"
                   />

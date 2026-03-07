@@ -27,10 +27,23 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ property?: string }>;
+  searchParams: Promise<{
+    property?: string;
+    search?: string;
+    city?: string;
+    county?: string;
+    neighborhood?: string;
+    zip?: string;
+  }>;
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  return <SearchContent initialPropertyId={params.property} />;
+  return (
+    <SearchContent
+      initialPropertyId={params.property}
+      initialSearch={params.search}
+      initialCounty={params.county}
+    />
+  );
 }
