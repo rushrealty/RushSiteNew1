@@ -429,7 +429,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
 
   // Pagination
-  const ITEMS_PER_PAGE = 12;
+  const ITEMS_PER_PAGE = 24;
   const totalPages = Math.max(1, Math.ceil(filteredProperties.length / ITEMS_PER_PAGE));
   const paginatedProperties = filteredProperties.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -494,10 +494,10 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       hasMarkers = true;
     };
 
-    // Add markers for properties with coordinates
+    // Add markers only for the current page's properties (not all 4,500+)
     const toGeocode: Property[] = [];
 
-    filteredProperties.forEach(property => {
+    paginatedProperties.forEach(property => {
       if (property.latitude && property.longitude) {
         addMarker(property, { lat: property.latitude, lng: property.longitude });
       } else {
@@ -539,7 +539,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
         listener.remove();
       });
     }
-  }, [filteredProperties]);
+  }, [paginatedProperties]);
 
   // Highlight map marker on card hover
   useEffect(() => {
@@ -1291,47 +1291,67 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                    </div>
 
                    {/* Pagination */}
-                   {totalPages > 1 && (
-                     <div className="flex items-center justify-center gap-2 mt-10 pt-8 border-t border-gray-100">
-                       <button
-                         onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                         disabled={currentPage === 1}
-                         className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
-                           currentPage === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
-                         }`}
-                       >
-                         <ChevronLeft size={18} />
-                       </button>
+                   {totalPages > 1 && (() => {
+                     // Build truncated page numbers: [1, '...', 4, 5, 6, 7, 8, '...', 189]
+                     const pages: (number | string)[] = [];
+                     const delta = 2; // pages around current
+                     const left = Math.max(2, currentPage - delta);
+                     const right = Math.min(totalPages - 1, currentPage + delta);
 
-                       {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                     pages.push(1);
+                     if (left > 2) pages.push('left-ellipsis');
+                     for (let i = left; i <= right; i++) pages.push(i);
+                     if (right < totalPages - 1) pages.push('right-ellipsis');
+                     if (totalPages > 1) pages.push(totalPages);
+
+                     return (
+                       <div className="flex items-center justify-center gap-1.5 mt-10 pt-8 border-t border-gray-100">
                          <button
-                           key={page}
-                           onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                           className={`w-10 h-10 rounded-full text-sm font-semibold transition-all ${
-                             currentPage === page
-                               ? 'bg-black text-white'
-                               : 'text-gray-600 hover:bg-gray-100'
+                           onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                           disabled={currentPage === 1}
+                           className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
+                             currentPage === 1 ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
                            }`}
                          >
-                           {page}
+                           <ChevronLeft size={18} />
                          </button>
-                       ))}
 
-                       <button
-                         onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                         disabled={currentPage === totalPages}
-                         className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
-                           currentPage === totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
-                         }`}
-                       >
-                         <ChevronRight size={18} />
-                       </button>
+                         {pages.map((page) =>
+                           typeof page === 'string' ? (
+                             <span key={page} className="w-8 h-10 flex items-center justify-center text-gray-400 text-sm select-none">
+                               &hellip;
+                             </span>
+                           ) : (
+                             <button
+                               key={page}
+                               onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                               className={`w-10 h-10 rounded-full text-sm font-semibold transition-all ${
+                                 currentPage === page
+                                   ? 'bg-black text-white'
+                                   : 'text-gray-600 hover:bg-gray-100'
+                               }`}
+                             >
+                               {page}
+                             </button>
+                           )
+                         )}
 
-                       <span className="ml-4 text-sm text-gray-400">
-                         Page {currentPage} of {totalPages}
-                       </span>
-                     </div>
-                   )}
+                         <button
+                           onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                           disabled={currentPage === totalPages}
+                           className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
+                             currentPage === totalPages ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-700 hover:bg-black hover:text-white hover:border-black'
+                           }`}
+                         >
+                           <ChevronRight size={18} />
+                         </button>
+
+                         <span className="ml-4 text-sm text-gray-400">
+                           Page {currentPage} of {totalPages}
+                         </span>
+                       </div>
+                     );
+                   })()}
                    </>
                 ) : (
                    <div className="flex flex-col items-center justify-center text-center py-20 text-gray-500 h-full">
