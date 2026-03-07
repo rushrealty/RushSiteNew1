@@ -514,9 +514,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       if (el) {
         el.style.background = '#111827';
         el.style.transform = 'scale(1)';
-        el.style.zIndex = '0';
         el.style.transition = 'transform 0.2s ease, background 0.2s ease';
       }
+      marker.zIndex = 0;
     });
 
     // Highlight the hovered marker
@@ -527,8 +527,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
         if (el) {
           el.style.background = '#c8a951'; // compass-gold
           el.style.transform = 'scale(1.3)';
-          el.style.zIndex = '999';
         }
+        marker.zIndex = 999;
         // Pan map to the marker
         if (googleMapRef.current && marker.position) {
           googleMapRef.current.panTo(marker.position);

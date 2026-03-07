@@ -127,7 +127,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     taxAssessment: 0,
     schools: [],
     isQuickMoveIn: isQMI, // Set based on construction status check
-    homeType: mapHomeType(listing.class, listing.details.propertyType),
+    homeType: mapHomeType(listing.class, listing.raw?.StructureDesignType),
     latitude: listing.map?.latitude,
     longitude: listing.map?.longitude,
     mlsId: listing.mlsNumber,
