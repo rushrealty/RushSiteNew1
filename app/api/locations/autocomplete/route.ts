@@ -37,6 +37,8 @@ interface AutocompletePrediction {
   area?: string;
   neighborhood?: string;
   zip?: string;
+  mlsNumber?: string;
+  listPrice?: string;
   // For inventory homes
   inventoryId?: string;
   inventoryData?: InventoryHome;
@@ -168,44 +170,101 @@ async function fetchCommunities(): Promise<Community[]> {
   }
 }
 
-async function fetchRepliersAutocomplete(query: string): Promise<AutocompletePrediction[]> {
+async function fetchRepliersLocations(query: string): Promise<AutocompletePrediction[]> {
   try {
     const url = new URL(`${REPLIERS_API_URL}/locations/autocomplete`);
     url.searchParams.append('search', query);
-    // Filter to Delaware
-    url.searchParams.append('state', 'Delaware');
+    url.searchParams.append('type', 'city');
+    url.searchParams.append('type', 'neighborhood');
+    url.searchParams.append('state', 'DE'); // FIX: was 'Delaware', needs abbreviation
 
     const response = await fetch(url.toString(), {
-      method: 'GET',
       headers: {
-        'REPLIERS-API-KEY': API_KEY,
+        'REPLIERS-API-KEY': process.env.REPLIERS_API_KEY || '',
         'Content-Type': 'application/json',
       },
+      next: { revalidate: 0 },
     });
 
-    if (!response.ok) {
-      console.error('Repliers autocomplete error:', response.status);
-      return [];
-    }
+    if (!response.ok) return [];
 
     const data = await response.json();
 
-    // Transform Repliers response to our format
-    // Repliers returns an array of location objects
-    if (Array.isArray(data)) {
-      return data.map((item: { name?: string; city?: string; area?: string; neighborhood?: string; zip?: string; type?: string }) => ({
-        description: item.name || item.city || item.area || item.neighborhood || item.zip || '',
-        type: item.type || 'location',
-        city: item.city,
-        area: item.area,
-        neighborhood: item.neighborhood,
-        zip: item.zip,
-      })).filter((p: AutocompletePrediction) => p.description);
-    }
+    // FIX: Repliers returns { locations: [...] }, NOT a bare array
+    const locations = data.locations || [];
 
-    return [];
+    return locations.map((item: {
+      name?: string;
+      type?: string;
+      address?: { city?: string; area?: string; neighborhood?: string; state?: string };
+    }) => ({
+      description: item.name || '',
+      type: item.type || 'location',
+      city: item.address?.city,
+      area: item.address?.area,
+      neighborhood: item.address?.neighborhood,
+    })).filter((p: AutocompletePrediction) => p.description);
   } catch (error) {
-    console.error('Repliers autocomplete error:', error);
+    console.error('Repliers locations autocomplete error:', error);
+    return [];
+  }
+}
+
+async function fetchRepliersListings(query: string): Promise<AutocompletePrediction[]> {
+  try {
+    const url = new URL(`${REPLIERS_API_URL}/listings`);
+    url.searchParams.append('search', query);
+    url.searchParams.append('searchFields', 'address.streetNumber,address.streetName,mlsNumber,address.city');
+    url.searchParams.append('fields', 'address.*,mlsNumber,listPrice');
+    url.searchParams.append('state', 'DE');
+    url.searchParams.append('status', 'A');
+    url.searchParams.append('resultsPerPage', '5');
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'REPLIERS-API-KEY': process.env.REPLIERS_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      next: { revalidate: 0 },
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const listings = data.listings || [];
+
+    return listings.map((listing: {
+      mlsNumber?: string;
+      listPrice?: string | number;
+      address?: {
+        streetNumber?: string;
+        streetName?: string;
+        streetSuffix?: string;
+        city?: string;
+        state?: string;
+        zip?: string;
+        neighborhood?: string;
+        area?: string;
+      };
+    }) => {
+      const addr = listing.address || {};
+      const street = [addr.streetNumber, addr.streetName, addr.streetSuffix].filter(Boolean).join(' ');
+      const cityState = [addr.city, addr.state].filter(Boolean).join(', ');
+      const fullAddress = [street, cityState].filter(Boolean).join(', ');
+
+      return {
+        description: fullAddress || listing.mlsNumber || '',
+        type: 'property',
+        city: addr.city,
+        area: addr.area,
+        neighborhood: addr.neighborhood,
+        zip: addr.zip,
+        mlsNumber: listing.mlsNumber,
+        listPrice: listing.listPrice?.toString(),
+      };
+    }).filter((p: AutocompletePrediction) => p.description);
+  } catch (error) {
+    console.error('Repliers listings autocomplete error:', error);
     return [];
   }
 }
@@ -219,49 +278,45 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Fetch Repliers locations, inventory homes, and communities in parallel
-    const [repliersResults, inventoryHomes, communities] = await Promise.all([
-      fetchRepliersAutocomplete(query),
+    // Run all three sources concurrently
+    const [repliersLocations, repliersListings, inventoryHomes, communities] = await Promise.all([
+      fetchRepliersLocations(query),
+      fetchRepliersListings(query),
       fetchInventoryHomes(),
       fetchCommunities(),
     ]);
 
-    // Filter communities that match the query
     const matchingCommunities: AutocompletePrediction[] = communities
-      .filter(community =>
-        community.name.toLowerCase().includes(query) ||
-        community.city.toLowerCase().includes(query)
-      )
-      .slice(0, 3) // Limit to 3 community results
-      .map(community => ({
-        description: community.name,
+      .filter(c => c.name.toLowerCase().includes(query) || c.city.toLowerCase().includes(query))
+      .slice(0, 3)
+      .map(c => ({
+        description: c.name,
         type: 'community',
-        city: community.city,
-        area: community.county,
-        communityId: community.id,
-        communityData: community,
+        city: c.city,
+        area: c.county,
+        communityId: c.id,
+        communityData: c,
       }));
 
-    // Filter inventory homes that match the query
     const matchingInventory: AutocompletePrediction[] = inventoryHomes
-      .filter(home =>
-        home.address.toLowerCase().includes(query) ||
-        home.community_id.toLowerCase().includes(query)
-      )
-      .slice(0, 5) // Limit to 5 inventory results
-      .map(home => ({
-        description: home.address,
+      .filter(h => h.address.toLowerCase().includes(query) || h.community_id.toLowerCase().includes(query))
+      .slice(0, 3)
+      .map(h => ({
+        description: h.address,
         type: 'inventory',
-        inventoryId: home.id,
-        inventoryData: home,
+        inventoryId: h.id,
+        inventoryData: h,
       }));
 
-    // Combine results: communities first, then inventory homes, then Repliers locations
-    const combinedLocal = [...matchingCommunities, ...matchingInventory];
+    // Order: communities → inventory → MLS listings → locations
+    // Cap total at 10
+    const listingsSlice = repliersListings.slice(0, 3);
     const predictions: AutocompletePrediction[] = [
-      ...combinedLocal,
-      ...repliersResults.slice(0, 10 - combinedLocal.length), // Fill remaining with Repliers
-    ];
+      ...matchingCommunities,
+      ...matchingInventory,
+      ...listingsSlice,
+      ...repliersLocations.slice(0, 10 - matchingCommunities.length - matchingInventory.length - listingsSlice.length),
+    ].slice(0, 10);
 
     return NextResponse.json({ predictions });
   } catch (error) {
