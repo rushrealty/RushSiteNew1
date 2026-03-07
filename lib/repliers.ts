@@ -69,6 +69,8 @@ export async function searchListings(
     pageNum: filters.page || 1,
     type: 'sale',
     state: filters.state || 'DE', // Default to Delaware
+    // Request raw Bright MLS fields for new construction detection
+    fields: 'raw.NewConstructionYN,raw.ConstructionCompletedYN',
   };
 
   // Board ID for multi-MLS accounts

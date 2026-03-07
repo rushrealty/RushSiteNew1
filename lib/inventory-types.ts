@@ -118,6 +118,11 @@ export interface RepliersListing {
     name: string;
     phone?: string;
   };
+  raw?: {
+    NewConstructionYN?: string; // "Y" or "N" - from Bright MLS
+    ConstructionCompletedYN?: string; // "Y" or "N" - from Bright MLS
+    [key: string]: string | undefined;
+  };
 }
 
 // Repliers API response
