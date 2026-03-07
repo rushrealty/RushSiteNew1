@@ -33,14 +33,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
           </div>
         )}
         <div className="absolute top-5 left-5 flex flex-col gap-2">
-          {property.community && (
+          {property.community && property.community.toLowerCase() !== 'none available' && (
             <span className="px-3 py-1.5 rounded-full bg-black/80 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-lg border border-white/10">
               {property.community}
             </span>
           )}
-          <span className="px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-black shadow-sm">
-            {property.status}
-          </span>
+          {property.status && property.status !== 'Active' && (
+            <span className="px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-black shadow-sm">
+              {property.status}
+            </span>
+          )}
         </div>
       </div>
 
