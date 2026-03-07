@@ -7,13 +7,17 @@ import { Bed, Bath, Maximize2, ArrowUpRight } from 'lucide-react';
 interface PropertyCardProps {
   property: Property;
   onClick?: (property: Property) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick, onMouseEnter, onMouseLeave }) => {
   return (
     <div
       className="group bg-white rounded-[2rem] shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full relative"
       onClick={() => onClick?.(property)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <div className="relative h-72 overflow-hidden bg-gray-100">
         {property.images && property.images.length > 0 ? (

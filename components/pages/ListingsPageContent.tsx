@@ -121,6 +121,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const [sortOpen, setSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
 
   // Autocomplete (shared hook)
   const autocomplete = useAutocomplete({
@@ -152,7 +153,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   // Map refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<any>(null);
-  const mapMarkersRef = useRef<any[]>([]);
+  const mapMarkersRef = useRef<Map<string, any>>(new Map());
   const mapInfoWindowRef = useRef<any>(null);
   const geocoderRef = useRef<any>(null);
 
@@ -416,7 +417,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
     // Clear existing markers
     mapMarkersRef.current.forEach(m => (m.map = null));
-    mapMarkersRef.current = [];
+    mapMarkersRef.current.clear();
 
     const bounds = new LatLngBounds();
     let hasMarkers = false;
@@ -453,7 +454,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
         }, 100);
       });
 
-      mapMarkersRef.current.push(marker);
+      mapMarkersRef.current.set(property.id, marker);
       bounds.extend(position);
       hasMarkers = true;
     };
@@ -481,7 +482,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
             if (status === 'OK' && results[0] && googleMapRef.current) {
               const pos = results[0].geometry.location;
               addMarker(property, { lat: pos.lat(), lng: pos.lng() });
-              if (mapMarkersRef.current.length > 0) {
+              if (mapMarkersRef.current.size > 0) {
                 googleMapRef.current.fitBounds(bounds, { padding: 40 });
                 if (googleMapRef.current.getZoom() > 15) {
                   googleMapRef.current.setZoom(15);
@@ -504,6 +505,37 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       });
     }
   }, [filteredProperties]);
+
+  // Highlight map marker on card hover
+  useEffect(() => {
+    // Reset all markers to default style
+    mapMarkersRef.current.forEach((marker) => {
+      const el = marker.content as HTMLElement;
+      if (el) {
+        el.style.background = '#111827';
+        el.style.transform = 'scale(1)';
+        el.style.zIndex = '0';
+        el.style.transition = 'transform 0.2s ease, background 0.2s ease';
+      }
+    });
+
+    // Highlight the hovered marker
+    if (hoveredPropertyId) {
+      const marker = mapMarkersRef.current.get(hoveredPropertyId);
+      if (marker) {
+        const el = marker.content as HTMLElement;
+        if (el) {
+          el.style.background = '#c8a951'; // compass-gold
+          el.style.transform = 'scale(1.3)';
+          el.style.zIndex = '999';
+        }
+        // Pan map to the marker
+        if (googleMapRef.current && marker.position) {
+          googleMapRef.current.panTo(marker.position);
+        }
+      }
+    }
+  }, [hoveredPropertyId]);
 
   const handlePropertyClick = (property: Property) => {
     setSelectedProperty(property);
@@ -1192,6 +1224,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                             <PropertyCard
                                property={property}
                                onClick={handlePropertyClick}
+                               onMouseEnter={() => setHoveredPropertyId(property.id)}
+                               onMouseLeave={() => setHoveredPropertyId(null)}
                             />
                          </div>
                       ))}
