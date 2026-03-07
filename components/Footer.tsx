@@ -83,9 +83,16 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Disclaimer */}
-        <div className="text-center max-w-4xl mx-auto mb-20 px-4">
+        <div className="text-center max-w-4xl mx-auto mb-12 px-4">
           <p className="text-[11px] text-gray-400 leading-relaxed font-light">
             Rush Home Team works with guaranteed sale partners to provide cash offers. All offers are subject to property evaluation and approval. Rush Home Team is a team of licensed real estate agents affiliated with Compass RE. This is not a commitment to purchase.
+          </p>
+        </div>
+
+        {/* Bright MLS IDX Compliance Notice */}
+        <div className="text-center max-w-4xl mx-auto mb-20 px-4">
+          <p className="text-[11px] text-gray-400 leading-relaxed font-light">
+            &copy; {new Date().getFullYear()} Bright MLS, All Rights Reserved. Information Deemed Reliable But Not Guaranteed. The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms in which Compass participates, and is provided by BRIGHT through a licensing agreement.
           </p>
         </div>
 

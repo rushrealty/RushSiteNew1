@@ -163,6 +163,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   // State for fetched homes data
   const [allHomes, setAllHomes] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataLastUpdated, setDataLastUpdated] = useState<string | null>(null);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -287,6 +288,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
           const data = await response.json();
           if (data.homes && data.homes.length > 0) {
             setAllHomes(data.homes);
+            if (data.lastUpdated) setDataLastUpdated(data.lastUpdated);
           } else {
             setAllHomes(MOCK_PROPERTIES);
           }
@@ -1352,6 +1354,24 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                        </div>
                      );
                    })()}
+                   {/* Bright MLS IDX Compliance Disclaimer */}
+                   <div className="mt-10 p-6 bg-gray-50 rounded-xl text-[10px] text-gray-400 leading-relaxed font-light">
+                     <div className="mb-3 font-bold text-gray-500 text-sm font-serif">bright<span className="text-[8px] align-top">MLS</span></div>
+                     <p className="mb-2">
+                       The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms in which <span className="font-medium">Compass</span> participates, and is provided by BRIGHT through a licensing agreement.
+                     </p>
+                     <p className="mb-2">
+                       The information provided by this website is for the personal, non-commercial use of consumers and may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing.
+                     </p>
+                     <p className="mb-2">
+                       Some properties which appear for sale on this website may no longer be available because they are under contract, have Closed or are no longer being offered for sale.
+                     </p>
+                     <p className="mb-2">Information Deemed Reliable But Not Guaranteed.</p>
+                     {dataLastUpdated && (
+                       <p className="mb-2">Data last updated: {new Date(dataLastUpdated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.</p>
+                     )}
+                     <p>&copy; {new Date().getFullYear()} Bright MLS, All Rights Reserved.</p>
+                   </div>
                    </>
                 ) : (
                    <div className="flex flex-col items-center justify-center text-center py-20 text-gray-500 h-full">
