@@ -257,9 +257,22 @@ export function transformListing(listing: RepliersListing) {
 export const DELAWARE_LOCATIONS = {
   counties: ['New Castle', 'Kent', 'Sussex'],
   cities: {
-    'New Castle': ['Wilmington', 'Newark', 'Middletown', 'Bear', 'Hockessin', 'Pike Creek'],
-    Kent: ['Dover', 'Smyrna', 'Milford', 'Camden', 'Harrington', 'Felton', 'Greenwood'],
-    Sussex: ['Rehoboth Beach', 'Lewes', 'Georgetown', 'Millsboro', 'Seaford', 'Milton', 'Long Neck'],
+    'New Castle': [
+      'Wilmington', 'Newark', 'Middletown', 'Bear', 'Hockessin', 'Pike Creek',
+      'Claymont', 'New Castle', 'Glasgow', 'Elsmere', 'Brookside', 'North Star',
+      'Townsend', 'Odessa', 'Delaware City',
+    ],
+    Kent: [
+      'Dover', 'Smyrna', 'Milford', 'Camden', 'Harrington', 'Felton', 'Greenwood',
+      'Clayton', 'Cheswold', 'Wyoming', 'Magnolia', 'Frederica', 'Hartly',
+      'Viola', 'Woodside', 'Little Creek',
+    ],
+    Sussex: [
+      'Rehoboth Beach', 'Lewes', 'Georgetown', 'Millsboro', 'Seaford', 'Milton', 'Long Neck',
+      'Dewey Beach', 'Bethany Beach', 'Fenwick Island', 'Laurel', 'Bridgeville',
+      'Selbyville', 'Dagsboro', 'Delmar', 'Frankford', 'Ocean View', 'Millville',
+      'Ellendale', 'Lincoln', 'Greenwood',
+    ],
   },
 };
 

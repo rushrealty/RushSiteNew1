@@ -7,19 +7,9 @@ import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import { MOCK_PROPERTIES } from '../../constants';
 import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, ChevronLeft, ChevronRight, Loader2, Home, Waves, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
-
-interface AutocompletePrediction {
-  description: string;
-  type: string;
-  city?: string;
-  area?: string;
-  neighborhood?: string;
-  zip?: string;
-  inventoryId?: string;
-  inventoryData?: { id: string; community_id: string; address: string; price: string; beds: string; baths: string; sqft: string; status: string; photo_url: string };
-  communityId?: string;
-  communityData?: { id: string; name: string; builder_id: string; city: string; county: string; min_price: string; description: string };
-}
+import { useAutocomplete } from '@/hooks/useAutocomplete';
+import AutocompleteDropdown from '@/components/AutocompleteDropdown';
+import type { AutocompletePrediction } from '@/lib/autocomplete-types';
 
 const COUNTIES = ['New Castle', 'Kent', 'Sussex'];
 
@@ -132,11 +122,15 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
-  // Autocomplete state
-  const [predictions, setPredictions] = useState<AutocompletePrediction[]>([]);
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [isAutoLoading, setIsAutoLoading] = useState(false);
-  const autocompleteRef = useRef<HTMLDivElement>(null);
+  // Autocomplete (shared hook)
+  const autocomplete = useAutocomplete({
+    onInventorySelect: (prediction) => {
+      if (prediction.inventoryData) {
+        const prop = allHomes.find(h => h.id === prediction.inventoryData!.id?.toString());
+        if (prop) setSelectedProperty(prop);
+      }
+    },
+  });
 
   // Dropdown open states
   const [priceOpen, setPriceOpen] = useState(false);
@@ -184,40 +178,10 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  // Autocomplete: fetch predictions on search term change
+  // Sync search term to autocomplete hook
   useEffect(() => {
-    const fetchPredictions = async () => {
-      if (searchTerm.length < 2) {
-        setPredictions([]);
-        return;
-      }
-      setIsAutoLoading(true);
-      try {
-        const response = await fetch(`/api/locations/autocomplete?query=${encodeURIComponent(searchTerm)}`);
-        const data = await response.json();
-        setPredictions(data.predictions || []);
-        setShowAutocomplete(true);
-      } catch (error) {
-        console.error('Autocomplete error:', error);
-        setPredictions([]);
-      } finally {
-        setIsAutoLoading(false);
-      }
-    };
-    const debounceTimer = setTimeout(fetchPredictions, 300);
-    return () => clearTimeout(debounceTimer);
+    autocomplete.setQuery(searchTerm);
   }, [searchTerm]);
-
-  // Close autocomplete on outside click
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
-        setShowAutocomplete(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
 
   // Initialize Google Map
   useEffect(() => {
@@ -268,34 +232,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     }
   }, []);
 
-  const formatPrice = (price: string) => {
-    const num = parseInt(price.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return price;
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
-  };
-
   const handleSelectPrediction = (prediction: AutocompletePrediction) => {
     setSearchTerm(prediction.description);
-    setShowAutocomplete(false);
-
-    if (prediction.type === 'community' && prediction.communityId) {
-      router.push(`/communities?community=${prediction.communityId}`);
-      return;
-    }
-
-    if (prediction.type === 'inventory' && prediction.inventoryData) {
-      const prop = allHomes.find(h => h.id === prediction.inventoryData!.id);
-      if (prop) {
-        setSelectedProperty(prop);
-      }
-      return;
-    }
-  };
-
-  const getLocationIcon = (type: string) => {
-    if (type === 'community') return <Building2 size={14} className="text-blue-500" />;
-    if (type === 'inventory') return <Home size={14} className="text-compass-gold" />;
-    return <MapPin size={14} className="text-gray-400" />;
+    autocomplete.handleSelect(prediction);
   };
 
   const closeOthers = useCallback((except: string) => {
@@ -642,82 +581,31 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
              <div className="flex items-center gap-3 lg:gap-6">
 
                 {/* LEFT: Search Input with Autocomplete */}
-                <div className="relative flex-1 min-w-0 lg:flex-none lg:w-[340px] xl:w-[420px] 2xl:w-[480px]" ref={autocompleteRef}>
-                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <div className="relative flex-1 min-w-0 lg:flex-none lg:w-[340px] xl:w-[420px] 2xl:w-[480px]">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
                    <input
+                      ref={autocomplete.inputRef}
                       type="text"
-                      placeholder="Address, city, ZIP, or school district"
+                      placeholder="Search by city, ZIP code, address, or community..."
                       className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      onFocus={() => predictions.length > 0 && setShowAutocomplete(true)}
+                      onFocus={() => autocomplete.hasResults && autocomplete.setIsOpen(true)}
+                      onKeyDown={autocomplete.handleKeyDown}
                       autoComplete="off"
                    />
 
                    {/* Autocomplete Dropdown */}
-                   {showAutocomplete && predictions.length > 0 && (
-                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 max-h-72 overflow-y-auto">
-                       {predictions.map((prediction, index) => (
-                         <button
-                           key={index}
-                           type="button"
-                           onClick={() => handleSelectPrediction(prediction)}
-                           className={`w-full px-3 py-2.5 text-left flex items-center gap-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                             prediction.type === 'inventory' ? 'bg-amber-50/50' : prediction.type === 'community' ? 'bg-blue-50/50' : ''
-                           }`}
-                         >
-                           <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
-                             prediction.type === 'inventory' ? 'bg-amber-100' : prediction.type === 'community' ? 'bg-blue-100' : 'bg-gray-100'
-                           }`}>
-                             {getLocationIcon(prediction.type)}
-                           </div>
-                           <div className="flex-grow min-w-0">
-                             <p className="text-gray-900 text-sm font-medium truncate">{prediction.description}</p>
-                             {prediction.type === 'community' && prediction.communityData ? (
-                               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                 <span>{prediction.communityData.city}, DE</span>
-                                 {prediction.communityData.min_price && (
-                                   <>
-                                     <span className="text-gray-300">|</span>
-                                     <span className="text-blue-600 font-semibold">From {formatPrice(prediction.communityData.min_price)}</span>
-                                   </>
-                                 )}
-                               </div>
-                             ) : prediction.type === 'inventory' && prediction.inventoryData ? (
-                               <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                                 <span className="text-compass-gold font-semibold">{formatPrice(prediction.inventoryData.price)}</span>
-                                 <span className="text-gray-300">|</span>
-                                 <span>{prediction.inventoryData.beds} bd</span>
-                                 <span className="text-gray-300">|</span>
-                                 <span>{prediction.inventoryData.baths} ba</span>
-                                 {prediction.inventoryData.sqft && (
-                                   <>
-                                     <span className="text-gray-300">|</span>
-                                     <span>{prediction.inventoryData.sqft} sqft</span>
-                                   </>
-                                 )}
-                               </div>
-                             ) : (
-                               <p className="text-[11px] text-gray-500 capitalize">{prediction.type || 'Location'}</p>
-                             )}
-                           </div>
-                           {prediction.type === 'community' && (
-                             <span className="flex-shrink-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-medium rounded-full">Community</span>
-                           )}
-                           {prediction.type === 'inventory' && (
-                             <span className="flex-shrink-0 px-1.5 py-0.5 bg-green-100 text-green-700 text-[10px] font-medium rounded-full">Available</span>
-                           )}
-                         </button>
-                       ))}
-                     </div>
-                   )}
-
-                   {/* Loading indicator */}
-                   {isAutoLoading && searchTerm.length >= 2 && (
-                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 p-3 text-center z-50">
-                       <div className="w-4 h-4 border-2 border-gray-300 border-t-compass-gold rounded-full animate-spin mx-auto"></div>
-                     </div>
-                   )}
+                   <AutocompleteDropdown
+                     ref={autocomplete.dropdownRef}
+                     results={autocomplete.results}
+                     query={searchTerm}
+                     selectedIndex={autocomplete.selectedIndex}
+                     isLoading={autocomplete.isLoading}
+                     isOpen={autocomplete.isOpen}
+                     onSelect={handleSelectPrediction}
+                     variant="search"
+                   />
                 </div>
 
                 {/* Mobile filter/map toggles */}
