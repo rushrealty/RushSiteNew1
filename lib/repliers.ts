@@ -70,7 +70,8 @@ export async function searchListings(
     type: 'sale',
     state: filters.state || 'DE', // Default to Delaware
     // Request raw Bright MLS fields for new construction detection
-    fields: 'raw.NewConstructionYN,raw.ConstructionCompletedYN',
+    // Must include standard fields too, otherwise API only returns the raw fields
+    fields: 'mlsNumber,listPrice,address,details,status,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN',
   };
 
   // Board ID for multi-MLS accounts
