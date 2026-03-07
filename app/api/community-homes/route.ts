@@ -1,35 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchListings } from '@/lib/repliers';
+import { fetchInventoryData } from '@/lib/inventory';
+import { normalizeAddress } from '@/lib/utils';
+import { buildAddressString, transformRepliersListing } from '@/lib/listing-utils';
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const community = searchParams.get('community');
-  const status = searchParams.get('status') || 'A';
-
   try {
-    const response = await searchListings({
-      status,
-      state: 'DE',
-      ...(community ? { city: community } : {}),
-    });
+    const community = request.nextUrl.searchParams.get('community'); // Community name
+    const type = request.nextUrl.searchParams.get('type'); // 'new-construction' | 'quick-move-in'
 
-    // Enrich listings with construction status
-    const enrichedListings = response.listings.map((listing) => {
-      const constructionStatus = listing.constructionStatus;
+    // Fetch from Repliers and Google Sheet
+    const [repliersResponse, inventoryData] = await Promise.all([
+      searchListings({ status: 'A', resultsPerPage: 100 }),
+      fetchInventoryData(),
+    ]);
 
-      return {
-        ...listing,
-        construction_status: constructionStatus || 'unknown',
-      };
-    });
+    // Build sheet address set for QMI detection
+    const sheetAddressSet = new Set(
+      inventoryData.homes.map(h => normalizeAddress(h.address))
+    );
 
-    return NextResponse.json({
-      count: response.count,
-      data: enrichedListings,
-    });
+    if (type === 'new-construction') {
+      // Filter for new construction homes NOT in sheet (NOT quick move-ins)
+      // These are "to be built" homes that can be customized
+      const homes = repliersResponse.listings.filter(listing => {
+        const status = listing.constructionStatus;
+        if (!status) return false; // Not new construction
+
+        // Must be under construction or proposed
+        const isUnderConstruction = ['under construction', 'proposed'].includes(status.toLowerCase());
+        if (!isUnderConstruction) return false;
+
+        // Must NOT be in Google Sheet (that would make it a QMI)
+        const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
+        return !sheetAddressSet.has(normalizedAddr);
+      });
+
+      // Filter by community name (match neighborhood or area field)
+      const communityHomes = community
+        ? homes.filter(h => {
+            const neighborhood = h.address.neighborhood?.toLowerCase() || '';
+            const area = h.address.area?.toLowerCase() || '';
+            const communityLower = community.toLowerCase();
+            return neighborhood.includes(communityLower) || area.includes(communityLower);
+          })
+        : homes;
+
+      return NextResponse.json({
+        homes: communityHomes.map(transformRepliersListing),
+        total: communityHomes.length,
+      });
+    }
+
+    // Default: return empty
+    return NextResponse.json({ homes: [], total: 0 });
   } catch (error) {
-    console.error('Community homes API error:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Error fetching community homes:', error);
+    return NextResponse.json({
+      homes: [],
+      total: 0,
+      error: 'Failed to fetch community homes',
+    });
   }
 }

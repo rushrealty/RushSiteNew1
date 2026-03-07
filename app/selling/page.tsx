@@ -10,6 +10,19 @@ export const metadata: Metadata = {
     description: 'Get a guaranteed cash offer or list with our comprehensive process. Close in as little as 14 days.',
     type: 'website',
     url: 'https://rushhome.com/selling',
+    siteName: 'Rush Home Team at Compass',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sell Your Home | Rush Home Team',
+    description: 'Get a guaranteed cash offer or list with our comprehensive process. Close in as little as 14 days.',
+  },
+  alternates: {
+    canonical: 'https://rushhome.com/selling',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

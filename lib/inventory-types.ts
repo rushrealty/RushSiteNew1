@@ -6,6 +6,13 @@ export interface Builder {
   website: string;
 }
 
+// School information (used by API response)
+export interface School {
+  name: string;
+  grades: string;
+  distance: string;
+}
+
 // Community information from Google Sheets
 export interface InventoryCommunity {
   id: string;
@@ -14,6 +21,16 @@ export interface InventoryCommunity {
   city: string;
   county: string;
   slug: string;
+  minPrice: number;
+  description: string;
+  is55Plus: boolean;
+  hasClubhouse: boolean;
+  hasGolfCourse: boolean;
+  hasCommunityPool: boolean;
+  address: string;
+  schoolDistrict: string;
+  schoolNames: string[]; // Simple school names - details fetched via API
+  schoolsUrl?: string; // Niche.com URL with lat/lng for nearby school search
   modelPhotos: string[];
 }
 
@@ -37,6 +54,11 @@ export interface InventoryHome {
   description?: string;
   photoUrl?: string;
   featured: boolean;
+  homeType?: string;
+  stories?: number;
+  basement?: string;
+  heating?: string;
+  cooling?: string;
 }
 
 // Enriched inventory home with builder and community data
@@ -68,16 +90,24 @@ export interface RepliersListing {
   };
   details: {
     propertyType: string;
-    bedrooms: number;
-    bathrooms: number;
+    numBedrooms: number;
+    numBathrooms: number;
+    numBedroomsPlus?: number;
+    numBathroomsHalf?: number;
     sqft?: number;
     lotSize?: string;
     yearBuilt?: number;
-    garage?: number;
+    numGarageSpaces?: number;
     description?: string;
+    constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
+    style?: string;
   };
   images?: string[];
   constructionStatus?: string;
+  map?: {
+    latitude?: number;
+    longitude?: number;
+  };
   status: string;
   listDate?: string;
   daysOnMarket?: number;
@@ -88,6 +118,11 @@ export interface RepliersListing {
   agent?: {
     name: string;
     phone?: string;
+  };
+  raw?: {
+    NewConstructionYN?: string; // "Y" or "N" - from Bright MLS
+    ConstructionCompletedYN?: string; // "Y" or "N" - from Bright MLS
+    [key: string]: string | undefined;
   };
 }
 
@@ -104,6 +139,7 @@ export interface RepliersResponse {
 export interface RepliersSearchFilters {
   city?: string;
   county?: string;
+  state?: string;
   zip?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -115,8 +151,10 @@ export interface RepliersSearchFilters {
   maxSqft?: number;
   propertyType?: string;
   status?: string;
-  state?: string;
   mlsNumber?: string;
+  boardId?: string;
   page?: number;
   resultsPerPage?: number;
+  // Raw MLS field filters (e.g. 'raw.NewConstructionYN': 'contains:Y')
+  rawFilters?: Record<string, string>;
 }

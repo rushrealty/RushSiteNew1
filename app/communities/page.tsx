@@ -10,9 +10,27 @@ export const metadata: Metadata = {
     description: 'Browse Delaware new construction communities. Find your perfect neighborhood.',
     type: 'website',
     url: 'https://rushhome.com/communities',
+    siteName: 'Rush Home Team at Compass',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'New Construction Communities | Rush Home Team',
+    description: 'Browse Delaware new construction communities. Find your perfect neighborhood.',
+  },
+  alternates: {
+    canonical: 'https://rushhome.com/communities',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
-export default function CommunitiesPage() {
-  return <CommunitiesContent />;
+interface PageProps {
+  searchParams: Promise<{ community?: string }>;
+}
+
+export default async function CommunitiesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  return <CommunitiesContent initialCommunityId={params.community} />;
 }

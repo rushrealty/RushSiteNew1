@@ -1,35 +1,27 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import { Community, Property } from '../types';
-import { MOCK_PROPERTIES } from '../constants';
 import PropertyCard from './PropertyCard';
-import { X, MapPin, Check, Phone, Calendar, Home, Layout, Trees, Bed, Bath, Maximize2, Clock, CheckCircle, Info } from 'lucide-react';
+import ContactFormModal from './ContactFormModal';
+import ShareDropdown from './ShareDropdown';
+import { trackFubPageView } from './FubTracker';
+import { X, MapPin, Check, Phone, Calendar, Home, Layout, Users, Building, Bed, Bath, Maximize2, Clock, CheckCircle, Info, Loader2, Share2 } from 'lucide-react';
 
-// Mock data for floor plans
-const MOCK_FLOOR_PLANS = [
-  { name: 'The Charleston', beds: 3, baths: 2.5, sqft: 2400, stories: 2, price: 'From $550k' },
-  { name: 'The Savannah', beds: 4, baths: 3.5, sqft: 3100, stories: 2, price: 'From $625k' },
-  { name: 'The Newport', beds: 3, baths: 2, sqft: 1900, stories: 1, price: 'From $495k' },
-  { name: 'The Seaside', beds: 5, baths: 4.5, sqft: 4200, stories: 3, price: 'From $850k' },
-];
+// School type from API
+interface SchoolInfo {
+  name: string;
+  grades: string;
+  distance: string;
+}
 
-// Mock data for schools
-const MOCK_SCHOOLS = [
-  { name: 'Evelyn I. Morris Early Childhood', grades: 'PK, K', distance: '10.6 mi' },
-  { name: 'Mispillion Elementary School', grades: '1-5', distance: '11.7 mi' },
-  { name: 'Milford Central Academy', grades: '6-8', distance: '11.2 mi' },
-  { name: 'Milford Senior High School', grades: '9-12', distance: '11.2 mi' },
-];
-
-// Mock data for nearby places
-const MOCK_NEARBY = [
-  { name: 'Local Dining & Shops', location: 'Greenwood', time: '3 min' },
-  { name: 'Harrington Casino & Raceway', location: '', time: '10 min' },
-  { name: 'Killens Pond State Park', location: '', time: '14 min' },
-  { name: 'Walmart Supercenter', location: 'Milford', time: '18 min' },
-  { name: 'Delaware Beaches', location: 'Rehoboth', time: '48 min' },
-];
+// Nearby place type from API
+interface NearbyPlace {
+  name: string;
+  location?: string;
+  time: string;
+  type: string;
+}
 
 // Market Chart Component
 const MarketChart = () => {
@@ -65,6 +57,30 @@ interface CommunityDetailModalProps {
 
 const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose, onPropertyClick }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [isTourRequest, setIsTourRequest] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
+
+  const openContactForm = (forTour: boolean) => {
+    setIsTourRequest(forTour);
+    setShowContactForm(true);
+  };
+
+  // State for new construction homes (to be built - not quick move-ins)
+  const [newConstructionHomes, setNewConstructionHomes] = useState<Property[]>([]);
+  const [loadingNewConstruction, setLoadingNewConstruction] = useState(true);
+
+  // State for quick move-in homes (from Google Sheet inventory)
+  const [availableHomes, setAvailableHomes] = useState<Property[]>([]);
+  const [loadingAvailableHomes, setLoadingAvailableHomes] = useState(true);
+
+  // State for nearby places from Google Places API
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(true);
+
+  // State for schools from Google Places API
+  const [schools, setSchools] = useState<SchoolInfo[]>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
 
   useEffect(() => {
     if (modalRef.current) {
@@ -72,9 +88,111 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
     }
   }, [community]);
 
-  const availableHomes = useMemo(() => {
-    return MOCK_PROPERTIES.filter(p => p.community === community.name);
+  // Track virtual pageview in FUB when community modal opens
+  useEffect(() => {
+    const originalTitle = document.title;
+    trackFubPageView(`${community.name} - ${community.city}, ${community.state} | Rush Home Team`);
+    return () => {
+      document.title = originalTitle;
+    };
   }, [community]);
+
+  // Fetch new construction homes for this community
+  useEffect(() => {
+    async function fetchNewConstructionHomes() {
+      setLoadingNewConstruction(true);
+      try {
+        const response = await fetch(`/api/community-homes?community=${encodeURIComponent(community.name)}&type=new-construction`);
+        if (response.ok) {
+          const data = await response.json();
+          setNewConstructionHomes(data.homes || []);
+        } else {
+          setNewConstructionHomes([]);
+        }
+      } catch (error) {
+        console.error('Error fetching new construction homes:', error);
+        setNewConstructionHomes([]);
+      } finally {
+        setLoadingNewConstruction(false);
+      }
+    }
+    fetchNewConstructionHomes();
+  }, [community.name]);
+
+  // Fetch nearby places from Google Places API
+  useEffect(() => {
+    async function fetchNearbyPlaces() {
+      setLoadingNearby(true);
+      try {
+        // Use community address if available, otherwise use city
+        const address = community.address || `${community.city}, ${community.state}`;
+        const response = await fetch(`/api/nearby-places?address=${encodeURIComponent(address)}&limit=7`);
+        if (response.ok) {
+          const data = await response.json();
+          setNearbyPlaces(data.places || []);
+        } else {
+          setNearbyPlaces([]);
+        }
+      } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        setNearbyPlaces([]);
+      } finally {
+        setLoadingNearby(false);
+      }
+    }
+    fetchNearbyPlaces();
+  }, [community.address, community.city, community.state]);
+
+  // Fetch schools from Google Places API via communityId (API handles Niche URL vs school names lookup)
+  useEffect(() => {
+    async function fetchSchools() {
+      if (!community.id) {
+        setSchools([]);
+        setLoadingSchools(false);
+        return;
+      }
+
+      setLoadingSchools(true);
+      try {
+        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(community.id)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setSchools(data.schools || []);
+        } else {
+          setSchools([]);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        setSchools([]);
+      } finally {
+        setLoadingSchools(false);
+      }
+    }
+    fetchSchools();
+  }, [community.id]);
+
+  // Fetch quick move-in homes from inventory API
+  useEffect(() => {
+    async function fetchQuickMoveInHomes() {
+      setLoadingAvailableHomes(true);
+      try {
+        // Fetch from quick-move-in API with community filter
+        const response = await fetch(`/api/quick-move-in?communityId=${encodeURIComponent(community.id)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableHomes(data.homes || []);
+        } else {
+          setAvailableHomes([]);
+        }
+      } catch (error) {
+        console.error('Error fetching quick move-in homes:', error);
+        setAvailableHomes([]);
+      } finally {
+        setLoadingAvailableHomes(false);
+      }
+    }
+    fetchQuickMoveInHomes();
+  }, [community.id]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center md:p-4 bg-black/60 backdrop-blur-xl animate-fade-in font-sans">
@@ -93,9 +211,27 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                     </span>
                   </div>
               </div>
-              <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-black hover:text-white rounded-full text-gray-900 transition-colors">
-                  <X size={24} />
-              </button>
+              <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowShareDropdown(!showShareDropdown)}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                    >
+                      <Share2 size={20} />
+                    </button>
+                    {showShareDropdown && (
+                      <ShareDropdown
+                        url={`https://rushhome.com/available-communities/${community.slug || community.id}`}
+                        title={`${community.name} - New Homes in ${community.city}, ${community.state}`}
+                        description={community.description || `New construction community in ${community.city}, ${community.state}. ${community.priceRange}`}
+                        onClose={() => setShowShareDropdown(false)}
+                      />
+                    )}
+                  </div>
+                  <button onClick={onClose} className="p-2 bg-gray-100 hover:bg-black hover:text-white rounded-full text-gray-900 transition-colors">
+                      <X size={24} />
+                  </button>
+              </div>
           </div>
 
           {/* Scrollable Content */}
@@ -137,11 +273,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                    <div className="flex-grow lg:w-2/3">
 
                       {/* Stats Grid */}
-                      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-12">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-12">
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Layout className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
-                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.floorPlansCount}</div>
-                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Floor Plans</div>
+                            <div className="font-bold text-lg md:text-xl text-gray-900">
+                              {loadingNewConstruction ? '...' : newConstructionHomes.length > 0 ? newConstructionHomes.length : 'TBD'}
+                            </div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">New Construction</div>
                          </div>
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
                             <Home className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
@@ -149,9 +287,14 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                             <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Quick Move-Ins</div>
                          </div>
                          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
-                            <Trees className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
-                            <div className="font-bold text-lg md:text-xl text-gray-900">Yes</div>
-                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Amenities</div>
+                            <Users className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
+                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.is55Plus ? 'Yes' : 'No'}</div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">55+</div>
+                         </div>
+                         <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-center">
+                            <Building className="w-6 h-6 mx-auto mb-3 text-compass-gold" />
+                            <div className="font-bold text-lg md:text-xl text-gray-900">{community.hasClubhouse ? 'Yes' : 'No'}</div>
+                            <div className="text-[9px] md:text-[10px] uppercase tracking-widest text-gray-400">Clubhouse</div>
                          </div>
                       </div>
 
@@ -159,37 +302,35 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                       <div className="mb-12">
                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">About {community.name}</h3>
                          <div className="prose prose-lg text-gray-600 font-light leading-relaxed">
-                            <p className="mb-4">{community.description}</p>
-                            <p>
-                               Experience the perfect blend of luxury and convenience. {community.name} offers residents
-                               a unique lifestyle with thoughtfully designed homes and world-class amenities.
-                               Whether you are looking for a low-maintenance townhome or a sprawling estate,
-                               {community.builder} delivers exceptional craftsmanship in every detail.
-                            </p>
+                            <p>{community.description}</p>
                          </div>
                       </div>
 
-                      {/* Floor Plans Section */}
+                      {/* New Construction Homes Section (To Be Built) */}
                       <div className="mb-12">
-                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6">Available Floor Plans</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {MOCK_FLOOR_PLANS.slice(0, community.floorPlansCount || 4).map((plan, i) => (
-                                  <div key={i} className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-black transition-colors cursor-pointer group shadow-sm">
-                                      <div className="flex justify-between items-start mb-4">
-                                          <div>
-                                             <h4 className="font-bold text-lg text-gray-900 group-hover:text-compass-gold transition-colors">{plan.name}</h4>
-                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{plan.price}</p>
-                                          </div>
-                                          <span className="text-[10px] uppercase tracking-wider bg-gray-50 px-2 py-1 rounded text-gray-500 font-bold">{plan.stories} Story</span>
-                                      </div>
-                                      <div className="flex gap-4 text-sm text-gray-500">
-                                          <div className="flex items-center gap-1"><Bed size={16}/> {plan.beds}</div>
-                                          <div className="flex items-center gap-1"><Bath size={16}/> {plan.baths}</div>
-                                          <div className="flex items-center gap-1"><Maximize2 size={16}/> {plan.sqft.toLocaleString()} SqFt</div>
-                                      </div>
-                                  </div>
+                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Available Floor Plans</h3>
+                          <p className="text-gray-500 text-sm mb-6">Floor plans available to build in this community.</p>
+
+                          {loadingNewConstruction ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                              <Loader2 size={32} className="text-compass-gold animate-spin mb-4" />
+                              <p className="text-gray-500 text-sm">Loading available homes...</p>
+                            </div>
+                          ) : newConstructionHomes.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {newConstructionHomes.map((home) => (
+                                <PropertyCard key={home.id} property={home} onClick={onPropertyClick} />
                               ))}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200 border-dashed">
+                              <Layout className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                              <h4 className="text-base font-bold text-gray-900 mb-2">No New Construction Listed</h4>
+                              <p className="text-gray-500 text-sm max-w-md mx-auto">
+                                Contact us for information about floor plans and available lots in this community.
+                              </p>
+                            </div>
+                          )}
                       </div>
 
                       {/* Amenities */}
@@ -212,16 +353,21 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
                             <div>
                                <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Available Homes</h3>
-                               <p className="text-gray-500">Quick move-in opportunities currently listed on the MLS.</p>
+                               <p className="text-gray-500">Quick move-in homes ready for immediate occupancy.</p>
                             </div>
-                            {availableHomes.length > 0 && (
+                            {!loadingAvailableHomes && availableHomes.length > 0 && (
                                <div className="text-sm font-bold text-compass-gold uppercase tracking-widest">
-                                  {availableHomes.length} Listings Found
+                                  {availableHomes.length} Homes Found
                                </div>
                             )}
                          </div>
 
-                         {availableHomes.length > 0 ? (
+                         {loadingAvailableHomes ? (
+                            <div className="flex flex-col items-center justify-center py-12">
+                              <Loader2 size={32} className="text-compass-gold animate-spin mb-4" />
+                              <p className="text-gray-500 text-sm">Loading available homes...</p>
+                            </div>
+                         ) : availableHomes.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                {availableHomes.map(property => (
                                   <div key={property.id} className="h-full">
@@ -232,33 +378,19 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          ) : (
                             <div className="bg-gray-50 rounded-3xl p-10 text-center border border-gray-200 border-dashed">
                                <Home className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                               <h4 className="text-lg font-bold text-gray-900 mb-2">No Quick Move-Ins Listed Online</h4>
+                               <h4 className="text-lg font-bold text-gray-900 mb-2">No Quick Move-In Homes Available</h4>
                                <p className="text-gray-500 max-w-md mx-auto mb-6">
-                                  Many builders have &quot;pocket listings&quot; or homes nearing completion that aren&apos;t on the MLS yet.
-                                  Contact us to get the full inventory list.
+                                  There are currently no quick move-in homes in this community.
+                                  Contact us to learn about upcoming availability or to build a custom home.
                                </p>
                                <button className="px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors">
-                                  Check Offline Inventory
+                                  Contact Us
                                </button>
                             </div>
                          )}
                       </div>
 
-                      {/* Market History Graph */}
-                      <div className="mb-16">
-                          <h3 className="text-2xl font-serif font-bold text-gray-900 mb-2">Market Trends</h3>
-                          <p className="text-gray-500 text-sm mb-6">Average Home Value in {community.city}, {community.state}</p>
-                          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                              <div className="flex justify-between items-end mb-4">
-                                 <div>
-                                    <span className="text-3xl font-bold text-gray-900">$429k</span>
-                                    <span className="text-green-500 text-sm font-bold ml-2">+4.2%</span>
-                                 </div>
-                                 <div className="text-xs text-gray-400 uppercase tracking-widest">5 Year Trend</div>
-                              </div>
-                              <MarketChart />
-                          </div>
-                      </div>
+                      {/* Market History Graph - hidden until Repliers MLS data is connected */}
 
                       {/* Schools and Nearby Section */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
@@ -267,19 +399,30 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                               <h3 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <CheckCircle className="text-compass-gold" size={24}/> Schools
                               </h3>
-                              <div className="mb-4">
-                                <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">Milford School District</span></p>
-                              </div>
+                              {community.schoolDistrict && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{community.schoolDistrict}</span></p>
+                                </div>
+                              )}
                               <div className="space-y-4">
-                                  {MOCK_SCHOOLS.map((school, i) => (
+                                  {loadingSchools ? (
+                                    <div className="flex items-center py-4">
+                                      <Loader2 className="w-5 h-5 animate-spin text-compass-gold mr-2" />
+                                      <span className="text-sm text-gray-500">Loading school information...</span>
+                                    </div>
+                                  ) : schools.length > 0 ? (
+                                    schools.map((school, i) => (
                                       <div key={i} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
                                           <div>
                                               <p className="font-bold text-gray-900 text-sm">{school.name}</p>
-                                              <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>
+                                              {school.grades && <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>}
                                           </div>
                                           <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{school.distance}</span>
                                       </div>
-                                  ))}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500">School information coming soon</p>
+                                  )}
                               </div>
                           </div>
 
@@ -289,7 +432,13 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                 <MapPin className="text-compass-gold" size={24}/> What&apos;s Nearby
                               </h3>
                               <div className="space-y-4 bg-white rounded-2xl border border-gray-100 p-6">
-                                  {MOCK_NEARBY.map((item, i) => (
+                                  {loadingNearby ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="w-6 h-6 animate-spin text-compass-gold" />
+                                      <span className="ml-2 text-sm text-gray-500">Finding nearby places...</span>
+                                    </div>
+                                  ) : nearbyPlaces.length > 0 ? (
+                                    nearbyPlaces.map((item, i) => (
                                       <div key={i} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
                                           <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
                                               <Clock size={14} />
@@ -300,7 +449,10 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                                           </div>
                                           <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{item.time}</span>
                                       </div>
-                                  ))}
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500 py-4">Nearby places information unavailable</p>
+                                  )}
                               </div>
                           </div>
                       </div>
@@ -340,14 +492,20 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="bg-white p-8 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100">
                             <h3 className="font-serif font-bold text-xl text-gray-900 mb-2">Interested in {community.name}?</h3>
                             <p className="text-gray-500 text-sm mb-6">
-                               Work with the Rush Home Team to negotiate the best deal with {community.builder}. Our representation is free for buyers.
+                               Let the Rush Home Team help you find your perfect home in this community.
                             </p>
 
                             <div className="space-y-3 mb-6">
-                               <button className="w-full flex items-center justify-center gap-3 py-4 bg-compass-gold text-white rounded-xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-md">
+                               <button
+                                  onClick={() => openContactForm(true)}
+                                  className="w-full flex items-center justify-center gap-3 py-4 bg-compass-gold text-white rounded-xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-md"
+                               >
                                   <Calendar size={18} /> Schedule Tour
                                </button>
-                               <button className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                               <button
+                                  onClick={() => openContactForm(false)}
+                                  className="w-full flex items-center justify-center gap-3 py-4 bg-white border-2 border-gray-900 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                               >
                                   <Info size={18} /> More Information
                                </button>
                             </div>
@@ -363,7 +521,15 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                          <div className="bg-white p-6 rounded-[2rem] border border-gray-100">
                             <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-3">Builder</span>
                             <div className="flex items-center justify-between">
-                               <span className="font-serif font-bold text-lg text-gray-900">{community.builder}</span>
+                               {community.builderLogo ? (
+                                 <img
+                                   src={community.builderLogo}
+                                   alt={community.builder}
+                                   className="max-h-12 max-w-full object-contain"
+                                 />
+                               ) : (
+                                 <span className="font-serif font-bold text-lg text-gray-900">{community.builder}</span>
+                               )}
                             </div>
                          </div>
 
@@ -377,13 +543,29 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
 
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
-             <button className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md">
+             <button
+                onClick={() => openContactForm(true)}
+                className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
+             >
                 Schedule Tour
              </button>
-             <button className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm">
+             <button
+                onClick={() => openContactForm(false)}
+                className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
+             >
                 More Info
              </button>
           </div>
+
+          {/* Contact Form Modal */}
+          <ContactFormModal
+            isOpen={showContactForm}
+            onClose={() => setShowContactForm(false)}
+            subjectName={community.name}
+            subjectType="community"
+            subjectDetails={`${community.city}, ${community.state} - Starting at $${community.minPrice.toLocaleString()}`}
+            isTourRequest={isTourRequest}
+          />
        </div>
     </div>
   );

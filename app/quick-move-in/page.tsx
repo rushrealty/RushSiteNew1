@@ -10,9 +10,27 @@ export const metadata: Metadata = {
     description: 'Browse move-in ready new construction homes in Delaware.',
     type: 'website',
     url: 'https://rushhome.com/quick-move-in',
+    siteName: 'Rush Home Team at Compass',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Quick Move-In Homes | Rush Home Team',
+    description: 'Browse move-in ready new construction homes in Delaware.',
+  },
+  alternates: {
+    canonical: 'https://rushhome.com/quick-move-in',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
-export default function QuickMoveInPage() {
-  return <QuickMoveInContent />;
+interface PageProps {
+  searchParams: Promise<{ property?: string }>;
+}
+
+export default async function QuickMoveInPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  return <QuickMoveInContent initialPropertyId={params.property} />;
 }

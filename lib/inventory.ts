@@ -5,15 +5,19 @@ import {
   InventoryData,
   EnrichedInventoryHome,
 } from './inventory-types';
+import { convertGoogleDriveUrl } from './utils';
 
-// Google Sheet ID from environment or default
-const SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '1AlZ9mDsfIOR6DGAO9DQ548_CMIU4tsOEIxIkYa_dxV0';
+// Published Google Sheet ID from environment or default
+// This is the published sheet ID (from "File > Share > Publish to web")
+const PUBLISHED_SHEET_ID = process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID || '2PACX-1vQq5kKLZrq1Ror-1rXh_krZnhcs_V1ssIm4uykHjgURw-Y4j2k-RrteDMqfvod9OkHu4hofA071UOJo';
 
-// Tab GIDs (these may need to be updated based on your sheet)
+// Tab GIDs - these are the actual GID values from the Google Sheet URL when you click each tab
+// You can find the GID by clicking on each tab - it appears in the URL as &gid=XXXXXXX
+// Update these values to match your sheet's actual GIDs
 const TABS = {
-  builders: 0,      // First tab
-  communities: 1,   // Second tab
-  inventory: 2,     // Third tab
+  builders: parseInt(process.env.NEXT_PUBLIC_SHEET_GID_BUILDERS || '0', 10),
+  communities: parseInt(process.env.NEXT_PUBLIC_SHEET_GID_COMMUNITIES || '1651556845', 10),
+  inventory: parseInt(process.env.NEXT_PUBLIC_SHEET_GID_INVENTORY || '1527336354', 10),
 };
 
 // Cache for inventory data (5 minute TTL)
@@ -25,18 +29,61 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Fetch CSV data from a published Google Sheet tab
+ * Uses the "Publish to web" CSV export format
  */
-async function fetchSheetTab(gid: number): Promise<string> {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-  const response = await fetch(url, {
-    next: { revalidate: 300 } // Cache for 5 minutes
-  });
+async function fetchSheetTab(gid: number, tabName: string = 'unknown'): Promise<string> {
+  const url = `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch sheet tab ${gid}: ${response.statusText}`);
+  console.log(`[Inventory] Fetching ${tabName} tab from: ${url}`);
+
+  try {
+    // Google Sheets may return a redirect, so we need to follow it
+    const response = await fetch(url, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+      headers: {
+        'Accept': 'text/csv',
+      },
+      redirect: 'follow', // Explicitly follow redirects
+    });
+
+    if (!response.ok) {
+      console.error(`[Inventory] Failed to fetch ${tabName} tab (GID: ${gid}): ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch sheet tab ${tabName} (GID: ${gid}): ${response.statusText}`);
+    }
+
+    const text = await response.text();
+    console.log(`[Inventory] Successfully fetched ${tabName} tab, got ${text.length} characters`);
+
+    // Check if we got an HTML redirect page - if so, extract and follow the redirect URL
+    if (text.includes('Temporary Redirect') || text.includes('The document has moved')) {
+      const hrefMatch = text.match(/HREF="([^"]+)"/i);
+      if (hrefMatch && hrefMatch[1]) {
+        const redirectUrl = hrefMatch[1].replace(/&amp;/g, '&');
+        console.log(`[Inventory] Following redirect for ${tabName} tab to: ${redirectUrl}`);
+        const redirectResponse = await fetch(redirectUrl, {
+          headers: { 'Accept': 'text/csv' },
+        });
+        if (redirectResponse.ok) {
+          const redirectText = await redirectResponse.text();
+          console.log(`[Inventory] Successfully fetched ${tabName} tab after redirect, got ${redirectText.length} characters`);
+          return redirectText;
+        }
+      }
+      console.error(`[Inventory] Got redirect but couldn't follow for ${tabName} tab`);
+      throw new Error(`Got redirect for ${tabName} tab but couldn't follow it`);
+    }
+
+    // Check if we got an HTML error page instead of CSV
+    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+      console.error(`[Inventory] Got HTML response instead of CSV for ${tabName} tab. Sheet may not be published correctly.`);
+      throw new Error(`Got HTML instead of CSV for ${tabName} tab. Ensure the sheet is published to web.`);
+    }
+
+    return text;
+  } catch (error) {
+    console.error(`[Inventory] Error fetching ${tabName} tab:`, error);
+    throw error;
   }
-
-  return response.text();
 }
 
 /**
@@ -105,22 +152,66 @@ function parseBuilders(data: Record<string, string>[]): Builder[] {
 }
 
 /**
+ * Parse school names from semicolon-separated format: "School Name;School 2;School 3"
+ */
+function parseSchoolNames(schoolsStr: string | undefined): string[] {
+  if (!schoolsStr || !schoolsStr.trim()) return [];
+  return schoolsStr.split(';').map(s => s.trim()).filter(Boolean);
+}
+
+/**
  * Parse communities from CSV data
  */
 function parseCommunities(data: Record<string, string>[]): InventoryCommunity[] {
-  return data.map(row => ({
-    id: row.id || '',
-    name: row.name || '',
-    builderId: row.builder_id || '',
-    city: row.city || '',
-    county: row.county || '',
-    slug: row.slug || '',
-    modelPhotos: [
-      row.model_photo_1,
-      row.model_photo_2,
-      row.model_photo_3,
-    ].filter(Boolean),
-  })).filter(c => c.id);
+  return data.map(row => {
+    // Helper to check Yes value with case-insensitive and whitespace handling
+    const isYes = (value: string | undefined) => value?.trim().toLowerCase() === 'yes';
+
+    // Check multiple possible column names for 55+
+    const is55Plus = isYes(row['55+']) || isYes(row['55plus']) || isYes(row['is_55_plus']) || isYes(row['is55plus']);
+
+    // Check multiple possible column names for clubhouse
+    const hasClubhouse = isYes(row['clubhouse']) || isYes(row['Clubhouse']) || isYes(row['has_clubhouse']);
+
+    // Check multiple possible column names for golf course
+    const hasGolfCourse = isYes(row['golfcourse']) || isYes(row['golf_course']) || isYes(row['Golf Course']) || isYes(row['has_golf_course']);
+
+    // Check multiple possible column names for community pool
+    const hasCommunityPool = isYes(row['community_pool']) || isYes(row['communitypool']) || isYes(row['Community Pool']) || isYes(row['has_community_pool']) || isYes(row['pool']);
+
+    // Parse schools - either a Niche URL or semicolon-separated school names
+    const schoolsValue = row['schools'] || row['Schools'] || row['school_names'] || row['schoolNames'] || '';
+    const isSchoolsUrl = schoolsValue.trim().startsWith('http');
+    const schoolNames = isSchoolsUrl ? [] : parseSchoolNames(schoolsValue);
+    const schoolsUrl = isSchoolsUrl ? schoolsValue.trim() : undefined;
+
+    // Support both 'id' and 'community_id' column names
+    const id = row.id || row.community_id || '';
+
+    return {
+      id,
+      name: row.name || '',
+      builderId: row.builder_id || '',
+      city: row.city || '',
+      county: row.county || '',
+      slug: row.slug || '',
+      minPrice: parseInt(row.min_price?.replace(/,/g, ''), 10) || 0,
+      description: row.description || '',
+      is55Plus,
+      hasClubhouse,
+      hasGolfCourse,
+      hasCommunityPool,
+      address: row.address || '',
+      schoolDistrict: row.school_district || '',
+      schoolNames,
+      schoolsUrl,
+      modelPhotos: [
+        row.model_photo_1,
+        row.model_photo_2,
+        row.model_photo_3,
+      ].filter(Boolean).map(convertGoogleDriveUrl),
+    };
+  }).filter(c => c.id);
 }
 
 /**
@@ -134,16 +225,21 @@ function parseInventory(data: Record<string, string>[]): InventoryHome[] {
     status: (row.status as InventoryHome['status']) || 'Available',
     address: row.address || '',
     lot: row.lot || undefined,
-    price: parseInt(row.price, 10) || 0,
+    price: parseInt(row.price?.replace(/,/g, ''), 10) || 0,
     beds: parseInt(row.beds, 10) || 0,
     baths: parseFloat(row.baths) || 0,
-    sqft: parseInt(row.sqft, 10) || 0,
+    sqft: parseInt(row.sqft?.replace(/,/g, ''), 10) || 0,
     garage: row.garage ? parseInt(row.garage, 10) : undefined,
     moveInDate: row.move_in_date || '',
     modelName: row.model_name || '',
     description: row.description || undefined,
-    photoUrl: row.photo_url || undefined,
+    photoUrl: row.photo_url ? convertGoogleDriveUrl(row.photo_url) : undefined,
     featured: row.featured?.toLowerCase() === 'true',
+    homeType: row.home_type || row.homeType || row['Home Type'] || undefined,
+    stories: row.stories ? parseInt(row.stories, 10) || undefined : undefined,
+    basement: row.basement || undefined,
+    heating: row.heating || undefined,
+    cooling: row.cooling || undefined,
   })).filter(h => h.id && h.communityId);
 }
 
@@ -154,15 +250,20 @@ export async function fetchInventoryData(): Promise<InventoryData> {
   // Check cache
   const now = Date.now();
   if (inventoryCache.data && (now - inventoryCache.timestamp) < CACHE_TTL) {
+    console.log('[Inventory] Returning cached data');
     return inventoryCache.data;
   }
+
+  console.log('[Inventory] Fetching fresh data from Google Sheets');
+  console.log(`[Inventory] Sheet ID: ${PUBLISHED_SHEET_ID}`);
+  console.log(`[Inventory] Tab GIDs - Builders: ${TABS.builders}, Communities: ${TABS.communities}, Inventory: ${TABS.inventory}`);
 
   try {
     // Fetch all tabs in parallel
     const [buildersCSV, communitiesCSV, inventoryCSV] = await Promise.all([
-      fetchSheetTab(TABS.builders),
-      fetchSheetTab(TABS.communities),
-      fetchSheetTab(TABS.inventory),
+      fetchSheetTab(TABS.builders, 'builders'),
+      fetchSheetTab(TABS.communities, 'communities'),
+      fetchSheetTab(TABS.inventory, 'inventory'),
     ]);
 
     // Parse CSV data
@@ -170,25 +271,31 @@ export async function fetchInventoryData(): Promise<InventoryData> {
     const communitiesRaw = parseCSV<Record<string, string>>(communitiesCSV);
     const inventoryRaw = parseCSV<Record<string, string>>(inventoryCSV);
 
+    console.log(`[Inventory] Parsed ${buildersRaw.length} builders, ${communitiesRaw.length} communities, ${inventoryRaw.length} inventory homes`);
+
     const data: InventoryData = {
       builders: parseBuilders(buildersRaw),
       communities: parseCommunities(communitiesRaw),
       homes: parseInventory(inventoryRaw),
     };
 
+    console.log(`[Inventory] Final data: ${data.builders.length} builders, ${data.communities.length} communities, ${data.homes.length} homes`);
+
     // Update cache
     inventoryCache = { data, timestamp: now };
 
     return data;
   } catch (error) {
-    console.error('Error fetching inventory data:', error);
+    console.error('[Inventory] Error fetching inventory data:', error);
 
     // Return cached data if available, even if stale
     if (inventoryCache.data) {
+      console.log('[Inventory] Returning stale cached data due to error');
       return inventoryCache.data;
     }
 
     // Return empty data as fallback
+    console.log('[Inventory] Returning empty data as fallback');
     return { builders: [], communities: [], homes: [] };
   }
 }
@@ -250,9 +357,9 @@ export const MOCK_INVENTORY: InventoryData = {
     { id: 'tunnell', name: 'Tunnell Companies', logoUrl: '/images/builders/tunnell.png', website: 'https://tunnellcompanies.com' },
   ],
   communities: [
-    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Milford', county: 'Kent', slug: 'abbotts-pond', modelPhotos: [] },
-    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', modelPhotos: [] },
-    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', modelPhotos: [] },
+    { id: 'abbotts-pond', name: "Abbott's Pond", builderId: 'ashburn', city: 'Greenwood', county: 'Sussex', slug: 'abbotts-pond', minPrice: 425000, description: '', is55Plus: false, hasClubhouse: false, hasGolfCourse: false, hasCommunityPool: false, address: 'Greenwood, DE 19950', schoolDistrict: 'Milford School District', schoolNames: ['Evelyn I. Morris Early Childhood', 'Mispillion Elementary School', 'Milford Central Academy', 'Milford Senior High School'], modelPhotos: [] },
+    { id: 'pinehurst', name: 'Pinehurst Village', builderId: 'ashburn', city: 'Felton', county: 'Kent', slug: 'pinehurst-village', minPrice: 389000, description: '', is55Plus: true, hasClubhouse: true, hasGolfCourse: false, hasCommunityPool: false, address: '25 Belfry Dr, Felton, DE 19943', schoolDistrict: 'Lake Forest School District', schoolNames: ['Lake Forest North Elementary', 'Lake Forest Central Elementary', 'W.T. Chipman Middle School', 'Lake Forest High School'], modelPhotos: [] },
+    { id: 'baywood', name: 'Baywood Greens', builderId: 'tunnell', city: 'Millsboro', county: 'Sussex', slug: 'baywood-greens', minPrice: 450000, description: '', is55Plus: true, hasClubhouse: true, hasGolfCourse: true, hasCommunityPool: true, address: 'Millsboro, DE 19966', schoolDistrict: 'Indian River School District', schoolNames: ['Long Neck Elementary', 'Millsboro Middle School', 'Sussex Central High School'], modelPhotos: [] },
   ],
   homes: [
     {

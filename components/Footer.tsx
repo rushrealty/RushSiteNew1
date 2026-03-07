@@ -95,7 +95,7 @@ const Footer: React.FC = () => {
           <div className="flex space-x-8 mt-4 md:mt-0">
             <Link href="/privacy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-gray-600 transition-colors">Terms of Service</Link>
-            <Link href="/fair-housing" className="hover:text-gray-600 transition-colors">Fair Housing</Link>
+            <a href="https://www.hud.gov/helping-americans/fair-housing-act-overview" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">Fair Housing</a>
           </div>
         </div>
       </div>

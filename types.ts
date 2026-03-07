@@ -41,13 +41,22 @@ export interface Community {
   state: string;
   zip: string;
   builder: string;
+  builderLogo?: string;
   priceRange: string;
   minPrice: number;
   image: string;
-  status: 'Grand Opening' | 'Selling Fast' | 'Closeout' | 'Coming Soon';
+  status: 'Grand Opening' | 'Selling Fast' | 'Closeout' | 'Coming Soon' | 'Now Selling';
   homesAvailable: number;
   floorPlansCount: number;
   description: string;
+  is55Plus: boolean;
+  hasClubhouse: boolean;
+  hasGolfCourse: boolean;
+  hasCommunityPool: boolean;
+  address: string;
+  schoolDistrict: string;
+  schoolNames: string[]; // Simple school names - details fetched via API
+  schoolsUrl?: string; // Niche.com URL with lat/lng for nearby school search
   features: string[];
 }
 
@@ -77,9 +86,11 @@ export interface Property {
   baths: number;
   sqft: number;
   lotSize: string;
+  lotNumber?: string; // Lot number within community (e.g., "Lot 45")
   yearBuilt: number;
   builder: string;
   community: string;
+  communityId?: string; // Community ID for API lookups (e.g., schools, similar homes)
   status: PropertyStatus;
   description: string;
   images: string[];
@@ -92,6 +103,17 @@ export interface Property {
   taxAssessment: number;
   schools: SchoolInfo[];
   completionDate?: string;
+  featured?: boolean;
+  isQuickMoveIn?: boolean; // True for quick move-in homes (new construction ready or from sheet)
+  homeType?: string; // Single Family, Townhouse, Condo, etc.
+  stories?: number;
+  is55Plus?: boolean;
+  hasClubhouse?: boolean;
+  hasGolfCourse?: boolean;
+  hasCommunityPool?: boolean;
+  latitude?: number;
+  longitude?: number;
+  builderWebsite?: string;
   mlsId: string;
   listingBrokerage: string;
   listingAgent: string;

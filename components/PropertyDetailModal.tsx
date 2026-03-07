@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../constants';
 import PropertyCard from './PropertyCard';
+import ContactFormModal from './ContactFormModal';
+import ShareDropdown from './ShareDropdown';
+import { trackFubPageView } from './FubTracker';
 import { Property } from '../types';
-import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle } from 'lucide-react';
+import { Bed, Bath, Maximize2, Share2, Heart, Images, X, DollarSign, Home, Trees, CheckCircle, MapPin, Clock, Loader2 } from 'lucide-react';
 
 // Simple Line Chart Component for Market History
 const MarketChart = () => {
@@ -32,14 +35,50 @@ const MarketChart = () => {
   );
 };
 
+// School type from API
+interface ApiSchoolInfo {
+  name: string;
+  grades: string;
+  distance: string;
+}
+
+// Nearby place type from API
+interface NearbyPlace {
+  name: string;
+  location?: string;
+  time: string;
+  type: string;
+}
+
 interface PropertyDetailModalProps {
   property: Property;
   onClose: () => void;
   onPropertyClick: (property: Property) => void;
+  allProperties?: Property[];
 }
 
-const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick }) => {
+const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onClose, onPropertyClick, allProperties }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [isTourRequest, setIsTourRequest] = useState(false);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
+
+  // State for schools and nearby places from API
+  const [apiSchools, setApiSchools] = useState<ApiSchoolInfo[]>([]);
+  const [loadingSchools, setLoadingSchools] = useState(true);
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(true);
+
+  // State for community data fetched from API (for schoolDistrict, address, etc.)
+  const [apiCommunityData, setApiCommunityData] = useState<{ schoolDistrict?: string; address?: string } | null>(null);
+
+  // State for similar homes fetched from API
+  const [similarHomes, setSimilarHomes] = useState<Property[]>([]);
+
+  const openContactForm = (forTour: boolean) => {
+    setIsTourRequest(forTour);
+    setShowContactForm(true);
+  };
 
   useEffect(() => {
     if (modalRef.current) {
@@ -47,23 +86,190 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
     }
   }, [property]);
 
-  const similarHomes = useMemo(() => {
-    return MOCK_PROPERTIES
-      .filter(p => p.id !== property.id && (p.county === property.county || Math.abs(p.price - property.price) < 100000))
-      .slice(0, 3);
+  // Track virtual pageview in FUB when property modal opens
+  useEffect(() => {
+    const originalTitle = document.title;
+    trackFubPageView(`${property.title} - ${property.address}, ${property.city}, ${property.state} | Rush Home Team`);
+    return () => {
+      document.title = originalTitle;
+    };
   }, [property]);
+
+  // Fetch similar homes from API by community, with fallback to local matching
+  useEffect(() => {
+    async function fetchSimilarHomes() {
+      // Try fetching community homes from the API first
+      if (property.communityId) {
+        try {
+          const response = await fetch(`/api/quick-move-in?communityId=${encodeURIComponent(property.communityId)}`);
+          if (response.ok) {
+            const data = await response.json();
+            const communityHomes = (data.homes || []).filter((h: Property) => h.id !== property.id);
+            if (communityHomes.length > 0) {
+              setSimilarHomes(communityHomes);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching community homes:', error);
+        }
+      }
+
+      // Fallback: use allProperties prop or MOCK_PROPERTIES for local matching
+      const propertyList = allProperties && allProperties.length > 0 ? allProperties : MOCK_PROPERTIES;
+      const others = propertyList.filter(p => p.id !== property.id);
+
+      // Priority 1: Homes in the same community (by name)
+      const sameCommunity = others.filter(p => p.community && p.community === property.community);
+
+      // Priority 2: Homes within 0.5 mile radius
+      const getDistanceMiles = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+        const toRad = (deg: number) => deg * (Math.PI / 180);
+        const R = 3958.8;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      };
+
+      const nearbyHomes = (property.latitude && property.longitude)
+        ? others.filter(p => {
+            if (sameCommunity.some(sc => sc.id === p.id)) return false;
+            if (!p.latitude || !p.longitude) return false;
+            return getDistanceMiles(property.latitude!, property.longitude!, p.latitude, p.longitude) <= 0.5;
+          })
+        : [];
+
+      const results = [...sameCommunity, ...nearbyHomes];
+
+      if (results.length > 0) {
+        setSimilarHomes(results);
+        return;
+      }
+
+      // Final fallback: same county with similar price/beds
+      setSimilarHomes(
+        others
+          .filter(p => {
+            const sameCounty = p.county === property.county;
+            const similarPrice = Math.abs(p.price - property.price) < 75000;
+            const similarBeds = Math.abs(p.beds - property.beds) <= 1;
+            const matchScore = (sameCounty ? 2 : 0) + (similarPrice ? 2 : 0) + (similarBeds ? 1 : 0);
+            return matchScore >= 3;
+          })
+          .slice(0, 6)
+      );
+    }
+    fetchSimilarHomes();
+  }, [property, allProperties]);
+
+  // Check if this is a quick move-in home (no amenities/price history)
+  const isQuickMoveIn = property.isQuickMoveIn ||
+    (property.priceHistory.length === 0 && !property.mlsId);
 
   const community = MOCK_COMMUNITIES.find(c => c.name === property.community);
 
-  const interestRate = 0.065;
-  const downPayment = 0.20;
+  // The communityId from the property itself (set by transformInventoryHome) takes priority
+  const effectiveCommunityId = property.communityId || community?.id;
+
+  // Fetch community data from API when not found in static MOCK_COMMUNITIES
+  useEffect(() => {
+    async function fetchCommunityData() {
+      if (community || !effectiveCommunityId) return; // Already have it from MOCK_COMMUNITIES
+      try {
+        const response = await fetch('/api/communities');
+        if (response.ok) {
+          const data = await response.json();
+          const found = (data.communities || []).find((c: { id: string }) => c.id === effectiveCommunityId);
+          if (found) {
+            setApiCommunityData({ schoolDistrict: found.schoolDistrict, address: found.address });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching community data:', error);
+      }
+    }
+    fetchCommunityData();
+  }, [community, effectiveCommunityId]);
+
+  // Resolved community address and school district (from static or API data)
+  const communityAddress = community?.address || apiCommunityData?.address;
+  const communitySchoolDistrict = community?.schoolDistrict || apiCommunityData?.schoolDistrict;
+
+  // Fetch schools from API using community ID
+  useEffect(() => {
+    async function fetchSchools() {
+      if (!effectiveCommunityId) {
+        setApiSchools([]);
+        setLoadingSchools(false);
+        return;
+      }
+      setLoadingSchools(true);
+      try {
+        const response = await fetch(`/api/schools?communityId=${encodeURIComponent(effectiveCommunityId)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setApiSchools(data.schools || []);
+        } else {
+          setApiSchools([]);
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        setApiSchools([]);
+      } finally {
+        setLoadingSchools(false);
+      }
+    }
+    fetchSchools();
+  }, [effectiveCommunityId]);
+
+  // Fetch nearby places from API using community or property address
+  useEffect(() => {
+    async function fetchNearbyPlaces() {
+      const address = communityAddress || `${property.address}, ${property.city}, ${property.state}`;
+      setLoadingNearby(true);
+      try {
+        const response = await fetch(`/api/nearby-places?address=${encodeURIComponent(address)}&limit=7`);
+        if (response.ok) {
+          const data = await response.json();
+          setNearbyPlaces(data.places || []);
+        } else {
+          setNearbyPlaces([]);
+        }
+      } catch (error) {
+        console.error('Error fetching nearby places:', error);
+        setNearbyPlaces([]);
+      } finally {
+        setLoadingNearby(false);
+      }
+    }
+    fetchNearbyPlaces();
+  }, [communityAddress, property.address, property.city, property.state]);
+
+  // Check if this property has MLS data (for tax/HOA information)
+  const hasMlsData = !!property.mlsId;
+
+  // Mortgage calculation
+  // FHA loan: 3.5% down, 6.2% interest rate for non-MLS properties
+  // MLS properties may have actual tax/HOA data
+  const interestRate = 0.062; // 6.2% annual interest rate
+  const downPayment = 0.035; // FHA 3.5% down payment
   const principal = property.price * (1 - downPayment);
   const monthlyRate = interestRate / 12;
-  const numPayments = 30 * 12;
+  const numPayments = 30 * 12; // 30-year mortgage
+
+  // Monthly mortgage payment formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
   const mortgagePayment = (principal * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
-  const propertyTax = property.taxAssessment / 12;
+
+  // Property tax: use MLS data if available, otherwise $0
+  const propertyTax = hasMlsData && property.taxAssessment > 0 ? property.taxAssessment / 12 : 0;
+
+  // Insurance: 0.35% of home price annually
   const insurance = (property.price * 0.0035) / 12;
-  const hoa = property.hoaFee;
+
+  // HOA: use MLS data if available, otherwise $0
+  const hoa = hasMlsData ? property.hoaFee : 0;
+
   const totalMonthly = mortgagePayment + propertyTax + insurance + hoa;
 
   return (
@@ -84,9 +290,22 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                   </div>
               </div>
               <div className="flex items-center gap-3">
-                  <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors hidden sm:block">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowShareDropdown(!showShareDropdown)}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                    >
                       <Share2 size={20} />
-                  </button>
+                    </button>
+                    {showShareDropdown && (
+                      <ShareDropdown
+                        url={`https://rushhome.com/property/${property.id}`}
+                        title={`${property.title} - ${property.address}, ${property.city}, ${property.state}`}
+                        description={`${property.beds} bed, ${property.baths} bath, ${property.sqft.toLocaleString()} sqft home in ${property.community || property.city}. $${property.price.toLocaleString()}`}
+                        onClose={() => setShowShareDropdown(false)}
+                      />
+                    )}
+                  </div>
                   <button className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors hidden sm:block">
                       <Heart size={20} />
                   </button>
@@ -119,7 +338,19 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                 </div>
 
                 {/* Image Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg relative">
+                {property.images.length === 1 ? (
+                  /* Single image - full width display for inventory homes */
+                  <div className="mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg">
+                    <img
+                      src={property.images[0]}
+                      alt="Main View"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                ) : (
+                  /* Multiple images - grid display for MLS homes */
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-12 h-[300px] md:h-[500px] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg relative">
                    {/* Main Large Image */}
                    <div className="md:col-span-2 md:row-span-2 h-full">
                      <img src={property.images[0]} alt="Main View" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" />
@@ -142,7 +373,8 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <Images size={14} /> {property.images.length} Photos
                       </button>
                    </div>
-                </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col lg:flex-row gap-12">
 
@@ -190,11 +422,6 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <p className="text-gray-600 text-lg leading-relaxed font-light mb-6">
                             {property.description}
                          </p>
-                         <p className="text-gray-600 text-lg leading-relaxed font-light mb-8">
-                            Built by {property.builder} in the prestigious {property.community} community.
-                            This property sits on a {property.lotSize} lot and features {property.heating} heating and {property.cooling} cooling systems.
-                            Move-in status: <span className="font-semibold text-gray-900">{property.status}</span>.
-                         </p>
                       </div>
 
                       {/* Facts & Features Grid */}
@@ -233,10 +460,18 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                            <div className="p-8 border-b border-gray-100 bg-gray-50/50">
                               <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Trees size={20} className="text-compass-gold"/> Exterior</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                 <div className="flex justify-between border-b border-gray-100 pb-2">
-                                    <span className="text-gray-500">Lot Size</span>
-                                    <span className="font-medium">{property.lotSize}</span>
-                                 </div>
+                                 {property.lotSize && (
+                                   <div className="flex justify-between border-b border-gray-100 pb-2">
+                                      <span className="text-gray-500">Lot Size</span>
+                                      <span className="font-medium">{property.lotSize}</span>
+                                   </div>
+                                 )}
+                                 {property.lotNumber && (
+                                   <div className="flex justify-between border-b border-gray-100 pb-2">
+                                      <span className="text-gray-500">Lot</span>
+                                      <span className="font-medium">{property.lotNumber}</span>
+                                   </div>
+                                 )}
                                  <div className="flex justify-between border-b border-gray-100 pb-2">
                                     <span className="text-gray-500">Parking</span>
                                     <span className="font-medium">{property.parking}</span>
@@ -252,97 +487,154 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                               </div>
                            </div>
 
-                           {/* Features List */}
-                           <div className="p-8">
-                              <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><CheckCircle size={20} className="text-compass-gold"/> Amenities</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                 {property.features.map((f, i) => (
-                                   <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-compass-gold"></div>
-                                      {f}
-                                   </div>
-                                 ))}
-                                 {community?.features.map((f, i) => (
-                                   <div key={`c-${i}`} className="flex items-center gap-2 text-sm text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                                      {f} (Community)
-                                   </div>
-                                 ))}
-                              </div>
-                           </div>
+                           {/* Features List - Hidden for Quick Move-In homes */}
+                           {!isQuickMoveIn && (property.features.length > 0 || community?.features.length) && (
+                             <div className="p-8">
+                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><CheckCircle size={20} className="text-compass-gold"/> Amenities</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                   {property.features.map((f, i) => (
+                                     <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-compass-gold"></div>
+                                        {f}
+                                     </div>
+                                   ))}
+                                   {community?.features.map((f, i) => (
+                                     <div key={`c-${i}`} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                                        {f} (Community)
+                                     </div>
+                                   ))}
+                                </div>
+                             </div>
+                           )}
 
                         </div>
                       </div>
 
-                      {/* Price History */}
-                      <div className="mb-12">
-                         <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Price History</h2>
-                         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                            <div className="grid grid-cols-3 bg-gray-50 p-4 font-bold text-xs uppercase tracking-widest text-gray-500">
-                               <div>Date</div>
-                               <div>Event</div>
-                               <div className="text-right">Price</div>
-                            </div>
-                            {property.priceHistory.map((item, idx) => (
-                               <div key={idx} className="grid grid-cols-3 p-4 border-t border-gray-100 text-sm">
-                                  <div className="text-gray-600">{item.date}</div>
-                                  <div className="font-medium">{item.event}</div>
-                                  <div className="text-right font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '-'}</div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
-
-                      {/* Schools */}
-                      <div className="mb-12">
-                         <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Nearby Schools</h2>
-                         <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm p-6">
-                            {property.schools.map((school, i) => (
-                               <div key={i} className={`flex items-center justify-between py-4 ${i !== property.schools.length -1 ? 'border-b border-gray-50' : ''}`}>
-                                  <div className="flex items-center gap-4">
-                                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-900 text-lg">
-                                        {school.rating}
-                                     </div>
-                                     <div>
-                                        <p className="font-bold text-gray-900">{school.name}</p>
-                                        <p className="text-xs text-gray-500 uppercase tracking-wide">{school.level}</p>
-                                     </div>
-                                  </div>
-                                  <span className="text-sm text-gray-500 font-medium">{school.distance}</span>
-                               </div>
-                            ))}
-                            <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400 text-center">
-                               School ratings and boundaries are subject to change. Please verify with the local school district.
-                            </div>
-                         </div>
-                      </div>
-
-                      {/* Market History Graph */}
-                      <div className="mb-12">
-                          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">Average Home Value in this Area</h2>
-                          <p className="text-gray-500 text-sm mb-6">Market trends for {property.city}, {property.state}</p>
-                          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                              <div className="flex justify-between items-end mb-4">
-                                 <div>
-                                    <span className="text-3xl font-bold text-gray-900">$429k</span>
-                                    <span className="text-green-500 text-sm font-bold ml-2">+4.2%</span>
-                                 </div>
-                                 <div className="text-xs text-gray-400 uppercase tracking-widest">5 Year Trend</div>
+                      {/* Price History - Hidden for Quick Move-In homes */}
+                      {!isQuickMoveIn && property.priceHistory.length > 0 && (
+                        <div className="mb-12">
+                           <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Price History</h2>
+                           <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                              <div className="grid grid-cols-3 bg-gray-50 p-4 font-bold text-xs uppercase tracking-widest text-gray-500">
+                                 <div>Date</div>
+                                 <div>Event</div>
+                                 <div className="text-right">Price</div>
                               </div>
-                              <MarketChart />
+                              {property.priceHistory.map((item, idx) => (
+                                 <div key={idx} className="grid grid-cols-3 p-4 border-t border-gray-100 text-sm">
+                                    <div className="text-gray-600">{item.date}</div>
+                                    <div className="font-medium">{item.event}</div>
+                                    <div className="text-right font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '-'}</div>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                      )}
+
+                      {/* Schools and Nearby Section */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                          {/* Schools */}
+                          <div>
+                              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <CheckCircle className="text-compass-gold" size={24}/> Schools
+                              </h2>
+                              {communitySchoolDistrict && (
+                                <div className="mb-4">
+                                  <p className="text-sm text-gray-500">Served by <span className="font-bold text-gray-900">{communitySchoolDistrict}</span></p>
+                                </div>
+                              )}
+                              <div className="space-y-4">
+                                  {loadingSchools ? (
+                                    <div className="flex items-center py-4">
+                                      <Loader2 className="w-5 h-5 animate-spin text-compass-gold mr-2" />
+                                      <span className="text-sm text-gray-500">Loading school information...</span>
+                                    </div>
+                                  ) : apiSchools.length > 0 ? (
+                                    apiSchools.map((school, i) => (
+                                      <div key={i} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
+                                          <div>
+                                              <p className="font-bold text-gray-900 text-sm">{school.name}</p>
+                                              {school.grades && <p className="text-xs text-gray-500 mt-0.5">Grades {school.grades}</p>}
+                                          </div>
+                                          <span className="text-xs font-medium text-gray-400 whitespace-nowrap">{school.distance}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500">School information coming soon</p>
+                                  )}
+                              </div>
+                          </div>
+
+                          {/* Nearby */}
+                          <div>
+                              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6 flex items-center gap-2">
+                                <MapPin className="text-compass-gold" size={24}/> What&apos;s Nearby
+                              </h2>
+                              <div className="space-y-4 bg-white rounded-2xl border border-gray-100 p-6">
+                                  {loadingNearby ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="w-6 h-6 animate-spin text-compass-gold" />
+                                      <span className="ml-2 text-sm text-gray-500">Finding nearby places...</span>
+                                    </div>
+                                  ) : nearbyPlaces.length > 0 ? (
+                                    nearbyPlaces.map((item, i) => (
+                                      <div key={i} className="flex items-center gap-4 py-2 border-b border-gray-50 last:border-0">
+                                          <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
+                                              <Clock size={14} />
+                                          </div>
+                                          <div className="flex-grow">
+                                              <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                                              {item.location && <p className="text-xs text-gray-500">({item.location})</p>}
+                                          </div>
+                                          <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{item.time}</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-gray-500 py-4">Nearby places information unavailable</p>
+                                  )}
+                              </div>
                           </div>
                       </div>
+
+                      {/* Market History Graph - hidden until Repliers MLS data is connected */}
 
                       {/* Legal Info */}
                       <div className="mb-12 pt-8 border-t border-gray-200">
                           <div className="space-y-2 text-sm text-gray-500">
-                             <p>Listing updated: {property.lastUpdated}</p>
-                             <p>Also listed on <a href="#" className="underline text-blue-600">{property.listingBrokerage} Broker Feed</a></p>
-                             <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
-                             <div className="flex items-center gap-2 mt-4">
-                                <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
-                                <span className="font-serif font-bold italic text-gray-400">bright</span>
-                             </div>
+                             {/* Builder info - shown for all homes with builder data */}
+                             {property.builder && (
+                               <p>Listed by: {property.builder}</p>
+                             )}
+                             {property.builderWebsite && (
+                               <p>Source:{' '}
+                                 <a
+                                   href={property.builderWebsite.startsWith('http') ? property.builderWebsite : `https://${property.builderWebsite}`}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   className="underline text-blue-600"
+                                 >
+                                   {property.builder || 'Builder'} Website
+                                 </a>
+                               </p>
+                             )}
+                             {!property.builder && !hasMlsData && (
+                               <>
+                                 <p>Listed by: Builder</p>
+                                 <p>Source: Builder</p>
+                               </>
+                             )}
+                             {/* MLS info - shown for homes with MLS data */}
+                             {hasMlsData && (
+                               <>
+                                 <p className="mt-3">Listing updated: {property.lastUpdated}</p>
+                                 <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
+                                 <div className="flex items-center gap-2 mt-4">
+                                    <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
+                                    <span className="font-serif font-bold italic text-gray-400">bright</span>
+                                 </div>
+                               </>
+                             )}
                           </div>
                       </div>
 
@@ -356,10 +648,16 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                          <div className="bg-white p-8 rounded-[2rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 text-center">
                             <h3 className="font-serif font-bold text-2xl text-gray-900 mb-6">Interested in this home?</h3>
                             <div className="space-y-4">
-                               <button className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition-transform active:scale-95 shadow-md">
+                               <button
+                                  onClick={() => openContactForm(true)}
+                                  className="w-full py-4 bg-black text-white rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition-transform active:scale-95 shadow-md"
+                               >
                                   Schedule Tour
                                </button>
-                               <button className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors">
+                               <button
+                                  onClick={() => openContactForm(false)}
+                                  className="w-full py-4 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
+                               >
                                   Ask a Question
                                </button>
                             </div>
@@ -376,7 +674,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                             <div className="text-3xl font-bold text-gray-900 mb-1">
                                ${Math.round(totalMonthly).toLocaleString()}
                             </div>
-                            <p className="text-xs text-gray-400 mb-6">Estimated monthly payment based on 20% down.</p>
+                            <p className="text-xs text-gray-400 mb-6">Estimated monthly payment based on FHA 3.5% down at 6.2% interest rate.</p>
 
                             <div className="space-y-3 text-sm">
                                <div className="flex justify-between items-center">
@@ -418,9 +716,9 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                 {similarHomes.length > 0 && (
                   <div className="mt-16 pt-16 border-t border-gray-200">
                      <h2 className="text-3xl font-serif font-bold text-gray-900 mb-8">Similar Homes You Might Like</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                     <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
                         {similarHomes.map(home => (
-                           <div key={home.id} className="h-full">
+                           <div key={home.id} className="flex-shrink-0 w-[300px] md:w-[340px] snap-start">
                               <PropertyCard property={home} onClick={onPropertyClick} />
                            </div>
                         ))}
@@ -428,26 +726,44 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, onC
                   </div>
                 )}
 
-                {/* Bright MLS Disclaimer Footer */}
-                <div className="mt-20 p-8 bg-gray-100 rounded-xl text-[10px] text-gray-500 leading-relaxed font-light">
-                   <div className="mb-4 font-bold text-gray-700 text-lg font-serif">bright<span className="text-xs align-top">MLS</span></div>
-                   <p>
-                     The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms, and is provided by BRIGHT through a licensing agreement. Listing information is from various brokers who participate in the Bright MLS IDX program and not all listings may be visible on the site. The property information being provided on or through the website is for the personal, non-commercial use of consumers and such information may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. Some properties which appear for sale on the website may no longer be available because they are for instance, under contract, sold or are no longer being offered for sale. Property information displayed is deemed reliable but is not guaranteed. Copyright 2026 Bright MLS, Inc.
-                   </p>
-                </div>
+                {/* Bright MLS Disclaimer Footer - Only for MLS listings */}
+                {hasMlsData && (
+                  <div className="mt-20 p-8 bg-gray-100 rounded-xl text-[10px] text-gray-500 leading-relaxed font-light">
+                     <div className="mb-4 font-bold text-gray-700 text-lg font-serif">bright<span className="text-xs align-top">MLS</span></div>
+                     <p>
+                       The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms, and is provided by BRIGHT through a licensing agreement. Listing information is from various brokers who participate in the Bright MLS IDX program and not all listings may be visible on the site. The property information being provided on or through the website is for the personal, non-commercial use of consumers and such information may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. Some properties which appear for sale on the website may no longer be available because they are for instance, under contract, sold or are no longer being offered for sale. Property information displayed is deemed reliable but is not guaranteed. Copyright 2026 Bright MLS, Inc.
+                     </p>
+                  </div>
+                )}
 
               </div>
           </div>
 
           {/* Mobile Sticky Action Bar */}
           <div className="lg:hidden p-4 bg-white border-t border-gray-200 flex gap-3 shrink-0 pb-6 md:pb-4 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] z-20">
-             <button className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md">
+             <button
+                onClick={() => openContactForm(true)}
+                className="flex-1 py-3 bg-black text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-md"
+             >
                 Schedule Tour
              </button>
-             <button className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm">
+             <button
+                onClick={() => openContactForm(false)}
+                className="flex-1 py-3 bg-white border border-gray-200 text-gray-900 rounded-xl font-bold uppercase tracking-widest text-sm"
+             >
                 Ask Question
              </button>
           </div>
+
+          {/* Contact Form Modal */}
+          <ContactFormModal
+            isOpen={showContactForm}
+            onClose={() => setShowContactForm(false)}
+            subjectName={property.address}
+            subjectType="property"
+            subjectDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
+            isTourRequest={isTourRequest}
+          />
        </div>
     </div>
   );

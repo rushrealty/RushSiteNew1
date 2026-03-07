@@ -1,21 +1,130 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
 import PropertyDetailModal from '../PropertyDetailModal';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
+import CommunityPageModal from '../CommunityPageModal';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../../constants';
 import { Property, Community } from '../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// Special communities with existing pages
+const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: string; name: string }> = {
+  'abbotts-pond': { type: 'internal', url: '/available-communities/abbotts-pond', name: "Abbott's Pond" },
+  'pinehurst-village': { type: 'internal', url: '/available-communities/pinehurst-village', name: 'Pinehurst Village' },
+  'wiggins-mill': { type: 'internal', url: '/available-communities/wiggins-mill', name: 'Wiggins Mill' },
+  'baywood': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
+  'baywood-greens': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
+};
+
 const HomeContent: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const quickMoveInHomes = MOCK_PROPERTIES.slice(0, 6);
+  const [quickMoveInHomes, setQuickMoveInHomes] = useState<Property[]>(MOCK_PROPERTIES.slice(0, 6));
+  const [loadingHomes, setLoadingHomes] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
+
+  // State for communities from API
+  const [communities, setCommunities] = useState<Community[]>(MOCK_COMMUNITIES);
+  const [loadingCommunities, setLoadingCommunities] = useState(true);
+
+  // State for special community page modal
+  const [specialCommunityUrl, setSpecialCommunityUrl] = useState<string | null>(null);
+  const [specialCommunityName, setSpecialCommunityName] = useState<string>('');
+
+  // Fetch real Quick Move-In homes on mount
+  useEffect(() => {
+    async function fetchHomes() {
+      try {
+        const response = await fetch('/api/quick-move-in?limit=6');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.homes && data.homes.length > 0) {
+            setQuickMoveInHomes(data.homes);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching quick move-in homes:', error);
+        // Keep using mock data on error
+      } finally {
+        setLoadingHomes(false);
+      }
+    }
+
+    fetchHomes();
+  }, []);
+
+  // Fetch communities from API
+  useEffect(() => {
+    async function fetchCommunities() {
+      try {
+        const response = await fetch('/api/communities');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.communities && data.communities.length > 0) {
+            // Transform sheet communities to Community type
+            const transformedCommunities: Community[] = data.communities.map((c: { id: string; name: string; slug: string; city: string; county: string; builderId: string; minPrice?: number; description?: string; is55Plus?: boolean; hasClubhouse?: boolean; hasGolfCourse?: boolean; hasCommunityPool?: boolean; address?: string; schoolDistrict?: string; schoolNames?: string[]; modelPhotos: string[]; builder?: { name: string; logoUrl?: string } }) => ({
+              id: c.id,
+              name: c.name,
+              slug: c.slug || c.id,
+              location: `${c.city}, DE`,
+              city: c.city,
+              state: 'DE',
+              zip: '',
+              builder: c.builder?.name || '',
+              builderLogo: c.builder?.logoUrl || '',
+              priceRange: c.minPrice ? `From $${c.minPrice.toLocaleString()}` : 'Contact for Pricing',
+              minPrice: c.minPrice || 0,
+              image: c.modelPhotos?.[0] || '/images/placeholder-community.jpg',
+              status: 'Now Selling' as const,
+              homesAvailable: 0,
+              floorPlansCount: 0,
+              description: c.description || `Discover ${c.name}, a beautiful new construction community in ${c.city}, Delaware by ${c.builder?.name || 'a premier builder'}.`,
+              is55Plus: c.is55Plus || false,
+              hasClubhouse: c.hasClubhouse || false,
+              hasGolfCourse: c.hasGolfCourse || false,
+              hasCommunityPool: c.hasCommunityPool || false,
+              address: c.address || `${c.city}, DE`,
+              schoolDistrict: c.schoolDistrict || '',
+              schoolNames: c.schoolNames || [],
+              features: [],
+            }));
+            setCommunities(transformedCommunities);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+        // Keep using MOCK_COMMUNITIES as fallback
+      } finally {
+        setLoadingCommunities(false);
+      }
+    }
+    fetchCommunities();
+  }, []);
+
+  // Handle community click with special community detection
+  const handleCommunityClick = (community: Community) => {
+    const slug = community.slug || community.id;
+    const special = SPECIAL_COMMUNITIES[slug];
+
+    if (special) {
+      if (special.type === 'external') {
+        // Open external link in new tab
+        window.open(special.url, '_blank');
+      } else {
+        // Open internal page in modal
+        setSpecialCommunityUrl(special.url);
+        setSpecialCommunityName(special.name);
+      }
+    } else {
+      // Use standard CommunityDetailModal
+      setSelectedCommunity(community);
+    }
+  };
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -93,9 +202,9 @@ const HomeContent: React.FC = () => {
               className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory px-4 md:px-8"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {MOCK_COMMUNITIES.map((community) => (
+              {communities.slice(0, 10).map((community) => (
                 <div key={community.id} className="w-[55vw] md:w-[240px] snap-center flex-shrink-0">
-                  <CommunityCard community={community} onClick={setSelectedCommunity} />
+                  <CommunityCard community={community} onClick={handleCommunityClick} />
                 </div>
               ))}
           </div>
@@ -129,12 +238,15 @@ const HomeContent: React.FC = () => {
          </div>
       </section>
 
-      {/* Property Detail Modal */}
-      {selectedProperty && (
-        <PropertyDetailModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onPropertyClick={setSelectedProperty}
+      {/* Special Community Page Modal */}
+      {specialCommunityUrl && (
+        <CommunityPageModal
+          url={specialCommunityUrl}
+          communityName={specialCommunityName}
+          onClose={() => {
+            setSpecialCommunityUrl(null);
+            setSpecialCommunityName('');
+          }}
         />
       )}
 
@@ -144,6 +256,16 @@ const HomeContent: React.FC = () => {
           community={selectedCommunity}
           onClose={() => setSelectedCommunity(null)}
           onPropertyClick={setSelectedProperty}
+        />
+      )}
+
+      {/* Property Detail Modal (rendered last so it appears on top) */}
+      {selectedProperty && (
+        <PropertyDetailModal
+          property={selectedProperty}
+          onClose={() => setSelectedProperty(null)}
+          onPropertyClick={setSelectedProperty}
+          allProperties={quickMoveInHomes}
         />
       )}
     </>
