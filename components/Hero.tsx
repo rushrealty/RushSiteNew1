@@ -33,6 +33,8 @@ interface AutocompletePrediction {
   area?: string;
   neighborhood?: string;
   zip?: string;
+  mlsNumber?: string;
+  listPrice?: string;
   inventoryId?: string;
   inventoryData?: InventoryHome;
   communityId?: string;
@@ -105,6 +107,15 @@ const Hero: React.FC = () => {
       return;
     }
 
+    // If it's an MLS listing, navigate to buy page search
+    if (prediction.type === 'property') {
+      const params = new URLSearchParams();
+      params.set('search', prediction.description);
+      if (prediction.city) params.set('city', prediction.city);
+      router.push(`/buy?${params.toString()}`);
+      return;
+    }
+
     // If it's an inventory home, navigate to quick-move-in page with property ID to auto-open modal
     if (prediction.type === 'inventory' && prediction.inventoryData) {
       const params = new URLSearchParams();
@@ -140,6 +151,9 @@ const Hero: React.FC = () => {
     }
     if (type === 'inventory') {
       return <Home size={16} className="text-compass-gold" />;
+    }
+    if (type === 'property') {
+      return <Home size={16} className="text-green-500" />;
     }
     return <MapPin size={16} className="text-gray-400" />;
   };
@@ -219,11 +233,11 @@ const Hero: React.FC = () => {
                      type="button"
                      onClick={() => handleSelectPrediction(prediction)}
                      className={`w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                       prediction.type === 'inventory' ? 'bg-amber-50/50' : prediction.type === 'community' ? 'bg-blue-50/50' : ''
+                       prediction.type === 'inventory' ? 'bg-amber-50/50' : prediction.type === 'community' ? 'bg-blue-50/50' : prediction.type === 'property' ? 'bg-green-50/50' : ''
                      }`}
                    >
                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                       prediction.type === 'inventory' ? 'bg-amber-100' : prediction.type === 'community' ? 'bg-blue-100' : 'bg-gray-100'
+                       prediction.type === 'inventory' ? 'bg-amber-100' : prediction.type === 'community' ? 'bg-blue-100' : prediction.type === 'property' ? 'bg-green-100' : 'bg-gray-100'
                      }`}>
                        {getLocationIcon(prediction.type)}
                      </div>
@@ -253,6 +267,11 @@ const Hero: React.FC = () => {
                              </>
                            )}
                          </div>
+                       ) : prediction.type === 'property' && prediction.listPrice ? (
+                         <p className="text-xs text-green-600 font-semibold">
+                           {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(prediction.listPrice))}
+                           {prediction.mlsNumber && <span className="text-gray-400 font-normal ml-1">· MLS# {prediction.mlsNumber}</span>}
+                         </p>
                        ) : (
                          <p className="text-xs text-gray-500 capitalize">{prediction.type || 'Location'}</p>
                        )}
@@ -265,6 +284,11 @@ const Hero: React.FC = () => {
                      {prediction.type === 'inventory' && (
                        <span className="flex-shrink-0 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
                          Available
+                       </span>
+                     )}
+                     {prediction.type === 'property' && (
+                       <span className="flex-shrink-0 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                         MLS Listing
                        </span>
                      )}
                    </button>
