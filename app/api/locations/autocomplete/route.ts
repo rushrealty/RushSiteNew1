@@ -214,11 +214,11 @@ async function fetchRepliersListings(query: string): Promise<AutocompletePredict
   try {
     const url = new URL(`${REPLIERS_API_URL}/listings`);
     url.searchParams.append('search', query);
-    url.searchParams.append('searchFields', 'address.streetNumber,address.streetName,mlsNumber,address.city');
-    url.searchParams.append('fields', 'address.*,mlsNumber,listPrice');
+    url.searchParams.append('searchFields', 'address.streetNumber,address.streetName,address.streetSuffix,mlsNumber,address.city,address.zip,address.neighborhood');
+    url.searchParams.append('fields', 'address.*,mlsNumber,listPrice,images');
     url.searchParams.append('state', 'DE');
     url.searchParams.append('status', 'A');
-    url.searchParams.append('resultsPerPage', '5');
+    url.searchParams.append('resultsPerPage', '8');
 
     const response = await fetch(url.toString(), {
       headers: {
@@ -278,7 +278,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Run all three sources concurrently
+    // Run all sources concurrently — Repliers MLS is the primary data source
     const [repliersLocations, repliersListings, inventoryHomes, communities] = await Promise.all([
       fetchRepliersLocations(query),
       fetchRepliersListings(query),
@@ -288,7 +288,7 @@ export async function GET(request: NextRequest) {
 
     const matchingCommunities: AutocompletePrediction[] = communities
       .filter(c => c.name.toLowerCase().includes(query) || c.city.toLowerCase().includes(query))
-      .slice(0, 3)
+      .slice(0, 2)
       .map(c => ({
         description: c.name,
         type: 'community',
@@ -300,7 +300,7 @@ export async function GET(request: NextRequest) {
 
     const matchingInventory: AutocompletePrediction[] = inventoryHomes
       .filter(h => h.address.toLowerCase().includes(query) || h.community_id.toLowerCase().includes(query))
-      .slice(0, 3)
+      .slice(0, 2)
       .map(h => ({
         description: h.address,
         type: 'inventory',
@@ -308,14 +308,15 @@ export async function GET(request: NextRequest) {
         inventoryData: h,
       }));
 
-    // Order: communities → inventory → MLS listings → locations
-    // Cap total at 10
-    const listingsSlice = repliersListings.slice(0, 3);
+    // Order: MLS listings first (primary), then communities, inventory, locations
+    // MLS listings from Repliers are the main data source
+    const listingsSlice = repliersListings.slice(0, 6);
+    const remaining = 10 - listingsSlice.length;
     const predictions: AutocompletePrediction[] = [
-      ...matchingCommunities,
-      ...matchingInventory,
       ...listingsSlice,
-      ...repliersLocations.slice(0, 10 - matchingCommunities.length - matchingInventory.length - listingsSlice.length),
+      ...matchingCommunities.slice(0, Math.min(matchingCommunities.length, remaining)),
+      ...matchingInventory.slice(0, Math.min(matchingInventory.length, Math.max(0, remaining - matchingCommunities.length))),
+      ...repliersLocations.slice(0, Math.max(0, remaining - matchingCommunities.length - matchingInventory.length)),
     ].slice(0, 10);
 
     return NextResponse.json({ predictions });
