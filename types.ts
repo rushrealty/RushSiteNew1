@@ -26,6 +26,7 @@ export interface NavItem {
 
 // New types for rebrand
 export enum PropertyStatus {
+  ACTIVE = 'Active',
   MOVE_IN_READY = 'Move-in Ready',
   UNDER_CONSTRUCTION = 'Under Construction',
   TO_BE_BUILT = 'To Be Built',
