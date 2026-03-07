@@ -195,9 +195,25 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * Map Repliers listing class to home type label
+ * Map Repliers listing to home type label.
+ * Checks details.propertyType first for townhouse variants from Bright MLS
+ * (Twin/Semi-Detached, End of Row/Townhouse, Interior Row/Townhouse),
+ * then falls back to the listing class.
  */
-function mapHomeType(listingClass?: string): string {
+export function mapHomeType(listingClass?: string, propertyType?: string): string {
+  // Check propertyType for townhouse variants first
+  if (propertyType) {
+    const pt = propertyType.toLowerCase();
+    if (
+      pt.includes('townhouse') ||
+      pt.includes('row/') ||
+      pt.includes('semi-detached') ||
+      pt.includes('twin')
+    ) {
+      return 'Townhouse';
+    }
+  }
+
   switch (listingClass) {
     case 'CondoProperty':
       return 'Condo';
@@ -238,7 +254,7 @@ export function transformListing(listing: RepliersListing) {
     yearBuilt: details.yearBuilt || new Date().getFullYear(),
     builder: '', // Not provided by MLS
     community: toTitleCase(address.neighborhood || ''),
-    homeType: mapHomeType(listing.class),
+    homeType: mapHomeType(listing.class, details.propertyType),
     status: listing.status === 'A' ? 'Active' : listing.status,
     description: details.description || '',
     images,

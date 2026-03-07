@@ -1,6 +1,6 @@
 import { Property, PropertyStatus } from '@/types';
 import { RepliersListing, EnrichedInventoryHome } from './inventory-types';
-import { searchListings } from './repliers';
+import { searchListings, mapHomeType } from './repliers';
 import { fetchInventoryData } from './inventory';
 import { normalizeAddress } from './utils';
 import { COMMUNITIES_DATA } from '@/data/communities';
@@ -127,7 +127,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     taxAssessment: 0,
     schools: [],
     isQuickMoveIn: isQMI, // Set based on construction status check
-    homeType: listing.details.propertyType || 'Single Family',
+    homeType: mapHomeType(listing.class, listing.details.propertyType),
     latitude: listing.map?.latitude,
     longitude: listing.map?.longitude,
     mlsId: listing.mlsNumber,
