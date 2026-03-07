@@ -103,6 +103,13 @@ export async function searchListings(
   // MLS number
   if (filters.mlsNumber) params.mlsNumber = filters.mlsNumber;
 
+  // Raw MLS field filters (e.g. raw.NewConstructionYN=contains:Y)
+  if (filters.rawFilters) {
+    for (const [key, value] of Object.entries(filters.rawFilters)) {
+      params[key] = value;
+    }
+  }
+
   try {
     const response = await repliersRequest<RepliersResponse>('/listings', params);
     return response;

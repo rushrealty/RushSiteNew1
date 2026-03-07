@@ -24,6 +24,10 @@ export interface QuickMoveInOptions {
  *   1. Listed on the Inventory Google Sheet, OR
  *   2. NewConstructionYN = "Y" AND ConstructionCompletedYN = "Y"
  *      (raw Bright MLS RESO fields)
+ *
+ * Note: The Repliers API call already filters for NewConstructionYN = Y,
+ * so all listings passed here are new construction. We just need to check
+ * if construction is complete (or if it's in the Google Sheet).
  */
 function isQuickMoveIn(
   listing: RepliersListing,
@@ -32,15 +36,12 @@ function isQuickMoveIn(
   // Rule 1: If it's in the Google Sheet, it's always QMI
   if (isInGoogleSheet) return true;
 
-  // Rule 2: New construction AND construction complete (from Bright MLS raw fields)
-  const isNewConstruction = listing.raw?.NewConstructionYN?.toUpperCase() === 'Y';
+  // Rule 2: Construction complete (API already filtered for NewConstructionYN=Y)
   const isConstructionComplete = listing.raw?.ConstructionCompletedYN?.toUpperCase() === 'Y';
+  if (isConstructionComplete) return true;
 
-  if (isNewConstruction && isConstructionComplete) return true;
-
-  // Fallback: if raw fields aren't available, use the normalized constructionStatus
-  // constructionStatus = "Complete" implies both new construction and complete
-  if (!listing.raw?.NewConstructionYN && !listing.raw?.ConstructionCompletedYN) {
+  // Fallback: use the normalized constructionStatus if raw field isn't available
+  if (!listing.raw?.ConstructionCompletedYN) {
     const status = listing.details.constructionStatus;
     if (status && status.toLowerCase() === 'complete') return true;
   }
@@ -231,23 +232,23 @@ export async function getQuickMoveInListings(
 ): Promise<QuickMoveInResult> {
   try {
     // Fetch from both sources in parallel
+    // For Repliers: specifically request new construction homes (not all active listings)
     const [repliersResponse, inventoryData] = await Promise.all([
       searchListings({
         status: 'A',
-        resultsPerPage: 100,
+        resultsPerPage: 200,
+        rawFilters: {
+          'raw.NewConstructionYN': 'contains:Y',
+        },
       }),
       fetchInventoryData(),
     ]);
 
-    console.log(`[QMI] Repliers returned ${repliersResponse.listings.length} listings (total: ${repliersResponse.count})`);
+    console.log(`[QMI] Repliers returned ${repliersResponse.listings.length} new construction listings (total: ${repliersResponse.count})`);
     if (repliersResponse.listings.length > 0) {
       const sample = repliersResponse.listings[0];
-      console.log(`[QMI] Sample listing: MLS#${sample.mlsNumber}, ${sample.address.city}, constructionStatus: ${sample.details.constructionStatus || 'null'}, raw.NewConstructionYN: ${sample.raw?.NewConstructionYN || 'null'}, raw.ConstructionCompletedYN: ${sample.raw?.ConstructionCompletedYN || 'null'}`);
+      console.log(`[QMI] Sample: MLS#${sample.mlsNumber}, ${sample.address.city}, constructionStatus: ${sample.details.constructionStatus || 'null'}, raw.NewConstructionYN: ${sample.raw?.NewConstructionYN || 'n/a'}, raw.ConstructionCompletedYN: ${sample.raw?.ConstructionCompletedYN || 'n/a'}`);
     }
-
-    // Log how many listings have raw construction fields for debugging
-    const withRawFields = repliersResponse.listings.filter(l => l.raw?.NewConstructionYN || l.raw?.ConstructionCompletedYN);
-    console.log(`[QMI] Listings with raw construction fields: ${withRawFields.length}/${repliersResponse.listings.length}`);
 
     // Build Google Sheet address lookup set (normalized) and address-to-home map
     const sheetAddressSet = new Set(

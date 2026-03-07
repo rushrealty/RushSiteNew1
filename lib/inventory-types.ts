@@ -154,4 +154,6 @@ export interface RepliersSearchFilters {
   boardId?: string;
   page?: number;
   resultsPerPage?: number;
+  // Raw MLS field filters (e.g. 'raw.NewConstructionYN': 'contains:Y')
+  rawFilters?: Record<string, string>;
 }
