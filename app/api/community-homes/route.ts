@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       // Filter for new construction homes NOT in sheet (NOT quick move-ins)
       // These are "to be built" homes that can be customized
       const homes = repliersResponse.listings.filter(listing => {
-        const status = listing.details.constructionStatus;
+        const status = listing.constructionStatus;
         if (!status) return false; // Not new construction
 
         // Must be under construction or proposed

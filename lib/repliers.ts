@@ -5,7 +5,11 @@ import {
 } from './inventory-types';
 
 const REPLIERS_API_URL = 'https://api.repliers.io';
-const API_KEY = process.env.REPLIERS_API_KEY || '';
+function getApiKey(): string {
+  const key = process.env.REPLIERS_API_KEY;
+  if (!key) throw new Error('REPLIERS_API_KEY environment variable is not set');
+  return key;
+}
 
 /**
  * Make a request to the Repliers API
@@ -21,7 +25,7 @@ async function repliersRequest<T>(
   const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
     method,
     headers: {
-      'REPLIERS-API-KEY': API_KEY,
+      'REPLIERS-API-KEY': getApiKey(),
       'Content-Type': 'application/json',
     },
     next: { revalidate: 60 }, // Cache for 1 minute

@@ -150,6 +150,7 @@ async function fetchRepliersListings(community?: string): Promise<UnifiedListing
   try {
     const queryParams = new URLSearchParams();
     queryParams.append('status', 'A');
+    queryParams.append('state', 'DE');
 
     if (community) {
       queryParams.append('search', community);

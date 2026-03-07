@@ -103,6 +103,7 @@ export interface RepliersListing {
     style?: string;
   };
   images?: string[];
+  constructionStatus?: string;
   map?: {
     latitude?: number;
     longitude?: number;
