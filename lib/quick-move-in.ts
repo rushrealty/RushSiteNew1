@@ -99,15 +99,15 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
 
   return {
     id: listing.mlsNumber,
-    title: `${listing.details.bedrooms} Bed ${listing.details.propertyType || 'Home'}`,
+    title: `${listing.details.numBedrooms} Bed ${listing.details.propertyType || 'Home'}`,
     price: listing.listPrice,
     address,
     city: listing.address.city,
     state: listing.address.state || 'DE',
     zip: listing.address.zip,
     county: listing.address.area || '',
-    beds: listing.details.bedrooms,
-    baths: listing.details.bathrooms,
+    beds: listing.details.numBedrooms,
+    baths: listing.details.numBathrooms,
     sqft: listing.details.sqft || 0,
     lotSize: listing.details.lotSize || '',
     yearBuilt: listing.details.yearBuilt || new Date().getFullYear(),
@@ -119,7 +119,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     features: [],
     heating: '',
     cooling: '',
-    parking: listing.details.garage ? `${listing.details.garage} Car Garage` : '',
+    parking: listing.details.numGarageSpaces ? `${listing.details.numGarageSpaces} Car Garage` : '',
     basement: '',
     hoaFee: 0,
     taxAssessment: 0,
@@ -235,6 +235,12 @@ export async function getQuickMoveInListings(
       }),
       fetchInventoryData(),
     ]);
+
+    console.log(`[QMI] Repliers returned ${repliersResponse.listings.length} listings (total: ${repliersResponse.count})`);
+    if (repliersResponse.listings.length > 0) {
+      const sample = repliersResponse.listings[0];
+      console.log(`[QMI] Sample listing: MLS#${sample.mlsNumber}, ${sample.address.city}, constructionStatus: ${sample.details.constructionStatus || 'null'}`);
+    }
 
     // Build Google Sheet address lookup set (normalized) and address-to-home map
     const sheetAddressSet = new Set(

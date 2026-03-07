@@ -90,14 +90,17 @@ export interface RepliersListing {
   };
   details: {
     propertyType: string;
-    bedrooms: number;
-    bathrooms: number;
+    numBedrooms: number;
+    numBathrooms: number;
+    numBedroomsPlus?: number;
+    numBathroomsHalf?: number;
     sqft?: number;
     lotSize?: string;
     yearBuilt?: number;
-    garage?: number;
+    numGarageSpaces?: number;
     description?: string;
     constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
+    style?: string;
   };
   images?: string[];
   map?: {
@@ -130,6 +133,7 @@ export interface RepliersResponse {
 export interface RepliersSearchFilters {
   city?: string;
   county?: string;
+  state?: string;
   zip?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -142,6 +146,7 @@ export interface RepliersSearchFilters {
   propertyType?: string;
   status?: string;
   mlsNumber?: string;
+  boardId?: string;
   page?: number;
   resultsPerPage?: number;
 }
