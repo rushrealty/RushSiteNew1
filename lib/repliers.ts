@@ -77,7 +77,8 @@ export async function searchListings(
     state: filters.state || 'DE', // Default to Delaware
     // Request raw Bright MLS fields for new construction detection
     // Must include standard fields too, otherwise API only returns the raw fields
-    fields: 'mlsNumber,listPrice,address,details,status,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN',
+    // Include 'class' for home type mapping (ResidentialProperty, CondoProperty, etc.)
+    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN',
   };
 
   // Board ID for multi-MLS accounts
@@ -183,6 +184,31 @@ export async function getAggregates(
   }
 }
 
+// Repliers CDN base URL for listing images
+const REPLIERS_CDN_URL = 'https://cdn.repliers.io/';
+
+/**
+ * Convert a string to Title Case (e.g. "NEW CASTLE" → "New Castle")
+ */
+function toTitleCase(str: string): string {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/**
+ * Map Repliers listing class to home type label
+ */
+function mapHomeType(listingClass?: string): string {
+  switch (listingClass) {
+    case 'CondoProperty':
+      return 'Condo';
+    case 'CommercialProperty':
+      return 'Commercial';
+    case 'ResidentialProperty':
+    default:
+      return 'Single Family';
+  }
+}
+
 /**
  * Transform Repliers listing to match our Property interface
  */
@@ -190,27 +216,35 @@ export function transformListing(listing: RepliersListing) {
   const address = listing.address;
   const details = listing.details;
 
+  // Convert relative image paths to full CDN URLs
+  const images = (listing.images || []).map(img =>
+    img.startsWith('http') ? img : `${REPLIERS_CDN_URL}${img}`
+  );
+
   return {
     id: listing.mlsNumber,
     mlsId: listing.mlsNumber,
-    title: details.propertyType || 'Home',
+    title: details.propertyType || 'Residential',
     price: listing.listPrice,
     address: `${address.streetNumber} ${address.streetName}${address.streetSuffix ? ' ' + address.streetSuffix : ''}`,
     city: address.city,
     state: address.state || 'DE',
     zip: address.zip,
-    county: address.area || '',
+    county: toTitleCase(address.area || ''),
     beds: details.numBedrooms,
     baths: details.numBathrooms,
     sqft: details.sqft || 0,
     lotSize: details.lotSize || '',
     yearBuilt: details.yearBuilt || new Date().getFullYear(),
     builder: '', // Not provided by MLS
-    community: address.neighborhood || '',
-    status: listing.status === 'A' ? 'Move-in Ready' : listing.status,
+    community: toTitleCase(address.neighborhood || ''),
+    homeType: mapHomeType(listing.class),
+    status: listing.status === 'A' ? 'Active' : listing.status,
     description: details.description || '',
-    images: listing.images || [],
+    images,
     features: [],
+    latitude: listing.map?.latitude,
+    longitude: listing.map?.longitude,
     listingBrokerage: listing.office?.name || '',
     listingAgent: listing.agent?.name || '',
     listingAgentPhone: listing.agent?.phone || '',

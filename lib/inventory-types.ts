@@ -78,6 +78,7 @@ export interface InventoryData {
 export interface RepliersListing {
   mlsNumber: string;
   listPrice: number;
+  class?: string; // e.g. 'ResidentialProperty', 'CondoProperty', 'CommercialProperty'
   address: {
     streetNumber: string;
     streetName: string;
