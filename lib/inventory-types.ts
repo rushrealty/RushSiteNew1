@@ -133,6 +133,7 @@ export interface RepliersResponse {
   page: number;
   numPages: number;
   resultsPerPage: number;
+  pageSize?: number; // API v2 uses pageSize instead of resultsPerPage
 }
 
 // Search filters for Repliers API
