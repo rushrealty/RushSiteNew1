@@ -33,7 +33,7 @@ export function useAutocomplete(options: UseAutocompleteOptions = {}) {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // ── Flat list of all results (for keyboard navigation) ─────────────
 
