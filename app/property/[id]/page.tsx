@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getListingByMlsNumber, transformListing } from '@/lib/repliers';
 import { getQuickMoveInListings } from '@/lib/quick-move-in';
 import PropertyRedirect from './PropertyRedirect';
 
@@ -10,8 +11,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
 
   try {
-    const result = await getQuickMoveInListings({ includeAll: true });
-    const property = result.homes.find(h => h.id === id);
+    // Try Repliers first (covers all MLS listings), then fall back to QMI inventory
+    let property: { title: string; address: string; city: string; state: string; beds: number; baths: number; sqft: number; community: string; price: number; images: string[] } | undefined;
+
+    const listing = await getListingByMlsNumber(id);
+    if (listing) {
+      property = transformListing(listing) as typeof property;
+    } else {
+      const result = await getQuickMoveInListings();
+      property = result.homes.find(h => h.id === id);
+    }
 
     if (!property) {
       return {

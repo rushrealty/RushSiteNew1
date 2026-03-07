@@ -15,34 +15,25 @@ export interface QuickMoveInResult {
 export interface QuickMoveInOptions {
   limit?: number;
   featuredOnly?: boolean;
-  includeAll?: boolean; // Include all available homes (QMI first, then others)
   communityId?: string; // Filter by community ID
 }
 
 /**
- * Check if a listing qualifies as a Quick Move-In
- * @param listing The Repliers listing
- * @param isInGoogleSheet Whether the address exists in the Google Sheet
+ * Check if a Repliers listing qualifies as a Quick Move-In
+ * Criteria:
+ *   1. Listed on the Inventory Google Sheet, OR
+ *   2. Has new construction value AND construction is complete
  */
 function isQuickMoveIn(
   listing: RepliersListing,
   isInGoogleSheet: boolean
 ): boolean {
+  // Rule 1: If it's in the Google Sheet, it's always QMI
+  if (isInGoogleSheet) return true;
+
+  // Rule 2: New construction (constructionStatus exists) AND complete
   const status = listing.details.constructionStatus;
-
-  // If constructionStatus is null, it's not new construction
-  if (!status) return false;
-
-  // If construction is complete, it's a Quick Move-In
-  if (status.toLowerCase() === 'complete') return true;
-
-  // If under construction but in Google Sheet, it's still a Quick Move-In
-  if (
-    ['under construction', 'proposed'].includes(status.toLowerCase()) &&
-    isInGoogleSheet
-  ) {
-    return true;
-  }
+  if (status && status.toLowerCase() === 'complete') return true;
 
   return false;
 }
@@ -219,9 +210,11 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
 
 /**
  * Get Quick Move-In listings from both Repliers and Google Sheet
- * Implements the business logic:
+ * Business logic:
+ * - A home is QMI if it's in the Google Sheet inventory, OR
+ *   if it has new construction status AND construction is complete
+ * - Only homes for sale in Delaware (no rentals)
  * - Repliers data supersedes Google Sheet when addresses match
- * - Quick Move-In = (new construction + complete) OR (new construction + incomplete + in sheet)
  */
 export async function getQuickMoveInListings(
   options: QuickMoveInOptions = {}
@@ -317,34 +310,8 @@ export async function getQuickMoveInListings(
         });
       });
 
-    // Merge homes based on options
-    let homes: Property[];
-
-    if (options.includeAll) {
-      // Get all other Repliers listings that are NOT Quick Move-Ins
-      // Exclude: new construction that isn't built (Under Construction/Proposed NOT in sheet)
-      const otherListings = repliersResponse.listings
-        .filter((listing) => {
-          const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
-          // Skip if already included as QMI
-          if (repliersAddressSet.has(normalizedAddr)) return false;
-
-          const status = listing.details.constructionStatus;
-          // Include if NOT new construction (status is null)
-          if (!status) return true;
-          // Include if construction is complete
-          if (status.toLowerCase() === 'complete') return true;
-          // Exclude unbuilt new construction not in sheet
-          return false;
-        })
-        .map((listing) => transformRepliersListing(listing, false));
-
-      // QMI homes first, then sheet homes, then other available homes
-      homes = [...repliersQMIs, ...sheetOnlyHomes, ...otherListings];
-    } else {
-      // Original behavior: QMI homes only
-      homes = [...repliersQMIs, ...sheetOnlyHomes];
-    }
+    // Merge QMI homes: Repliers QMI + Sheet-only
+    let homes: Property[] = [...repliersQMIs, ...sheetOnlyHomes];
 
     // Apply filters
     if (options.featuredOnly) {

@@ -4,7 +4,7 @@ import React from 'react';
 import ListingsPageContent, { ListingsPageConfig } from './ListingsPageContent';
 
 const QMI_CONFIG: ListingsPageConfig = {
-  apiEndpoint: '/api/quick-move-in?includeAll=true',
+  apiEndpoint: '/api/quick-move-in',
   basePath: '/quick-move-in',
   heroLabel: 'Move-in Ready',
   heroTitle: 'Quick Move-In Homes',
