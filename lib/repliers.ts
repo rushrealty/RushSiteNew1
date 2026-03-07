@@ -13,12 +13,12 @@ function getApiKey(): string {
 
 /**
  * Make a request to the Repliers API
- * Uses POST for /listings search, GET for single listing lookups
+ * Uses GET with query parameters — POST ignores filters like state
  */
 async function repliersRequest<T>(
   endpoint: string,
   params?: Record<string, string | number | undefined>,
-  method: 'GET' | 'POST' = 'POST'
+  method: 'GET' | 'POST' = 'GET'
 ): Promise<T> {
   const url = new URL(`${REPLIERS_API_URL}${endpoint}`);
 
@@ -40,8 +40,10 @@ async function repliersRequest<T>(
       }
     });
     fetchOptions.body = JSON.stringify(body);
-  } else if (method === 'GET' && params) {
-    // Send params as query string for GET requests
+  }
+
+  // Always append params as query string (required for GET; also works for POST as fallback)
+  if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
         url.searchParams.append(key, String(value));
@@ -49,7 +51,7 @@ async function repliersRequest<T>(
     });
   }
 
-  console.log(`[Repliers] ${method} ${url.pathname}`, params ? JSON.stringify(params) : '');
+  console.log(`[Repliers] ${method} ${url.pathname}?${url.searchParams.toString()}`);
 
   const response = await fetch(url.toString(), fetchOptions);
 
@@ -115,7 +117,7 @@ export async function searchListings(
   }
 
   try {
-    const response = await repliersRequest<RepliersResponse>('/listings', params);
+    const response = await repliersRequest<RepliersResponse>('/listings', params, 'GET');
     return response;
   } catch (error) {
     console.error('Error searching listings:', error);
@@ -171,7 +173,8 @@ export async function getAggregates(
   try {
     const response = await repliersRequest<Record<string, number>>(
       '/listings',
-      { aggregates: field as unknown as string, listings: 'false' as unknown as string, state: 'DE' }
+      { aggregates: field as unknown as string, listings: 'false' as unknown as string, state: 'DE' },
+      'GET'
     );
     return response;
   } catch (error) {
