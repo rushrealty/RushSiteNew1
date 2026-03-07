@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import BuyContent from '@/components/pages/BuyContent';
 
 export const metadata: Metadata = {
@@ -15,5 +16,9 @@ export const metadata: Metadata = {
 };
 
 export default function BuyPage() {
-  return <BuyContent />;
+  return (
+    <Suspense fallback={null}>
+      <BuyContent />
+    </Suspense>
+  );
 }
