@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { name: 'Communities', href: '/communities' },
+  { name: 'Search', href: '/search' },
   { name: 'Quick Move-In', href: '/quick-move-in' },
   { name: 'New Construction Guide', href: '/guide' },
   { name: 'Selling', href: '/selling' },

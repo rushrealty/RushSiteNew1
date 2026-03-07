@@ -5,19 +5,39 @@ import {
 } from './inventory-types';
 
 const REPLIERS_API_URL = 'https://api.repliers.io';
-const API_KEY = process.env.NEXT_PUBLIC_REPLIERS_API_KEY || 'YcsOFcoJD7i5uFHwCumzdXobhNamFz';
+const API_KEY = process.env.REPLIERS_API_KEY || '';
 
 /**
  * Make a request to the Repliers API
+ * Uses POST for /listings search, GET for single listing lookups
  */
 async function repliersRequest<T>(
   endpoint: string,
-  params?: Record<string, string | number | undefined>
+  params?: Record<string, string | number | undefined>,
+  method: 'GET' | 'POST' = 'POST'
 ): Promise<T> {
   const url = new URL(`${REPLIERS_API_URL}${endpoint}`);
 
-  // Add query parameters
-  if (params) {
+  const fetchOptions: RequestInit & { next?: { revalidate: number } } = {
+    method,
+    headers: {
+      'REPLIERS-API-KEY': API_KEY,
+      'Content-Type': 'application/json',
+    },
+    next: { revalidate: 60 }, // Cache for 1 minute
+  };
+
+  if (method === 'POST' && params) {
+    // Send params as JSON body for POST requests
+    const body: Record<string, string | number> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        body[key] = value;
+      }
+    });
+    fetchOptions.body = JSON.stringify(body);
+  } else if (method === 'GET' && params) {
+    // Send params as query string for GET requests
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
         url.searchParams.append(key, String(value));
@@ -25,17 +45,13 @@ async function repliersRequest<T>(
     });
   }
 
-  const response = await fetch(url.toString(), {
-    method: 'GET',
-    headers: {
-      'REPLIERS-API-KEY': API_KEY,
-      'Content-Type': 'application/json',
-    },
-    next: { revalidate: 60 }, // Cache for 1 minute
-  });
+  console.log(`[Repliers] ${method} ${url.pathname}`, params ? JSON.stringify(params) : '');
+
+  const response = await fetch(url.toString(), fetchOptions);
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error(`[Repliers] API error ${response.status}:`, errorText);
     throw new Error(`Repliers API error: ${response.status} - ${errorText}`);
   }
 
@@ -50,8 +66,16 @@ export async function searchListings(
 ): Promise<RepliersResponse> {
   const params: Record<string, string | number | undefined> = {
     resultsPerPage: filters.resultsPerPage || 20,
-    page: filters.page || 1,
+    pageNum: filters.page || 1,
+    type: 'sale',
+    state: filters.state || 'DE', // Default to Delaware
+    // Request raw Bright MLS fields for new construction detection
+    // Must include standard fields too, otherwise API only returns the raw fields
+    fields: 'mlsNumber,listPrice,address,details,status,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN',
   };
+
+  // Board ID for multi-MLS accounts
+  if (filters.boardId) params.boardId = filters.boardId;
 
   // Location filters
   if (filters.city) params.city = filters.city;
@@ -78,6 +102,13 @@ export async function searchListings(
 
   // MLS number
   if (filters.mlsNumber) params.mlsNumber = filters.mlsNumber;
+
+  // Raw MLS field filters (e.g. raw.NewConstructionYN=contains:Y)
+  if (filters.rawFilters) {
+    for (const [key, value] of Object.entries(filters.rawFilters)) {
+      params[key] = value;
+    }
+  }
 
   try {
     const response = await repliersRequest<RepliersResponse>('/listings', params);
@@ -135,8 +166,8 @@ export async function getAggregates(
 ): Promise<Record<string, number>> {
   try {
     const response = await repliersRequest<Record<string, number>>(
-      '/listings/aggregates',
-      { field }
+      '/listings',
+      { aggregates: field as unknown as string, listings: 'false' as unknown as string, state: 'DE' }
     );
     return response;
   } catch (error) {
@@ -162,8 +193,8 @@ export function transformListing(listing: RepliersListing) {
     state: address.state || 'DE',
     zip: address.zip,
     county: address.area || '',
-    beds: details.bedrooms,
-    baths: details.bathrooms,
+    beds: details.numBedrooms,
+    baths: details.numBathrooms,
     sqft: details.sqft || 0,
     lotSize: details.lotSize || '',
     yearBuilt: details.yearBuilt || new Date().getFullYear(),

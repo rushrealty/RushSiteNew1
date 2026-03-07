@@ -15,33 +15,35 @@ export interface QuickMoveInResult {
 export interface QuickMoveInOptions {
   limit?: number;
   featuredOnly?: boolean;
-  includeAll?: boolean; // Include all available homes (QMI first, then others)
   communityId?: string; // Filter by community ID
 }
 
 /**
- * Check if a listing qualifies as a Quick Move-In
- * @param listing The Repliers listing
- * @param isInGoogleSheet Whether the address exists in the Google Sheet
+ * Check if a Repliers listing qualifies as a Quick Move-In
+ * Criteria:
+ *   1. Listed on the Inventory Google Sheet, OR
+ *   2. NewConstructionYN = "Y" AND ConstructionCompletedYN = "Y"
+ *      (raw Bright MLS RESO fields)
+ *
+ * Note: The Repliers API call already filters for NewConstructionYN = Y,
+ * so all listings passed here are new construction. We just need to check
+ * if construction is complete (or if it's in the Google Sheet).
  */
 function isQuickMoveIn(
   listing: RepliersListing,
   isInGoogleSheet: boolean
 ): boolean {
-  const status = listing.details.constructionStatus;
+  // Rule 1: If it's in the Google Sheet, it's always QMI
+  if (isInGoogleSheet) return true;
 
-  // If constructionStatus is null, it's not new construction
-  if (!status) return false;
+  // Rule 2: Construction complete (API already filtered for NewConstructionYN=Y)
+  const isConstructionComplete = listing.raw?.ConstructionCompletedYN?.toUpperCase() === 'Y';
+  if (isConstructionComplete) return true;
 
-  // If construction is complete, it's a Quick Move-In
-  if (status.toLowerCase() === 'complete') return true;
-
-  // If under construction but in Google Sheet, it's still a Quick Move-In
-  if (
-    ['under construction', 'proposed'].includes(status.toLowerCase()) &&
-    isInGoogleSheet
-  ) {
-    return true;
+  // Fallback: use the normalized constructionStatus if raw field isn't available
+  if (!listing.raw?.ConstructionCompletedYN) {
+    const status = listing.details.constructionStatus;
+    if (status && status.toLowerCase() === 'complete') return true;
   }
 
   return false;
@@ -99,15 +101,15 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
 
   return {
     id: listing.mlsNumber,
-    title: `${listing.details.bedrooms} Bed ${listing.details.propertyType || 'Home'}`,
+    title: `${listing.details.numBedrooms} Bed ${listing.details.propertyType || 'Home'}`,
     price: listing.listPrice,
     address,
     city: listing.address.city,
     state: listing.address.state || 'DE',
     zip: listing.address.zip,
     county: listing.address.area || '',
-    beds: listing.details.bedrooms,
-    baths: listing.details.bathrooms,
+    beds: listing.details.numBedrooms,
+    baths: listing.details.numBathrooms,
     sqft: listing.details.sqft || 0,
     lotSize: listing.details.lotSize || '',
     yearBuilt: listing.details.yearBuilt || new Date().getFullYear(),
@@ -119,7 +121,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     features: [],
     heating: '',
     cooling: '',
-    parking: listing.details.garage ? `${listing.details.garage} Car Garage` : '',
+    parking: listing.details.numGarageSpaces ? `${listing.details.numGarageSpaces} Car Garage` : '',
     basement: '',
     hoaFee: 0,
     taxAssessment: 0,
@@ -219,22 +221,34 @@ function transformInventoryHome(home: EnrichedInventoryHome): Property {
 
 /**
  * Get Quick Move-In listings from both Repliers and Google Sheet
- * Implements the business logic:
+ * Business logic:
+ * - A home is QMI if it's in the Google Sheet inventory, OR
+ *   if it has new construction status AND construction is complete
+ * - Only homes for sale in Delaware (no rentals)
  * - Repliers data supersedes Google Sheet when addresses match
- * - Quick Move-In = (new construction + complete) OR (new construction + incomplete + in sheet)
  */
 export async function getQuickMoveInListings(
   options: QuickMoveInOptions = {}
 ): Promise<QuickMoveInResult> {
   try {
     // Fetch from both sources in parallel
+    // For Repliers: specifically request new construction homes (not all active listings)
     const [repliersResponse, inventoryData] = await Promise.all([
       searchListings({
         status: 'A',
-        resultsPerPage: 100,
+        resultsPerPage: 200,
+        rawFilters: {
+          'raw.NewConstructionYN': 'contains:Y',
+        },
       }),
       fetchInventoryData(),
     ]);
+
+    console.log(`[QMI] Repliers returned ${repliersResponse.listings.length} new construction listings (total: ${repliersResponse.count})`);
+    if (repliersResponse.listings.length > 0) {
+      const sample = repliersResponse.listings[0];
+      console.log(`[QMI] Sample: MLS#${sample.mlsNumber}, ${sample.address.city}, constructionStatus: ${sample.details.constructionStatus || 'null'}, raw.NewConstructionYN: ${sample.raw?.NewConstructionYN || 'n/a'}, raw.ConstructionCompletedYN: ${sample.raw?.ConstructionCompletedYN || 'n/a'}`);
+    }
 
     // Build Google Sheet address lookup set (normalized) and address-to-home map
     const sheetAddressSet = new Set(
@@ -311,34 +325,8 @@ export async function getQuickMoveInListings(
         });
       });
 
-    // Merge homes based on options
-    let homes: Property[];
-
-    if (options.includeAll) {
-      // Get all other Repliers listings that are NOT Quick Move-Ins
-      // Exclude: new construction that isn't built (Under Construction/Proposed NOT in sheet)
-      const otherListings = repliersResponse.listings
-        .filter((listing) => {
-          const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
-          // Skip if already included as QMI
-          if (repliersAddressSet.has(normalizedAddr)) return false;
-
-          const status = listing.details.constructionStatus;
-          // Include if NOT new construction (status is null)
-          if (!status) return true;
-          // Include if construction is complete
-          if (status.toLowerCase() === 'complete') return true;
-          // Exclude unbuilt new construction not in sheet
-          return false;
-        })
-        .map((listing) => transformRepliersListing(listing, false));
-
-      // QMI homes first, then sheet homes, then other available homes
-      homes = [...repliersQMIs, ...sheetOnlyHomes, ...otherListings];
-    } else {
-      // Original behavior: QMI homes only
-      homes = [...repliersQMIs, ...sheetOnlyHomes];
-    }
+    // Merge QMI homes: Repliers QMI + Sheet-only
+    let homes: Property[] = [...repliersQMIs, ...sheetOnlyHomes];
 
     // Apply filters
     if (options.featuredOnly) {

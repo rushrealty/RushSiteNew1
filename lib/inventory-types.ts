@@ -90,14 +90,17 @@ export interface RepliersListing {
   };
   details: {
     propertyType: string;
-    bedrooms: number;
-    bathrooms: number;
+    numBedrooms: number;
+    numBathrooms: number;
+    numBedroomsPlus?: number;
+    numBathroomsHalf?: number;
     sqft?: number;
     lotSize?: string;
     yearBuilt?: number;
-    garage?: number;
+    numGarageSpaces?: number;
     description?: string;
     constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
+    style?: string;
   };
   images?: string[];
   map?: {
@@ -115,6 +118,11 @@ export interface RepliersListing {
     name: string;
     phone?: string;
   };
+  raw?: {
+    NewConstructionYN?: string; // "Y" or "N" - from Bright MLS
+    ConstructionCompletedYN?: string; // "Y" or "N" - from Bright MLS
+    [key: string]: string | undefined;
+  };
 }
 
 // Repliers API response
@@ -130,6 +138,7 @@ export interface RepliersResponse {
 export interface RepliersSearchFilters {
   city?: string;
   county?: string;
+  state?: string;
   zip?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -142,6 +151,9 @@ export interface RepliersSearchFilters {
   propertyType?: string;
   status?: string;
   mlsNumber?: string;
+  boardId?: string;
   page?: number;
   resultsPerPage?: number;
+  // Raw MLS field filters (e.g. 'raw.NewConstructionYN': 'contains:Y')
+  rawFilters?: Record<string, string>;
 }

@@ -75,59 +75,59 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const status = searchParams.get('status') || 'A'; // Default to Available
 
-    // Build query parameters for Repliers API
-    const queryParams = new URLSearchParams();
-    queryParams.append('status', status);
+    // Build request body for Repliers API (POST)
+    const requestBody: Record<string, string | boolean> = {
+      status,
+      state: 'DE',
+      type: 'sale',
+      fields: [
+        'mlsNumber',
+        'listPrice',
+        'address',
+        'details',
+        'lot',
+        'status',
+        'listDate',
+        'description',
+        'images',
+        'virtualTour',
+        'map'
+      ].join(','),
+    };
 
     // Filter by community/subdivision name
     if (community) {
-      // Search in subdivision field or use general search
-      queryParams.append('search', community);
-      queryParams.append('searchFields', 'address.subdivision,address.neighborhood,address.area');
+      requestBody.search = community;
+      requestBody.searchFields = 'address.subdivision,address.neighborhood,address.area';
     }
 
     // Filter by MLS number
     if (mlsNumber) {
-      queryParams.append('mlsNumber', mlsNumber);
+      requestBody.mlsNumber = mlsNumber;
     }
 
     // Filter by construction status
     if (constructionStatus) {
-      queryParams.append('constructionStatus', constructionStatus);
+      requestBody.constructionStatus = constructionStatus;
     }
 
     // Price filters
     if (minPrice) {
-      queryParams.append('minListPrice', minPrice);
+      requestBody.minPrice = minPrice;
     }
     if (maxPrice) {
-      queryParams.append('maxListPrice', maxPrice);
+      requestBody.maxPrice = maxPrice;
     }
 
-    // Request response fields we need
-    queryParams.append('fields', [
-      'mlsNumber',
-      'listPrice',
-      'address',
-      'details',
-      'lot',
-      'constructionStatus',
-      'newConstruction',
-      'status',
-      'listDate',
-      'description',
-      'images',
-      'virtualTour',
-      'map'
-    ].join(','));
+    console.log('[Repliers Route] POST /listings', JSON.stringify(requestBody));
 
-    const apiUrl = `${REPLIERS_API_URL}?${queryParams.toString()}`;
-
-    const response = await fetch(apiUrl, {
+    const response = await fetch(REPLIERS_API_URL, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'REPLIERS-API-KEY': apiKey,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(requestBody),
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
 

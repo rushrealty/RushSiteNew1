@@ -160,7 +160,7 @@ async function fetchRepliersListings(community?: string): Promise<UnifiedListing
 
     const response = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'REPLIERS-API-KEY': apiKey,
         'Content-Type': 'application/json',
       },
       next: { revalidate: 300 },
