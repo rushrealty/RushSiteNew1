@@ -234,8 +234,39 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   }, []);
 
   const handleSelectPrediction = (prediction: AutocompletePrediction) => {
-    setSearchTerm(prediction.description);
-    autocomplete.handleSelect(prediction);
+    // Stay on the listings page — apply filters locally instead of navigating
+    autocomplete.setIsOpen(false);
+
+    switch (prediction.type) {
+      case 'location':
+        // Set search term to just the city name (not "Wilmington, DE")
+        if (prediction.city) {
+          setSearchTerm(prediction.city);
+        } else if (prediction.zip) {
+          setSearchTerm(prediction.zip);
+        } else {
+          setSearchTerm(prediction.description);
+        }
+        // Also set county filter if available
+        if (prediction.county) {
+          setSelectedCounties(prev =>
+            prev.includes(prediction.county!) ? prev : [...prev, prediction.county!]
+          );
+        }
+        break;
+
+      case 'community':
+        setSearchTerm(prediction.description);
+        break;
+
+      case 'property':
+        setSearchTerm(prediction.description);
+        break;
+
+      default:
+        setSearchTerm(prediction.description);
+        break;
+    }
   };
 
   const closeOthers = useCallback((except: string) => {
@@ -314,14 +345,18 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
   const filteredProperties = useMemo(() => {
     const filtered = allHomes.filter(property => {
-      // Text search
-      const matchesSearch = searchTerm === '' ||
-        property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.builder.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.zip.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.community.toLowerCase().includes(searchTerm.toLowerCase());
+      // Text search — split by comma to handle "City, State" patterns
+      const searchParts = searchTerm.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const matchesSearch = searchTerm === '' || searchParts.length === 0 ||
+        searchParts.some(part =>
+          property.title.toLowerCase().includes(part) ||
+          property.city.toLowerCase().includes(part) ||
+          property.builder.toLowerCase().includes(part) ||
+          property.address.toLowerCase().includes(part) ||
+          property.zip.toLowerCase().includes(part) ||
+          property.community.toLowerCase().includes(part) ||
+          property.state.toLowerCase().includes(part)
+        );
 
       // Price range
       const matchesPriceMin = priceMin === null || property.price >= priceMin;
@@ -577,6 +612,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
   const clearAllFilters = () => {
     setSearchTerm('');
+    autocomplete.clear();
     setPriceMin(null);
     setPriceMax(null);
     setSelectedCounties([]);
@@ -589,6 +625,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     setLotSizeMin(null);
     setBasementFilter(null);
     setSingleStoryOnly(false);
+    // Clear URL search params without navigation
+    router.replace(config.basePath, { scroll: false });
   };
 
   return (
@@ -619,13 +657,34 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                       ref={autocomplete.inputRef}
                       type="text"
                       placeholder="Search by city, ZIP code, address, or community..."
-                      className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onFocus={() => autocomplete.hasResults && autocomplete.setIsOpen(true)}
-                      onKeyDown={autocomplete.handleKeyDown}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          // If autocomplete has a selection, use it; otherwise just filter locally
+                          if (autocomplete.selectedIndex >= 0 && autocomplete.allResults[autocomplete.selectedIndex]) {
+                            handleSelectPrediction(autocomplete.allResults[autocomplete.selectedIndex]);
+                          } else {
+                            autocomplete.setIsOpen(false);
+                          }
+                        } else {
+                          autocomplete.handleKeyDown(e);
+                        }
+                      }}
                       autoComplete="off"
                    />
+                   {searchTerm && (
+                     <button
+                       onClick={() => setSearchTerm('')}
+                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                       type="button"
+                     >
+                       <X size={16} />
+                     </button>
+                   )}
 
                    {/* Autocomplete Dropdown */}
                    <AutocompleteDropdown
