@@ -98,7 +98,6 @@ const DELAWARE_ZIPS: Record<string, { city: string; county: string }> = {
   '19947': { city: 'Georgetown', county: 'Sussex' },
   '19951': { city: 'Harbeson', county: 'Sussex' },
   '19956': { city: 'Laurel', county: 'Sussex' },
-  '19971': { city: 'Rehoboth Beach', county: 'Sussex' },
 };
 
 // ── Build flat searchable list at module load ──────────────────────────
