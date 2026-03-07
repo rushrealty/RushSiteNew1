@@ -10,6 +10,7 @@ export interface QuickMoveInResult {
   fromRepliers: number;
   fromSheet: number;
   total: number;
+  lastUpdated: string;
 }
 
 export interface QuickMoveInOptions {
@@ -368,6 +369,7 @@ export async function getQuickMoveInListings(
       fromRepliers: repliersQMIs.length,
       fromSheet: sheetOnlyHomes.length,
       total: homes.length,
+      lastUpdated: new Date().toISOString(),
     };
   } catch (error) {
     console.error('Error fetching Quick Move-In listings:', error);
@@ -376,6 +378,7 @@ export async function getQuickMoveInListings(
       fromRepliers: 0,
       fromSheet: 0,
       total: 0,
+      lastUpdated: new Date().toISOString(),
     };
   }
 }

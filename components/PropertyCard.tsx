@@ -83,6 +83,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick, onMouseE
             </div>
           </div>
         </div>
+
+        {/* Bright MLS Compliance: Listing broker attribution */}
+        {property.listingBrokerage && (
+          <div className="mt-4 pt-3 border-t border-gray-100">
+            <p className="text-[10px] text-gray-400 leading-tight truncate">
+              Courtesy of {property.listingBrokerage}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

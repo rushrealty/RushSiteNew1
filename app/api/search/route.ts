@@ -59,6 +59,7 @@ export async function GET() {
       total: homes.length,
       page: 1,
       numPages: 1,
+      lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error fetching search listings:', error);
