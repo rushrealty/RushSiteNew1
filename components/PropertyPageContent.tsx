@@ -6,6 +6,7 @@ import { usePropertyData } from '../hooks/usePropertyData';
 import { trackFubPageView } from './FubTracker';
 import PropertyCard from './PropertyCard';
 import PropertyContactForm from './PropertyContactForm';
+import PhotoGallery from './PhotoGallery';
 import ShareDropdown from './ShareDropdown';
 import {
   Bed, Bath, Maximize2, Trees, MapPin, Heart, Share2, Images,
@@ -35,6 +36,8 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryStartIndex, setGalleryStartIndex] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Track virtual pageview in FUB
@@ -55,6 +58,12 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
     }
     return null;
   })();
+
+  // Open fullscreen photo gallery
+  const openGallery = (index: number) => {
+    setGalleryStartIndex(index);
+    setGalleryOpen(true);
+  };
 
   // Gallery scroll handler
   const scrollToImage = (index: number) => {
@@ -100,11 +109,11 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
           >
             {property.images.length > 0 ? (
               property.images.map((img, idx) => (
-                <div key={idx} className="flex-shrink-0 w-full h-[360px] snap-start">
+                <div key={idx} className="flex-shrink-0 w-full h-[360px] snap-start" onClick={() => openGallery(idx)}>
                   <img
                     src={img}
                     alt={`${property.address} - View ${idx + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover cursor-pointer"
                     referrerPolicy="no-referrer"
                   />
                 </div>
@@ -143,7 +152,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
         {/* Desktop: Grid gallery */}
         <div className="hidden lg:block">
           {property.images.length <= 1 ? (
-            <div className="h-[500px] max-w-7xl mx-auto">
+            <div className="h-[500px] max-w-7xl mx-auto cursor-pointer" onClick={() => openGallery(0)}>
               <img
                 src={property.images[0] || ''}
                 alt={property.address}
@@ -153,7 +162,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
             </div>
           ) : (
             <div className="grid grid-cols-4 gap-1.5 h-[500px] max-w-7xl mx-auto px-4 xl:px-0">
-              <div className="col-span-2 row-span-2">
+              <div className="col-span-2 row-span-2" onClick={() => openGallery(0)}>
                 <img
                   src={property.images[0]}
                   alt="Main View"
@@ -162,7 +171,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                 />
               </div>
               {property.images.slice(1, 5).map((img, idx) => (
-                <div key={idx} className="relative overflow-hidden">
+                <div key={idx} className="relative overflow-hidden" onClick={() => openGallery(idx + 1)}>
                   <img
                     src={img}
                     alt={`View ${idx + 2}`}
@@ -172,7 +181,10 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                     referrerPolicy="no-referrer"
                   />
                   {idx === 3 && property.images.length > 5 && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors">
+                    <div
+                      className="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); openGallery(0); }}
+                    >
                       <span className="flex items-center gap-2 text-white font-bold text-sm uppercase tracking-wider">
                         <Images size={16} /> View All {property.images.length} Photos
                       </span>
@@ -558,6 +570,16 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
           </div>
         )}
       </div>
+
+      {/* Fullscreen Photo Gallery */}
+      {galleryOpen && property.images.length > 0 && (
+        <PhotoGallery
+          images={property.images}
+          initialIndex={galleryStartIndex}
+          propertyAddress={property.address}
+          onClose={() => setGalleryOpen(false)}
+        />
+      )}
     </div>
   );
 };
