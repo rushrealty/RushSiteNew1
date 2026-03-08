@@ -100,6 +100,20 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
   const address = buildAddressString(listing.address);
   const status = mapConstructionStatus(listing.details.constructionStatus);
 
+  // --- Lot Size (normalized to acres) ---
+  const rawLotArea = listing.raw?.LotSizeArea ? parseFloat(listing.raw.LotSizeArea) : 0;
+  const rawLotUnits = listing.raw?.LotSizeUnits || '';
+  let lotSize = listing.details.lotSize || '';
+  if (rawLotArea > 0) {
+    const acres = rawLotUnits.toLowerCase().includes('square') ? rawLotArea / 43560 : rawLotArea;
+    lotSize = `${acres.toFixed(2)} Acres`;
+  }
+
+  // --- Stories ---
+  const rawStories = listing.raw?.StoriesTotal ? parseInt(listing.raw.StoriesTotal, 10) : NaN;
+  const rawLevels = listing.raw?.Levels ? parseInt(listing.raw.Levels, 10) : NaN;
+  const stories = !isNaN(rawStories) ? rawStories : !isNaN(rawLevels) ? rawLevels : undefined;
+
   return {
     id: listing.mlsNumber,
     title: `${listing.details.numBedrooms} Bed ${listing.details.propertyType || 'Home'}`,
@@ -112,7 +126,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     beds: listing.details.numBedrooms,
     baths: listing.details.numBathrooms,
     sqft: listing.details.sqft || 0,
-    lotSize: listing.details.lotSize || '',
+    lotSize,
     yearBuilt: listing.details.yearBuilt || new Date().getFullYear(),
     builder: '',
     community: listing.address.neighborhood || '',
@@ -123,7 +137,11 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     heating: '',
     cooling: '',
     parking: listing.details.numGarageSpaces ? `${listing.details.numGarageSpaces} Car Garage` : '',
-    basement: '',
+    basement: listing.raw?.BasementYN?.toUpperCase() === 'Y' ? 'Yes' : '',
+    stories,
+    is55Plus: listing.raw?.SeniorCommunityYN?.toUpperCase() === 'Y',
+    hasCommunityPool: listing.raw?.PoolYN?.toUpperCase() === 'Y',
+    isNewConstruction: listing.raw?.NewConstructionYN?.toUpperCase() === 'Y',
     hoaFee: 0,
     taxAssessment: 0,
     schools: [],
@@ -137,7 +155,7 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     listingBrokerage: listing.office?.name || listing.raw?.ListOfficeName || '',
     brokeragePhone: listing.office?.phone || listing.raw?.ListOfficePhone || '',
     lastUpdated: listing.listDate || new Date().toISOString(),
-    priceHistory: isQMI ? [] : [], // Price history would come from API if needed
+    priceHistory: [],
   };
 }
 

@@ -106,6 +106,7 @@ export interface Property {
   completionDate?: string;
   featured?: boolean;
   isQuickMoveIn?: boolean; // True for quick move-in homes (new construction ready or from sheet)
+  isNewConstruction?: boolean; // True if NewConstructionYN = Y from Bright MLS
   homeType?: string; // Single Family, Townhouse, Condo, etc.
   stories?: number;
   is55Plus?: boolean;

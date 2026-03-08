@@ -78,7 +78,7 @@ export async function searchListings(
     // Request raw Bright MLS fields for new construction detection
     // Must include standard fields too, otherwise API only returns the raw fields
     // Include 'class' for home type mapping (ResidentialProperty, CondoProperty, etc.)
-    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,taxes,condominium,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType,raw.TaxAnnualAmount,raw.AssociationFee,raw.AssociationFeeFrequency,raw.ListOfficeName,raw.ListOfficePhone,raw.ListAgentFullName,raw.ListAgentDirectPhone,raw.ListAgentPreferredPhone',
+    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,taxes,condominium,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType,raw.TaxAnnualAmount,raw.AssociationFee,raw.AssociationFeeFrequency,raw.ListOfficeName,raw.ListOfficePhone,raw.ListAgentFullName,raw.ListAgentDirectPhone,raw.ListAgentPreferredPhone,raw.BasementYN,raw.StoriesTotal,raw.Levels,raw.SeniorCommunityYN,raw.PoolYN,raw.LotSizeArea,raw.LotSizeUnits',
   };
 
   // Board ID for multi-MLS accounts
@@ -272,6 +272,20 @@ export function transformListing(listing: RepliersListing) {
 
   const monthlyHoa = parseMonthlyHoa(rawHoaAmount, hoaFrequency);
 
+  // --- Lot Size (normalized to acres) ---
+  const rawLotArea = listing.raw?.LotSizeArea ? parseFloat(listing.raw.LotSizeArea) : 0;
+  const rawLotUnits = listing.raw?.LotSizeUnits || '';
+  let lotSize = details.lotSize || '';
+  if (rawLotArea > 0) {
+    const acres = rawLotUnits.toLowerCase().includes('square') ? rawLotArea / 43560 : rawLotArea;
+    lotSize = `${acres.toFixed(2)} Acres`;
+  }
+
+  // --- Stories ---
+  const rawStories = listing.raw?.StoriesTotal ? parseInt(listing.raw.StoriesTotal, 10) : NaN;
+  const rawLevels = listing.raw?.Levels ? parseInt(listing.raw.Levels, 10) : NaN;
+  const stories = !isNaN(rawStories) ? rawStories : !isNaN(rawLevels) ? rawLevels : undefined;
+
   return {
     id: listing.mlsNumber,
     mlsId: listing.mlsNumber,
@@ -285,7 +299,7 @@ export function transformListing(listing: RepliersListing) {
     beds: details.numBedrooms,
     baths: details.numBathrooms,
     sqft: details.sqft || 0,
-    lotSize: details.lotSize || '',
+    lotSize,
     yearBuilt: details.yearBuilt || new Date().getFullYear(),
     builder: '', // Not provided by MLS
     community: toTitleCase(address.neighborhood || ''),
@@ -304,7 +318,11 @@ export function transformListing(listing: RepliersListing) {
     heating: '',
     cooling: '',
     parking: details.numGarageSpaces ? `${details.numGarageSpaces} Car Garage` : '',
-    basement: '',
+    basement: listing.raw?.BasementYN?.toUpperCase() === 'Y' ? 'Yes' : '',
+    stories,
+    is55Plus: listing.raw?.SeniorCommunityYN?.toUpperCase() === 'Y',
+    hasCommunityPool: listing.raw?.PoolYN?.toUpperCase() === 'Y',
+    isNewConstruction: listing.raw?.NewConstructionYN?.toUpperCase() === 'Y',
     hoaFee: monthlyHoa,
     taxAssessment: taxAnnual || 0,
     schools: [],
