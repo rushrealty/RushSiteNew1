@@ -5,12 +5,13 @@ import { Property } from '../types';
 import { usePropertyData } from '../hooks/usePropertyData';
 import { trackFubPageView } from './FubTracker';
 import PropertyCard from './PropertyCard';
-import PropertyContactForm from './PropertyContactForm';
+import ContactFormModal from './ContactFormModal';
 import PhotoGallery from './PhotoGallery';
 import ShareDropdown from './ShareDropdown';
 import {
   Bed, Bath, Maximize2, Trees, MapPin, Heart, Share2, Images,
   CheckCircle, TrendingUp, Loader2, Clock, ChevronLeft, ChevronRight,
+  Calendar, Info, MessageSquare,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -50,6 +51,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
   const [showShareDropdown, setShowShareDropdown] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartIndex, setGalleryStartIndex] = useState(0);
+  const [contactMode, setContactMode] = useState<'tour' | 'info' | 'message' | null>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Track virtual pageview in FUB
@@ -548,14 +550,28 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
               </div>
             </div>
 
-            {/* Contact Form — Mobile Only */}
+            {/* Contact Buttons — Mobile Only */}
             <div className="lg:hidden mb-10">
-              <PropertyContactForm
-                propertyAddress={property.address}
-                propertyDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
-                propertyCity={property.city}
-                propertyState={property.state}
-              />
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-2.5">
+                <button
+                  onClick={() => setContactMode('tour')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-black text-white shadow-md hover:bg-gray-800 transition-all"
+                >
+                  <Calendar size={16} /> Schedule a Tour
+                </button>
+                <button
+                  onClick={() => setContactMode('info')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <Info size={16} /> Request Info
+                </button>
+                <button
+                  onClick={() => setContactMode('message')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <MessageSquare size={16} /> Send Message
+                </button>
+              </div>
             </div>
 
           </div>
@@ -563,12 +579,26 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
           {/* =================== RIGHT COLUMN (Desktop Sidebar) =================== */}
           <div className="hidden lg:block lg:w-1/3">
             <div className="sticky top-28 space-y-6">
-              <PropertyContactForm
-                propertyAddress={property.address}
-                propertyDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
-                propertyCity={property.city}
-                propertyState={property.state}
-              />
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-2.5">
+                <button
+                  onClick={() => setContactMode('tour')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-black text-white shadow-md hover:bg-gray-800 transition-all"
+                >
+                  <Calendar size={16} /> Schedule a Tour
+                </button>
+                <button
+                  onClick={() => setContactMode('info')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <Info size={16} /> Request Info
+                </button>
+                <button
+                  onClick={() => setContactMode('message')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <MessageSquare size={16} /> Send Message
+                </button>
+              </div>
             </div>
           </div>
 
@@ -621,6 +651,18 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
           onClose={() => setGalleryOpen(false)}
         />
       )}
+
+      {/* Contact Form Modal */}
+      <ContactFormModal
+        isOpen={!!contactMode}
+        onClose={() => setContactMode(null)}
+        mode={contactMode || 'info'}
+        subjectName={property.address}
+        subjectType="property"
+        subjectDetails={`${property.city}, ${property.state} - $${property.price.toLocaleString()}`}
+        propertyCity={property.city}
+        propertyState={property.state}
+      />
     </div>
   );
 };

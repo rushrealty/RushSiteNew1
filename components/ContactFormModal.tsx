@@ -5,6 +5,8 @@ import { X, Loader2, CheckCircle2, Home, Building2, Calendar, Clock } from 'luci
 import Link from 'next/link';
 import { sendFubEvent } from '@/lib/fub';
 
+type ContactMode = 'tour' | 'info' | 'message';
+
 interface ContactFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -14,9 +16,72 @@ interface ContactFormModalProps {
   subjectType: 'property' | 'community';
   // Optional: additional context like price, location, etc.
   subjectDetails?: string;
-  // Whether this is a tour request (shows date/time fields) or general inquiry
+  // Form mode: 'tour' (date/time), 'info' (optional message), 'message' (required message)
+  mode?: ContactMode;
+  // Backward compat: deprecated, use mode instead
   isTourRequest?: boolean;
+  // Optional property location for FUB CRM
+  propertyCity?: string;
+  propertyState?: string;
 }
+
+const MODE_CONFIG: Record<ContactMode, {
+  title: string;
+  subject: (name: string) => string;
+  inquiryType: (type: 'property' | 'community') => string;
+  successTitle: string;
+  successVerb: string;
+  submitLabel: string;
+  showDatePicker: boolean;
+  showMessage: boolean;
+  messageRequired: boolean;
+  phoneRequired: boolean;
+  fubLabel: string;
+  fubTag: string;
+}> = {
+  tour: {
+    title: 'Schedule a Tour',
+    subject: (name) => `Tour Request: ${name}`,
+    inquiryType: (type) => type === 'property' ? 'Home Tour Request' : 'Community Tour Request',
+    successTitle: 'Tour Request Received!',
+    successVerb: 'tour request',
+    submitLabel: 'Request Tour',
+    showDatePicker: true,
+    showMessage: false,
+    messageRequired: false,
+    phoneRequired: true,
+    fubLabel: 'Tour Request',
+    fubTag: 'Tour Request',
+  },
+  info: {
+    title: 'Request Information',
+    subject: (name) => `Info Request: ${name}`,
+    inquiryType: (type) => type === 'property' ? 'Home Information Request' : 'Community Information Request',
+    successTitle: 'Request Received!',
+    successVerb: 'information request',
+    submitLabel: 'Request Info',
+    showDatePicker: false,
+    showMessage: true,
+    messageRequired: false,
+    phoneRequired: false,
+    fubLabel: 'Information Request',
+    fubTag: 'Inquiry',
+  },
+  message: {
+    title: 'Send a Message',
+    subject: (name) => `New Message: ${name}`,
+    inquiryType: (type) => type === 'property' ? 'Home Inquiry' : 'Community Inquiry',
+    successTitle: 'Message Sent!',
+    successVerb: 'message',
+    submitLabel: 'Send Message',
+    showDatePicker: false,
+    showMessage: true,
+    messageRequired: true,
+    phoneRequired: true,
+    fubLabel: 'Message',
+    fubTag: 'Inquiry',
+  },
+};
 
 const ContactFormModal: React.FC<ContactFormModalProps> = ({
   isOpen,
@@ -24,8 +89,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
   subjectName,
   subjectType,
   subjectDetails,
-  isTourRequest = false
+  mode,
+  isTourRequest,
+  propertyCity,
+  propertyState,
 }) => {
+  // Resolve effective mode: explicit mode > isTourRequest backward compat > default 'info'
+  const effectiveMode: ContactMode = mode || (isTourRequest ? 'tour' : 'info');
+  const config = MODE_CONFIG[effectiveMode];
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -49,8 +121,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
-    // Formspree endpoint
-    const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xlgnveeb';
+    // Hardcoded Formspree endpoint — confirmed form "Property Inquiry" (xlgnveeb)
+    const formspreeEndpoint = 'https://formspree.io/f/xlgnveeb';
 
     // Format the date for display
     const formattedDate = formData.preferredDate
@@ -70,17 +142,12 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          // Subject information
-          _subject: isTourRequest
-            ? `Tour Request: ${subjectName}`
-            : `New Inquiry: ${subjectName}`,
-          inquiryType: isTourRequest
-            ? (subjectType === 'property' ? 'Home Tour Request' : 'Community Tour Request')
-            : (subjectType === 'property' ? 'Home Inquiry' : 'Community Inquiry'),
+          _subject: config.subject(subjectName),
+          inquiryType: config.inquiryType(subjectType),
           propertyOrCommunity: subjectName,
           additionalDetails: subjectDetails || '',
           // Tour scheduling info (if applicable)
-          ...(isTourRequest && {
+          ...(config.showDatePicker && {
             preferredDate: formattedDate,
             preferredTime: formData.preferredTime,
             tourDateTime: `${formattedDate} at ${formData.preferredTime}`
@@ -91,7 +158,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
           phone: formData.phone || '',
-          // Message (for Ask a Question)
+          // Message (for info and message modes)
           ...(formData.message && { message: formData.message })
         })
       });
@@ -100,11 +167,11 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         setSubmitted(true);
 
         // Send event to Follow Up Boss CRM (fire-and-forget)
-        const fubEventType = isTourRequest
+        const fubEventType = effectiveMode === 'tour'
           ? (subjectType === 'property' ? 'Property Inquiry' : 'Inquiry')
           : 'General Inquiry';
 
-        const tourInfo = isTourRequest && formData.preferredDate
+        const tourInfo = effectiveMode === 'tour' && formData.preferredDate
           ? `Preferred: ${formattedDate} at ${formData.preferredTime}`
           : undefined;
 
@@ -116,18 +183,20 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           phone: formData.phone || undefined,
           message: formData.message || undefined,
           description: [
-            isTourRequest ? 'Tour Request' : 'Information Request',
+            config.fubLabel,
             `${subjectType === 'property' ? 'Property' : 'Community'}: ${subjectName}`,
             subjectDetails,
             tourInfo,
           ].filter(Boolean).join(' | '),
           tags: [
-            isTourRequest ? 'Tour Request' : 'Inquiry',
+            config.fubTag,
             subjectType === 'property' ? 'Property' : 'Community',
           ],
           ...(subjectType === 'property' && {
             property: {
               street: subjectName,
+              city: propertyCity,
+              state: propertyState,
               type: 'Residential',
             },
           }),
@@ -136,7 +205,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         const data = await response.json();
         setError(data.error || 'Something went wrong. Please try again.');
       }
-    } catch (err) {
+    } catch {
       setError('Unable to submit form. Please try again or call us directly.');
     } finally {
       setIsSubmitting(false);
@@ -174,15 +243,15 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             <CheckCircle2 size={32} />
           </div>
           <h3 className="text-2xl font-serif font-bold mb-2 text-gray-900">
-            {isTourRequest ? 'Tour Request Received!' : 'Request Received!'}
+            {config.successTitle}
           </h3>
           <p className="text-gray-500 mb-4 font-light leading-relaxed">
-            Thanks {formData.firstName}! We&apos;ve received your {isTourRequest ? 'tour request' : 'inquiry'} for:
+            Thanks {formData.firstName}! We&apos;ve received your {config.successVerb} for:
           </p>
           <div className="bg-gray-50 rounded-xl p-4 mb-6">
             <p className="font-bold text-gray-900">{subjectName}</p>
             {subjectDetails && <p className="text-sm text-gray-500">{subjectDetails}</p>}
-            {isTourRequest && formData.preferredDate && (
+            {effectiveMode === 'tour' && formData.preferredDate && (
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">Requested:</span>{' '}
@@ -197,7 +266,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
             )}
           </div>
           <p className="text-gray-500 mb-8 font-light leading-relaxed text-sm">
-            A member of the Rush Home Team will {isTourRequest ? 'confirm your tour' : 'be in touch'} within 24 hours.
+            A member of the Rush Home Team will {effectiveMode === 'tour' ? 'confirm your tour' : 'be in touch'} within 24 hours.
           </p>
           <button
             onClick={handleClose}
@@ -216,7 +285,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-serif font-bold text-xl text-gray-900">
-            {isTourRequest ? 'Schedule a Tour' : 'Request Information'}
+            {config.title}
           </h3>
           <button
             onClick={handleClose}
@@ -255,8 +324,8 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Tour Date/Time - Only shown for tour requests */}
-            {isTourRequest && (
+            {/* Tour Date/Time - Only shown for tour mode */}
+            {config.showDatePicker && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1">
@@ -341,10 +410,10 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
 
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                Phone Number {isTourRequest && <span className="text-red-500">*</span>}
+                Phone Number {config.phoneRequired && <span className="text-red-500">*</span>}
               </label>
               <input
-                required={isTourRequest}
+                required={config.phoneRequired}
                 type="tel"
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all"
                 value={formData.phone}
@@ -353,19 +422,22 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
               />
             </div>
 
-            {/* Message field - shown for Ask a Question */}
-            {!isTourRequest && (
+            {/* Message field - shown for info and message modes */}
+            {config.showMessage && (
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                  Message <span className="text-red-500">*</span>
+                  Message {config.messageRequired && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
-                  required
+                  required={config.messageRequired}
                   rows={4}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all resize-none"
                   value={formData.message}
                   onChange={e => setFormData({ ...formData, message: e.target.value })}
-                  placeholder="What would you like to know about this property?"
+                  placeholder={effectiveMode === 'info'
+                    ? `I am interested in ${subjectName}. Please send me more information.`
+                    : 'What would you like to know about this property?'
+                  }
                 />
               </div>
             )}
@@ -380,7 +452,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({
                   <Loader2 className="animate-spin" size={20} /> Submitting...
                 </>
               ) : (
-                isTourRequest ? 'Request Tour' : 'Submit Request'
+                config.submitLabel
               )}
             </button>
 
