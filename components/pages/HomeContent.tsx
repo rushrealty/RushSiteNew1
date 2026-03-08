@@ -2,9 +2,9 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
-import PropertyDetailModal from '../PropertyDetailModal';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
 import CommunityPageModal from '../CommunityPageModal';
@@ -22,10 +22,10 @@ const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: 
 };
 
 const HomeContent: React.FC = () => {
+  const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [quickMoveInHomes, setQuickMoveInHomes] = useState<Property[]>(MOCK_PROPERTIES.slice(0, 6));
   const [loadingHomes, setLoadingHomes] = useState(true);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
   // State for communities from API
@@ -157,7 +157,7 @@ const HomeContent: React.FC = () => {
                   <PropertyCard
                     key={property.id}
                     property={property}
-                    onClick={setSelectedProperty}
+                    onClick={(p) => router.push(`/property/${p.id}`)}
                   />
                ))}
             </div>
@@ -255,17 +255,6 @@ const HomeContent: React.FC = () => {
         <CommunityDetailModal
           community={selectedCommunity}
           onClose={() => setSelectedCommunity(null)}
-          onPropertyClick={setSelectedProperty}
-        />
-      )}
-
-      {/* Property Detail Modal (rendered last so it appears on top) */}
-      {selectedProperty && (
-        <PropertyDetailModal
-          property={selectedProperty}
-          onClose={() => setSelectedProperty(null)}
-          onPropertyClick={setSelectedProperty}
-          allProperties={quickMoveInHomes}
         />
       )}
     </>

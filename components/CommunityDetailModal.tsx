@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Community, Property } from '../types';
 import PropertyCard from './PropertyCard';
 import ContactFormModal from './ContactFormModal';
@@ -52,10 +53,10 @@ const MarketChart = () => {
 interface CommunityDetailModalProps {
   community: Community;
   onClose: () => void;
-  onPropertyClick: (property: Property) => void;
 }
 
-const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose, onPropertyClick }) => {
+const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, onClose }) => {
+  const router = useRouter();
   const modalRef = useRef<HTMLDivElement>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [isTourRequest, setIsTourRequest] = useState(false);
@@ -319,7 +320,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                           ) : newConstructionHomes.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {newConstructionHomes.map((home) => (
-                                <PropertyCard key={home.id} property={home} onClick={onPropertyClick} />
+                                <PropertyCard key={home.id} property={home} onClick={(p) => router.push(`/property/${p.id}`)} />
                               ))}
                             </div>
                           ) : (
@@ -371,7 +372,7 @@ const CommunityDetailModal: React.FC<CommunityDetailModalProps> = ({ community, 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                {availableHomes.map(property => (
                                   <div key={property.id} className="h-full">
-                                    <PropertyCard property={property} onClick={onPropertyClick} />
+                                    <PropertyCard property={property} onClick={(p) => router.push(`/property/${p.id}`)} />
                                   </div>
                                ))}
                             </div>
