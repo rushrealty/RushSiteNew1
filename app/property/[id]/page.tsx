@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { getListingByMlsNumber, transformListing } from '@/lib/repliers';
-import { getQuickMoveInListings } from '@/lib/quick-move-in';
-import PropertyRedirect from './PropertyRedirect';
+import { getPropertyById } from '@/lib/property';
+import PropertyPageContent from '@/components/PropertyPageContent';
+import PropertyNotFound from '@/components/PropertyNotFound';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -11,16 +11,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
 
   try {
-    // Try Repliers first (covers all MLS listings), then fall back to QMI inventory
-    let property: { title: string; address: string; city: string; state: string; beds: number; baths: number; sqft: number; community: string; price: number; images: string[] } | undefined;
-
-    const listing = await getListingByMlsNumber(id);
-    if (listing) {
-      property = transformListing(listing) as typeof property;
-    } else {
-      const result = await getQuickMoveInListings();
-      property = result.homes.find(h => h.id === id);
-    }
+    const property = await getPropertyById(id);
 
     if (!property) {
       return {
@@ -66,5 +57,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PropertyPage({ params }: PageProps) {
   const { id } = await params;
-  return <PropertyRedirect propertyId={id} />;
+
+  const property = await getPropertyById(id);
+
+  if (!property) {
+    return <PropertyNotFound />;
+  }
+
+  return <PropertyPageContent property={property} />;
 }
