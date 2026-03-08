@@ -42,6 +42,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick, onMouseE
               {property.community}
             </span>
           )}
+          {property.isNewConstruction && (
+            <span className="px-3 py-1.5 rounded-full bg-compass-gold text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
+              New Construction
+            </span>
+          )}
           {property.status && property.status !== 'Active' && (
             <span className="px-4 py-2 rounded-full bg-white/95 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-black shadow-sm">
               {property.status}

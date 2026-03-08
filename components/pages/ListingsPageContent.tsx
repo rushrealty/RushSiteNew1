@@ -35,9 +35,7 @@ const BATHROOM_OPTIONS = [1, 2, 3, 4];
 
 const LIFESTYLE_FILTERS = [
   { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
-  { id: 'Golf Course', label: 'Golf Course', icon: <Waves size={14} /> },
   { id: 'Pool', label: 'Community Pool', icon: <Waves size={14} /> },
-  { id: 'Clubhouse', label: 'Clubhouse', icon: <Waves size={14} /> },
 ];
 
 const HOME_TYPES = ['Single Family', 'Townhouse', 'Condo'];
@@ -365,9 +363,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
         selectedLifestyles.some(tag => {
           switch (tag) {
             case '55+': return property.is55Plus === true;
-            case 'Golf Course': return property.hasGolfCourse === true;
             case 'Pool': return property.hasCommunityPool === true;
-            case 'Clubhouse': return property.hasClubhouse === true;
             default: return false;
           }
         });

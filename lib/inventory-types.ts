@@ -141,6 +141,13 @@ export interface RepliersListing {
     ListAgentFullName?: string; // Listing agent full name from Bright MLS
     ListAgentDirectPhone?: string; // Listing agent direct phone from Bright MLS
     ListAgentPreferredPhone?: string; // Listing agent preferred phone from Bright MLS
+    BasementYN?: string; // Y/N - whether property has a basement
+    StoriesTotal?: string; // Number of stories (numeric string, e.g. "1", "2")
+    Levels?: string; // Story level description (e.g. "1", "2", "Multi/Split")
+    SeniorCommunityYN?: string; // Y/N - whether property is in a 55+ community
+    PoolYN?: string; // Y/N - whether property has a pool
+    LotSizeArea?: string; // Numeric lot size value
+    LotSizeUnits?: string; // "Acres" or "Square Feet"
     [key: string]: string | undefined;
   };
 }
