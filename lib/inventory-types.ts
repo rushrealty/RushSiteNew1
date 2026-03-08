@@ -136,6 +136,11 @@ export interface RepliersListing {
     TaxAnnualAmount?: string; // Annual property tax amount from Bright MLS
     AssociationFee?: string; // HOA/Association fee amount from Bright MLS
     AssociationFeeFrequency?: string; // "Monthly", "Annually", "Quarterly", etc.
+    ListOfficeName?: string; // Listing office/brokerage name from Bright MLS
+    ListOfficePhone?: string; // Listing office phone from Bright MLS
+    ListAgentFullName?: string; // Listing agent full name from Bright MLS
+    ListAgentDirectPhone?: string; // Listing agent direct phone from Bright MLS
+    ListAgentPreferredPhone?: string; // Listing agent preferred phone from Bright MLS
     [key: string]: string | undefined;
   };
 }

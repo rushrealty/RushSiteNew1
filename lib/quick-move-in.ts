@@ -132,10 +132,10 @@ function transformRepliersListing(listing: RepliersListing, isQMI: boolean = fal
     latitude: listing.map?.latitude,
     longitude: listing.map?.longitude,
     mlsId: listing.mlsNumber,
-    listingAgent: listing.agent?.name || '',
-    listingAgentPhone: listing.agent?.phone || '',
-    listingBrokerage: listing.office?.name || '',
-    brokeragePhone: listing.office?.phone || '',
+    listingAgent: listing.agent?.name || listing.raw?.ListAgentFullName || '',
+    listingAgentPhone: listing.agent?.phone || listing.raw?.ListAgentDirectPhone || listing.raw?.ListAgentPreferredPhone || '',
+    listingBrokerage: listing.office?.name || listing.raw?.ListOfficeName || '',
+    brokeragePhone: listing.office?.phone || listing.raw?.ListOfficePhone || '',
     lastUpdated: listing.listDate || new Date().toISOString(),
     priceHistory: isQMI ? [] : [], // Price history would come from API if needed
   };
