@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Loader2, CheckCircle2, Calendar, MessageSquare, Phone, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, Calendar, MessageSquare, Info, Clock, Phone, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { sendFubEvent } from '@/lib/fub';
+
+type FormMode = 'tour' | 'info' | 'message';
 
 interface PropertyContactFormProps {
   propertyAddress: string;
@@ -18,16 +20,22 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
   propertyCity,
   propertyState,
 }) => {
-  const [isTourMode, setIsTourMode] = useState(true);
+  const [mode, setMode] = useState<FormMode>('tour');
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     message: `I am interested in ${propertyAddress}. Please contact me.`,
+    preferredDate: '',
+    preferredTime: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Minimum date = today
+  const today = new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +44,15 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
 
     const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xlgnveeb';
 
-    // Split name into first/last
-    const nameParts = formData.name.trim().split(/\s+/);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
+    // Format date for display
+    const formattedDate = formData.preferredDate
+      ? new Date(formData.preferredDate + 'T00:00:00').toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      : '';
 
     try {
       const response = await fetch(formspreeEndpoint, {
@@ -49,18 +62,24 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          _subject: isTourMode
+          _subject: mode === 'tour'
             ? `Tour Request: ${propertyAddress}`
             : `New Inquiry: ${propertyAddress}`,
-          inquiryType: isTourMode ? 'Home Tour Request' : 'Home Inquiry',
+          inquiryType: mode === 'tour' ? 'Home Tour Request' : 'Home Inquiry',
           propertyOrCommunity: propertyAddress,
           additionalDetails: propertyDetails,
-          firstName,
-          lastName,
-          name: formData.name,
+          // Tour scheduling info
+          ...(mode === 'tour' && {
+            preferredDate: formattedDate,
+            preferredTime: formData.preferredTime,
+            tourDateTime: `${formattedDate} at ${formData.preferredTime}`,
+          }),
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
           phone: formData.phone || '',
-          ...(formData.message && { message: formData.message }),
+          ...(formData.message && mode !== 'tour' && { message: formData.message }),
         }),
       });
 
@@ -68,20 +87,25 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
         setSubmitted(true);
 
         // Send event to Follow Up Boss CRM (fire-and-forget)
+        const tourInfo = mode === 'tour' && formData.preferredDate
+          ? `Preferred: ${formattedDate} at ${formData.preferredTime}`
+          : undefined;
+
         sendFubEvent({
-          type: isTourMode ? 'Property Inquiry' : 'General Inquiry',
-          firstName,
-          lastName,
+          type: mode === 'tour' ? 'Property Inquiry' : 'General Inquiry',
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone || undefined,
-          message: formData.message || undefined,
+          message: mode !== 'tour' ? (formData.message || undefined) : undefined,
           description: [
-            isTourMode ? 'Tour Request' : 'Information Request',
+            mode === 'tour' ? 'Tour Request' : mode === 'info' ? 'Information Request' : 'Message',
             `Property: ${propertyAddress}`,
             propertyDetails,
+            tourInfo,
           ].filter(Boolean).join(' | '),
           tags: [
-            isTourMode ? 'Tour Request' : 'Inquiry',
+            mode === 'tour' ? 'Tour Request' : 'Inquiry',
             'Property',
           ],
           property: {
@@ -110,19 +134,33 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
           <CheckCircle2 size={32} />
         </div>
         <h3 className="text-xl font-serif font-bold mb-2 text-gray-900">
-          {isTourMode ? 'Tour Request Sent!' : 'Message Sent!'}
+          {mode === 'tour' ? 'Tour Request Sent!' : mode === 'info' ? 'Request Sent!' : 'Message Sent!'}
         </h3>
+        {mode === 'tour' && formData.preferredDate && (
+          <div className="bg-gray-50 rounded-xl p-3 mb-3 text-sm text-gray-600">
+            <span className="font-semibold">Requested:</span>{' '}
+            {new Date(formData.preferredDate + 'T00:00:00').toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+            })}{' '}
+            at {formData.preferredTime}
+          </div>
+        )}
         <p className="text-gray-500 font-light text-sm leading-relaxed mb-6">
-          A member of the Rush Home Team will be in touch within 24 hours.
+          A member of the Rush Home Team will {mode === 'tour' ? 'confirm your tour' : 'be in touch'} within 24 hours.
         </p>
         <button
           onClick={() => {
             setSubmitted(false);
             setFormData({
-              name: '',
+              firstName: '',
+              lastName: '',
               email: '',
               phone: '',
               message: `I am interested in ${propertyAddress}. Please contact me.`,
+              preferredDate: '',
+              preferredTime: '',
             });
           }}
           className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
@@ -135,27 +173,37 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-      {/* Toggle buttons */}
-      <div className="flex flex-col gap-3 mb-6">
+      {/* Mode toggle buttons */}
+      <div className="flex flex-col gap-2.5 mb-6">
         <button
-          onClick={() => setIsTourMode(true)}
-          className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all ${
-            isTourMode
+          onClick={() => setMode('tour')}
+          className={`w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+            mode === 'tour'
               ? 'bg-black text-white shadow-md'
               : 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50'
           }`}
         >
-          <Calendar size={18} /> Schedule a Tour
+          <Calendar size={16} /> Schedule a Tour
         </button>
         <button
-          onClick={() => setIsTourMode(false)}
-          className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all ${
-            !isTourMode
+          onClick={() => setMode('info')}
+          className={`w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+            mode === 'info'
               ? 'bg-black text-white shadow-md'
               : 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50'
           }`}
         >
-          <MessageSquare size={18} /> Request Info
+          <Info size={16} /> Request Info
+        </button>
+        <button
+          onClick={() => setMode('message')}
+          className={`w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+            mode === 'message'
+              ? 'bg-black text-white shadow-md'
+              : 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <MessageSquare size={16} /> Send Message
         </button>
       </div>
 
@@ -166,15 +214,69 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          required
-          type="text"
-          placeholder="Your Name"
-          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
-          value={formData.name}
-          onChange={e => setFormData({ ...formData, name: e.target.value })}
-        />
+      <form onSubmit={handleSubmit} className="space-y-3.5">
+        {/* Tour: Date & Time picker */}
+        {mode === 'tour' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1 mb-1.5">
+                <Calendar size={10} /> Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                required
+                type="date"
+                min={today}
+                className="w-full px-3 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
+                value={formData.preferredDate}
+                onChange={e => setFormData({ ...formData, preferredDate: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1 mb-1.5">
+                <Clock size={10} /> Time <span className="text-red-500">*</span>
+              </label>
+              <select
+                required
+                className="w-full px-3 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
+                value={formData.preferredTime}
+                onChange={e => setFormData({ ...formData, preferredTime: e.target.value })}
+              >
+                <option value="">Select</option>
+                <option value="9:00 AM">9:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="11:00 AM">11:00 AM</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="1:00 PM">1:00 PM</option>
+                <option value="2:00 PM">2:00 PM</option>
+                <option value="3:00 PM">3:00 PM</option>
+                <option value="4:00 PM">4:00 PM</option>
+                <option value="5:00 PM">5:00 PM</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Name: First + Last */}
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            required
+            type="text"
+            placeholder="First Name"
+            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
+            value={formData.firstName}
+            onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+          />
+          <input
+            required
+            type="text"
+            placeholder="Last Name"
+            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
+            value={formData.lastName}
+            onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+          />
+        </div>
+
+        {/* Email */}
         <input
           required
           type="email"
@@ -183,20 +285,28 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
           value={formData.email}
           onChange={e => setFormData({ ...formData, email: e.target.value })}
         />
+
+        {/* Phone — required for tour and message modes */}
         <input
+          required={mode === 'tour' || mode === 'message'}
           type="tel"
-          placeholder="Phone Number"
+          placeholder={`Phone Number${mode === 'info' ? ' (optional)' : ''}`}
           className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all text-sm"
           value={formData.phone}
           onChange={e => setFormData({ ...formData, phone: e.target.value })}
         />
-        <textarea
-          rows={3}
-          placeholder="Message"
-          className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all resize-none text-sm"
-          value={formData.message}
-          onChange={e => setFormData({ ...formData, message: e.target.value })}
-        />
+
+        {/* Message — shown for info and message modes */}
+        {mode !== 'tour' && (
+          <textarea
+            required
+            rows={3}
+            placeholder="Message"
+            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-compass-gold focus:border-transparent outline-none transition-all resize-none text-sm"
+            value={formData.message}
+            onChange={e => setFormData({ ...formData, message: e.target.value })}
+          />
+        )}
 
         <button
           type="submit"
@@ -206,7 +316,7 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
           {isSubmitting ? (
             <><Loader2 className="animate-spin" size={18} /> Sending...</>
           ) : (
-            'Send Message'
+            mode === 'tour' ? 'Request Tour' : mode === 'info' ? 'Request Info' : 'Send Message'
           )}
         </button>
       </form>
