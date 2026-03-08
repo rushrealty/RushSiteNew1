@@ -6,35 +6,19 @@ import { useRouter } from 'next/navigation';
 import Hero from '../Hero';
 import PropertyCard from '../PropertyCard';
 import CommunityCard from '../CommunityCard';
-import CommunityDetailModal from '../CommunityDetailModal';
-import CommunityPageModal from '../CommunityPageModal';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../../constants';
 import { Property, Community } from '../../types';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-// Special communities with existing pages
-const SPECIAL_COMMUNITIES: Record<string, { type: 'internal' | 'external'; url: string; name: string }> = {
-  'abbotts-pond': { type: 'internal', url: '/available-communities/abbotts-pond', name: "Abbott's Pond" },
-  'pinehurst-village': { type: 'internal', url: '/available-communities/pinehurst-village', name: 'Pinehurst Village' },
-  'wiggins-mill': { type: 'internal', url: '/available-communities/wiggins-mill', name: 'Wiggins Mill' },
-  'baywood': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
-  'baywood-greens': { type: 'external', url: 'https://www.ashburnhomesatbaywood.com/', name: 'Baywood' },
-};
 
 const HomeContent: React.FC = () => {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [quickMoveInHomes, setQuickMoveInHomes] = useState<Property[]>(MOCK_PROPERTIES.slice(0, 6));
   const [loadingHomes, setLoadingHomes] = useState(true);
-  const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
 
   // State for communities from API
   const [communities, setCommunities] = useState<Community[]>(MOCK_COMMUNITIES);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
-
-  // State for special community page modal
-  const [specialCommunityUrl, setSpecialCommunityUrl] = useState<string | null>(null);
-  const [specialCommunityName, setSpecialCommunityName] = useState<string>('');
 
   // Fetch real Quick Move-In homes on mount
   useEffect(() => {
@@ -106,24 +90,16 @@ const HomeContent: React.FC = () => {
     fetchCommunities();
   }, []);
 
-  // Handle community click with special community detection
+  // Handle community click — navigate to standalone page
   const handleCommunityClick = (community: Community) => {
     const slug = community.slug || community.id;
-    const special = SPECIAL_COMMUNITIES[slug];
-
-    if (special) {
-      if (special.type === 'external') {
-        // Open external link in new tab
-        window.open(special.url, '_blank');
-      } else {
-        // Open internal page in modal
-        setSpecialCommunityUrl(special.url);
-        setSpecialCommunityName(special.name);
-      }
-    } else {
-      // Use standard CommunityDetailModal
-      setSelectedCommunity(community);
+    // Baywood links to external site
+    if (slug === 'baywood' || slug === 'baywood-greens') {
+      window.open('https://www.ashburnhomesatbaywood.com/', '_blank');
+      return;
     }
+    // All other communities navigate to their standalone page
+    router.push(`/available-communities/${slug}`);
   };
 
   const scroll = (direction: 'left' | 'right') => {
@@ -210,7 +186,7 @@ const HomeContent: React.FC = () => {
           </div>
 
           <div className="flex justify-center mt-8">
-            <Link href="/communities" className="px-10 py-4 bg-white border border-gray-200 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white hover:border-black transition-all shadow-sm">
+            <Link href="/available-communities" className="px-10 py-4 bg-white border border-gray-200 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white hover:border-black transition-all shadow-sm">
               View All Neighborhoods
             </Link>
           </div>
@@ -238,25 +214,6 @@ const HomeContent: React.FC = () => {
          </div>
       </section>
 
-      {/* Special Community Page Modal */}
-      {specialCommunityUrl && (
-        <CommunityPageModal
-          url={specialCommunityUrl}
-          communityName={specialCommunityName}
-          onClose={() => {
-            setSpecialCommunityUrl(null);
-            setSpecialCommunityName('');
-          }}
-        />
-      )}
-
-      {/* Community Detail Modal */}
-      {selectedCommunity && (
-        <CommunityDetailModal
-          community={selectedCommunity}
-          onClose={() => setSelectedCommunity(null)}
-        />
-      )}
     </>
   );
 };

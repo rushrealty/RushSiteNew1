@@ -138,7 +138,7 @@ export function useAutocomplete(options: UseAutocompleteOptions = {}) {
       switch (prediction.type) {
         case 'community':
           if (prediction.communityId) {
-            router.push(`/communities?community=${prediction.communityId}`);
+            router.push(`/available-communities/${prediction.communityId}`);
           }
           break;
 
