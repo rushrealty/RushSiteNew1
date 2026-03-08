@@ -6,7 +6,7 @@ import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
 
 import { MOCK_PROPERTIES } from '../../constants';
-import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, ChevronLeft, ChevronRight, Loader2, Home, Waves, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
+import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
 import AutocompleteDropdown from '@/components/AutocompleteDropdown';
 import type { AutocompletePrediction } from '@/lib/autocomplete-types';
@@ -32,11 +32,6 @@ const MAX_PRICES = [
 
 const BEDROOM_OPTIONS = [2, 3, 4, 5];
 const BATHROOM_OPTIONS = [1, 2, 3, 4];
-
-const LIFESTYLE_FILTERS = [
-  { id: '55+', label: '55+ Living', icon: <Home size={14} /> },
-  { id: 'Pool', label: 'Community Pool', icon: <Waves size={14} /> },
-];
 
 const HOME_TYPES = ['Single Family', 'Townhouse', 'Condo'];
 
@@ -106,7 +101,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [minBeds, setMinBeds] = useState(0);
   const [minBaths, setMinBaths] = useState(0);
-  const [selectedLifestyles, setSelectedLifestyles] = useState<string[]>([]);
+  const [is55PlusOnly, setIs55PlusOnly] = useState(false);
+  const [newConstructionOnly, setNewConstructionOnly] = useState(false);
   const [selectedHomeTypes, setSelectedHomeTypes] = useState<string[]>([...HOME_TYPES]);
   const [sqftMin, setSqftMin] = useState<number | null>(null);
   const [sqftMax, setSqftMax] = useState<number | null>(null);
@@ -320,12 +316,6 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     );
   };
 
-  const toggleLifestyle = (tag: string) => {
-    setSelectedLifestyles(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-  };
-
   const toggleHomeType = (type: string) => {
     setSelectedHomeTypes(prev =>
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
@@ -358,15 +348,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       const matchesBeds = property.beds >= minBeds;
       const matchesBaths = property.baths >= minBaths;
 
-      // Lifestyle filters (OR logic - show if ANY selected filter matches)
-      const matchesLifestyle = selectedLifestyles.length === 0 ||
-        selectedLifestyles.some(tag => {
-          switch (tag) {
-            case '55+': return property.is55Plus === true;
-            case 'Pool': return property.hasCommunityPool === true;
-            default: return false;
-          }
-        });
+      // 55+ and New Construction filters
+      const matches55Plus = !is55PlusOnly || property.is55Plus === true;
+      const matchesNewConstruction = !newConstructionOnly || property.isNewConstruction === true;
 
       // Home type (OR filter, all selected = no filter)
       const matchesHomeType = selectedHomeTypes.length === HOME_TYPES.length ||
@@ -387,7 +371,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
         (property.stories !== undefined && property.stories <= 1);
 
       return matchesSearch && matchesPriceMin && matchesPriceMax && matchesCounty &&
-        matchesBeds && matchesBaths && matchesLifestyle && matchesHomeType &&
+        matchesBeds && matchesBaths && matches55Plus && matchesNewConstruction && matchesHomeType &&
         matchesSqftMin && matchesSqftMax && matchesLotSize && matchesBasement && matchesStory;
     });
 
@@ -413,7 +397,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     }
     return sorted;
   }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
-    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
 
   // Pagination
   const ITEMS_PER_PAGE = 24;
@@ -427,7 +411,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
-    selectedLifestyles, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
 
   // Update map markers when filtered properties change
   useEffect(() => {
@@ -589,11 +573,11 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     return `${selectedHomeTypes.length} Types`;
   })();
 
-  const moreCount = [sqftMin, sqftMax, lotSizeMin, basementFilter !== null ? true : null, singleStoryOnly ? true : null].filter(Boolean).length;
+  const moreCount = [sqftMin, sqftMax, lotSizeMin, basementFilter !== null ? true : null, singleStoryOnly ? true : null, is55PlusOnly ? true : null, newConstructionOnly ? true : null].filter(Boolean).length;
   const moreLabel = moreCount > 0 ? `More (${moreCount})` : 'More';
 
   const hasActiveFilters = priceMin !== null || priceMax !== null || selectedCounties.length > 0 ||
-    minBeds > 0 || minBaths > 0 || selectedLifestyles.length > 0 ||
+    minBeds > 0 || minBaths > 0 || is55PlusOnly || newConstructionOnly ||
     selectedHomeTypes.length < HOME_TYPES.length || sqftMin !== null || sqftMax !== null ||
     lotSizeMin !== null || basementFilter !== null || singleStoryOnly || searchTerm !== '';
 
@@ -605,7 +589,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     setSelectedCounties([]);
     setMinBeds(0);
     setMinBaths(0);
-    setSelectedLifestyles([]);
+    setIs55PlusOnly(false);
+    setNewConstructionOnly(false);
     setSelectedHomeTypes([...HOME_TYPES]);
     setSqftMin(null);
     setSqftMax(null);
@@ -1020,32 +1005,56 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                                  >Single Story Only</button>
                               </div>
                            </div>
+
+                           {/* 55+ Community */}
+                           <div className="mt-5">
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">55+ Community</div>
+                              <div className="flex gap-2">
+                                 <button
+                                    onClick={() => setIs55PlusOnly(false)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       !is55PlusOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >Any</button>
+                                 <button
+                                    onClick={() => setIs55PlusOnly(true)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       is55PlusOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >55+ Only</button>
+                              </div>
+                           </div>
+
+                           {/* New Construction */}
+                           <div className="mt-5">
+                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">New Construction</div>
+                              <div className="flex gap-2">
+                                 <button
+                                    onClick={() => setNewConstructionOnly(false)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       !newConstructionOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >Any</button>
+                                 <button
+                                    onClick={() => setNewConstructionOnly(true)}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                                       newConstructionOnly
+                                          ? 'bg-black border-black text-white'
+                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                                    }`}
+                                 >New Construction Only</button>
+                              </div>
+                           </div>
                         </div>
                       )}
                    </div>
 
-                </div>
-
-                {/* RIGHT: Lifestyle Filters - 2x2 grid */}
-                <div className="hidden lg:grid grid-cols-2 gap-2 ml-auto shrink-0">
-                   {LIFESTYLE_FILTERS.map(filter => {
-                      const isActive = selectedLifestyles.includes(filter.id);
-                      return (
-                         <button
-                            key={filter.id}
-                            onClick={() => toggleLifestyle(filter.id)}
-                            className={`px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                               isActive
-                                  ? 'bg-black border-black text-white'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                            }`}
-                         >
-                            {filter.icon}
-                            {filter.label}
-                            {isActive && <Check size={10} />}
-                         </button>
-                      );
-                   })}
                 </div>
 
              </div>
@@ -1171,24 +1180,22 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                    </div>
                  </div>
 
-                 {/* Row 6: Lifestyle pills */}
-                 <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                   {LIFESTYLE_FILTERS.map(filter => {
-                     const isActive = selectedLifestyles.includes(filter.id);
-                     return (
-                       <button
-                         key={filter.id}
-                         onClick={() => toggleLifestyle(filter.id)}
-                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
-                           isActive ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                         }`}
-                       >
-                         {filter.icon}
-                         {filter.label}
-                         {isActive && <Check size={12} />}
-                       </button>
-                     );
-                   })}
+                 {/* Row 6: 55+ & New Construction */}
+                 <div className="grid grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">55+ Community</label>
+                     <div className="flex gap-1.5">
+                       <button onClick={() => setIs55PlusOnly(false)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${!is55PlusOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
+                       <button onClick={() => setIs55PlusOnly(true)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${is55PlusOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>55+</button>
+                     </div>
+                   </div>
+                   <div>
+                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">New Construction</label>
+                     <div className="flex gap-1.5">
+                       <button onClick={() => setNewConstructionOnly(false)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${!newConstructionOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
+                       <button onClick={() => setNewConstructionOnly(true)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${newConstructionOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>New</button>
+                     </div>
+                   </div>
                  </div>
 
                  {/* Clear all */}
