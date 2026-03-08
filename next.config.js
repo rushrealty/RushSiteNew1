@@ -13,6 +13,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/communities',
+        destination: '/available-communities',
+        permanent: true,
+      },
+      {
+        source: '/communities/:slug',
+        destination: '/available-communities/:slug',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

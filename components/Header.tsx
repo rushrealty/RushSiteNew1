@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
-  { name: 'Communities', href: '/communities' },
+  { name: 'Communities', href: '/available-communities' },
   { name: 'Search', href: '/search' },
   { name: 'Quick Move-In', href: '/quick-move-in' },
   { name: 'New Construction Guide', href: '/guide' },

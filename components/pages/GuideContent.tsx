@@ -246,7 +246,7 @@ const GuideContent: React.FC = () => {
               Schedule a free new construction consultation with the Rush Home Team. We&apos;ll listen to your needs and match you with the perfect community.
            </p>
            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/communities" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-widest rounded-full hover:bg-gray-800 transition-all">
+              <Link href="/available-communities" className="px-8 py-4 bg-black text-white font-bold uppercase tracking-widest rounded-full hover:bg-gray-800 transition-all">
                  Browse Communities
               </Link>
               <button className="px-8 py-4 bg-white border-2 border-black text-black font-bold uppercase tracking-widest rounded-full hover:bg-gray-50 transition-all">

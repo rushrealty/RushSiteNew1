@@ -79,7 +79,7 @@ const CommunityCard: React.FC<CommunityCardProps> = ({ community, onClick }) => 
   if (community.slug) {
     return (
       <Link
-        href={`/communities/${community.slug}`}
+        href={`/available-communities/${community.slug}`}
         className="group bg-white rounded-3xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col h-full relative border border-gray-100/50"
       >
         {CardContent}
