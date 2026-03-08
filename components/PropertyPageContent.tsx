@@ -14,6 +14,18 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+/** Format a phone string like "4434974917" → "443-497-4917" */
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits[0] === '1') {
+    return `${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return phone; // Return as-is if not a standard US number
+}
+
 interface PropertyPageContentProps {
   property: Property;
 }
@@ -505,12 +517,12 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                     {property.listingAgent && (
                       <p className="text-sm text-gray-500">
                         Listing Agent: {property.listingAgent}
-                        {property.listingAgentPhone && ` • ${property.listingAgentPhone}`}
+                        {property.listingAgentPhone && ` • ${formatPhone(property.listingAgentPhone)}`}
                       </p>
                     )}
                     {property.brokeragePhone && (
                       <p className="text-sm text-gray-500">
-                        Broker Phone: {property.brokeragePhone}
+                        Broker Phone: {formatPhone(property.brokeragePhone)}
                       </p>
                     )}
 
