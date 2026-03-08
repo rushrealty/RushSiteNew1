@@ -1,5 +1,5 @@
 import { Property, PropertyStatus } from '@/types';
-import { RepliersListing, EnrichedInventoryHome } from './inventory-types';
+import { RepliersListing, EnrichedInventoryHome, InventoryHome } from './inventory-types';
 import { searchListings, mapHomeType } from './repliers';
 import { fetchInventoryData } from './inventory';
 import { normalizeAddress } from './utils';
@@ -38,16 +38,9 @@ function isQuickMoveIn(
   if (isInGoogleSheet) return true;
 
   // Rule 2: Construction complete (API already filtered for NewConstructionYN=Y)
+  // Strictly require raw.ConstructionCompletedYN = 'Y' — no fallback to constructionStatus
   const isConstructionComplete = listing.raw?.ConstructionCompletedYN?.toUpperCase() === 'Y';
-  if (isConstructionComplete) return true;
-
-  // Fallback: use the normalized constructionStatus if raw field isn't available
-  if (!listing.raw?.ConstructionCompletedYN) {
-    const status = listing.details.constructionStatus;
-    if (status && status.toLowerCase() === 'complete') return true;
-  }
-
-  return false;
+  return isConstructionComplete;
 }
 
 /**
@@ -277,6 +270,14 @@ export async function getQuickMoveInListings(
       inventoryData.homes.map((h) => [normalizeAddress(h.address), h])
     );
 
+    // Build MLS number lookup from sheet homes (for matching by MLS# in addition to address)
+    const sheetMlsMap = new Map<string, InventoryHome>();
+    for (const home of inventoryData.homes) {
+      if (home.mlsNumber) {
+        sheetMlsMap.set(home.mlsNumber.trim(), home);
+      }
+    }
+
     // Create lookup maps for enrichment
     const communitiesMap = new Map(inventoryData.communities.map((c) => [c.id, c]));
     const buildersMap = new Map(inventoryData.builders.map((b) => [b.id, b]));
@@ -287,17 +288,22 @@ export async function getQuickMoveInListings(
     // Filter Repliers listings for Quick Move-Ins
     const repliersQMIs: Property[] = [];
     const repliersAddressSet = new Set<string>();
+    const repliersMlsSet = new Set<string>();
 
     for (const listing of repliersResponse.listings) {
       const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
-      const inSheet = sheetAddressSet.has(normalizedAddr);
+      const inSheetByAddress = sheetAddressSet.has(normalizedAddr);
+      const inSheetByMls = sheetMlsMap.has(listing.mlsNumber);
+      const inSheet = inSheetByAddress || inSheetByMls;
 
       if (isQuickMoveIn(listing, inSheet)) {
         const property = transformRepliersListing(listing, true);
 
-        // Enrich with builder data from sheet if this address matches a sheet home
+        // Enrich with builder/community data from sheet (match by address or MLS number)
         if (inSheet) {
-          const sheetHome = sheetAddressMap.get(normalizedAddr);
+          const sheetHome = inSheetByAddress
+            ? sheetAddressMap.get(normalizedAddr)
+            : sheetMlsMap.get(listing.mlsNumber);
           if (sheetHome) {
             const community = communitiesMap.get(sheetHome.communityId);
             const builder = community ? buildersMap.get(community.builderId) : undefined;
@@ -307,6 +313,7 @@ export async function getQuickMoveInListings(
             }
             if (community) {
               property.community = community.name;
+              property.communityId = community.id;
               property.is55Plus = community.is55Plus;
               property.hasClubhouse = community.hasClubhouse;
               property.hasGolfCourse = community.hasGolfCourse;
@@ -317,20 +324,21 @@ export async function getQuickMoveInListings(
 
         repliersQMIs.push(property);
         repliersAddressSet.add(normalizedAddr);
+        repliersMlsSet.add(listing.mlsNumber);
       }
     }
 
-    // Get Sheet-only homes (not in Repliers)
+    // Get Sheet-only homes (not already included from Repliers)
     const sheetOnlyHomes: Property[] = inventoryData.homes
       .filter((home) => {
-        // Skip if already in Repliers
+        // Skip if already matched to a Repliers listing by address
         const normalizedAddr = normalizeAddress(home.address);
         if (repliersAddressSet.has(normalizedAddr)) return false;
 
-        // Skip if it has an MLS number (should be in Repliers)
-        if (home.mlsNumber) return false;
+        // Skip if MLS number was found and included in Repliers results
+        if (home.mlsNumber && repliersMlsSet.has(home.mlsNumber.trim())) return false;
 
-        // Include all inventory homes that aren't in Repliers
+        // Include sheet homes not matched to any Repliers listing
         return true;
       })
       .map((home) => {
