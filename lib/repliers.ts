@@ -78,7 +78,7 @@ export async function searchListings(
     // Request raw Bright MLS fields for new construction detection
     // Must include standard fields too, otherwise API only returns the raw fields
     // Include 'class' for home type mapping (ResidentialProperty, CondoProperty, etc.)
-    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,taxes,condominium,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType,raw.TaxAnnualAmount,raw.AssociationFee,raw.AssociationFeeFrequency',
+    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,taxes,condominium,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType,raw.TaxAnnualAmount,raw.AssociationFee,raw.AssociationFeeFrequency,raw.ListOfficeName,raw.ListOfficePhone,raw.ListAgentFullName,raw.ListAgentDirectPhone,raw.ListAgentPreferredPhone',
   };
 
   // Board ID for multi-MLS accounts
@@ -296,10 +296,10 @@ export function transformListing(listing: RepliersListing) {
     features: [],
     latitude: listing.map?.latitude,
     longitude: listing.map?.longitude,
-    listingBrokerage: listing.office?.name || '',
-    listingAgent: listing.agent?.name || '',
-    listingAgentPhone: listing.agent?.phone || '',
-    brokeragePhone: listing.office?.phone || '',
+    listingBrokerage: listing.office?.name || listing.raw?.ListOfficeName || '',
+    listingAgent: listing.agent?.name || listing.raw?.ListAgentFullName || '',
+    listingAgentPhone: listing.agent?.phone || listing.raw?.ListAgentDirectPhone || listing.raw?.ListAgentPreferredPhone || '',
+    brokeragePhone: listing.office?.phone || listing.raw?.ListOfficePhone || '',
     lastUpdated: listing.listDate || new Date().toISOString(),
     heating: '',
     cooling: '',
