@@ -983,73 +983,24 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                               </div>
                            </div>
 
-                           {/* Single Story */}
-                           <div>
-                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">Single Story</div>
-                              <div className="flex gap-2">
+                           {/* Toggle Filters */}
+                           <div className="space-y-3 pt-1">
+                              {([
+                                 { label: 'Single Story Only', checked: singleStoryOnly, onChange: () => setSingleStoryOnly(!singleStoryOnly) },
+                                 { label: '55+ Community', checked: is55PlusOnly, onChange: () => setIs55PlusOnly(!is55PlusOnly) },
+                                 { label: 'New Construction', checked: newConstructionOnly, onChange: () => setNewConstructionOnly(!newConstructionOnly) },
+                              ]).map(toggle => (
                                  <button
-                                    onClick={() => setSingleStoryOnly(false)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       !singleStoryOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >Any</button>
-                                 <button
-                                    onClick={() => setSingleStoryOnly(true)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       singleStoryOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >Single Story Only</button>
-                              </div>
-                           </div>
-
-                           {/* 55+ Community */}
-                           <div className="mt-5">
-                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">55+ Community</div>
-                              <div className="flex gap-2">
-                                 <button
-                                    onClick={() => setIs55PlusOnly(false)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       !is55PlusOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >Any</button>
-                                 <button
-                                    onClick={() => setIs55PlusOnly(true)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       is55PlusOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >55+ Only</button>
-                              </div>
-                           </div>
-
-                           {/* New Construction */}
-                           <div className="mt-5">
-                              <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2">New Construction</div>
-                              <div className="flex gap-2">
-                                 <button
-                                    onClick={() => setNewConstructionOnly(false)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       !newConstructionOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >Any</button>
-                                 <button
-                                    onClick={() => setNewConstructionOnly(true)}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                                       newConstructionOnly
-                                          ? 'bg-black border-black text-white'
-                                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                                    }`}
-                                 >New Construction Only</button>
-                              </div>
+                                    key={toggle.label}
+                                    onClick={toggle.onChange}
+                                    className="w-full flex items-center justify-between py-2 group"
+                                 >
+                                    <span className={`text-sm font-medium transition-colors ${toggle.checked ? 'text-black' : 'text-gray-600 group-hover:text-black'}`}>{toggle.label}</span>
+                                    <div className={`relative w-10 h-[22px] rounded-full transition-colors duration-200 ${toggle.checked ? 'bg-black' : 'bg-gray-200'}`}>
+                                       <div className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${toggle.checked ? 'translate-x-[22px]' : 'translate-x-[3px]'}`} />
+                                    </div>
+                                 </button>
+                              ))}
                            </div>
                         </div>
                       )}
@@ -1161,41 +1112,34 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                    </div>
                  </div>
 
-                 {/* Row 5: Basement & Single Story */}
-                 <div className="grid grid-cols-2 gap-3">
-                   <div>
-                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">Basement</label>
-                     <div className="flex gap-1.5">
-                       {([{ label: 'Any', value: null }, { label: 'Yes', value: true }, { label: 'No', value: false }] as { label: string; value: boolean | null }[]).map(opt => (
-                         <button key={opt.label} onClick={() => setBasementFilter(opt.value)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${basementFilter === opt.value ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>{opt.label}</button>
-                       ))}
-                     </div>
-                   </div>
-                   <div>
-                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">Stories</label>
-                     <div className="flex gap-1.5">
-                       <button onClick={() => setSingleStoryOnly(false)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${!singleStoryOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
-                       <button onClick={() => setSingleStoryOnly(true)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${singleStoryOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>1 Story</button>
-                     </div>
+                 {/* Row 5: Basement */}
+                 <div>
+                   <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">Basement</label>
+                   <div className="flex gap-1.5">
+                     {([{ label: 'Any', value: null }, { label: 'Yes', value: true }, { label: 'No', value: false }] as { label: string; value: boolean | null }[]).map(opt => (
+                       <button key={opt.label} onClick={() => setBasementFilter(opt.value)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${basementFilter === opt.value ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>{opt.label}</button>
+                     ))}
                    </div>
                  </div>
 
-                 {/* Row 6: 55+ & New Construction */}
-                 <div className="grid grid-cols-2 gap-3">
-                   <div>
-                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">55+ Community</label>
-                     <div className="flex gap-1.5">
-                       <button onClick={() => setIs55PlusOnly(false)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${!is55PlusOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
-                       <button onClick={() => setIs55PlusOnly(true)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${is55PlusOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>55+</button>
-                     </div>
-                   </div>
-                   <div>
-                     <label className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1.5 block">New Construction</label>
-                     <div className="flex gap-1.5">
-                       <button onClick={() => setNewConstructionOnly(false)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${!newConstructionOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>Any</button>
-                       <button onClick={() => setNewConstructionOnly(true)} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${newConstructionOnly ? 'bg-black border-black text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'}`}>New</button>
-                     </div>
-                   </div>
+                 {/* Row 6: Toggle filters */}
+                 <div className="space-y-2 pt-1">
+                   {([
+                     { label: 'Single Story Only', checked: singleStoryOnly, onChange: () => setSingleStoryOnly(!singleStoryOnly) },
+                     { label: '55+ Community', checked: is55PlusOnly, onChange: () => setIs55PlusOnly(!is55PlusOnly) },
+                     { label: 'New Construction', checked: newConstructionOnly, onChange: () => setNewConstructionOnly(!newConstructionOnly) },
+                   ]).map(toggle => (
+                     <button
+                       key={toggle.label}
+                       onClick={toggle.onChange}
+                       className="w-full flex items-center justify-between py-1.5"
+                     >
+                       <span className={`text-xs font-medium transition-colors ${toggle.checked ? 'text-black' : 'text-gray-600'}`}>{toggle.label}</span>
+                       <div className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${toggle.checked ? 'bg-black' : 'bg-gray-200'}`}>
+                         <div className={`absolute top-[2px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${toggle.checked ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                       </div>
+                     </button>
+                   ))}
                  </div>
 
                  {/* Clear all */}
