@@ -6,7 +6,7 @@ import { Community, Property } from '../../types';
 import CommunityCard from '../CommunityCard';
 import CommunityDetailModal from '../CommunityDetailModal';
 import CommunityPageModal from '../CommunityPageModal';
-import PropertyDetailModal from '../PropertyDetailModal';
+
 import { MOCK_COMMUNITIES } from '../../constants';
 import { ChevronDown, Filter, Home, Waves, Check, Loader2, X, Search } from 'lucide-react';
 
@@ -49,7 +49,6 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   const [selectedPriceIdx, setSelectedPriceIdx] = useState(0);
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Track if we've already processed the initial community ID
   const hasProcessedInitialCommunity = useRef(false);
@@ -219,7 +218,7 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
   };
 
   const handlePropertyClick = (property: Property) => {
-    setSelectedProperty(property);
+    router.push(`/property/${property.id}`);
   };
 
   return (
@@ -421,16 +420,6 @@ const CommunitiesContent: React.FC<CommunitiesContentProps> = ({ onCommunityClic
          <CommunityDetailModal
            community={selectedCommunity}
            onClose={handleCloseCommunityModal}
-           onPropertyClick={handlePropertyClick}
-         />
-       )}
-
-       {/* Property Detail Modal (when clicking from community modal) */}
-       {selectedProperty && (
-         <PropertyDetailModal
-           property={selectedProperty}
-           onClose={() => setSelectedProperty(null)}
-           onPropertyClick={setSelectedProperty}
          />
        )}
     </div>

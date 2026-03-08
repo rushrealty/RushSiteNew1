@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Property } from '../../types';
 import PropertyCard from '../PropertyCard';
-import PropertyDetailModal from '../PropertyDetailModal';
+
 import { MOCK_PROPERTIES } from '../../constants';
 import { Search, Filter, Check, X, Map as MapIcon, ChevronDown, ChevronLeft, ChevronRight, Loader2, Home, Waves, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
 import { useAutocomplete } from '@/hooks/useAutocomplete';
@@ -120,15 +120,15 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const [sortBy, setSortBy] = useState('newest');
   const [sortOpen, setSortOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
 
   // Autocomplete (shared hook)
   const autocomplete = useAutocomplete({
     onInventorySelect: (prediction) => {
       if (prediction.inventoryData) {
-        const prop = allHomes.find(h => h.id === prediction.inventoryData!.id?.toString());
-        if (prop) setSelectedProperty(prop);
+        const id = prediction.inventoryData.id?.toString();
+        if (id) router.push(`/property/${id}`);
       }
     },
   });
@@ -305,27 +305,16 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     fetchHomes();
   }, []);
 
-  // Auto-open property modal if initialPropertyId or URL param is provided (only once)
+  // Redirect to property page if propertyId is in URL params
   const urlPropertyId = searchParams.get('propertyId');
   const targetPropertyId = initialPropertyId || urlPropertyId;
 
   useEffect(() => {
-    if (targetPropertyId && allHomes.length > 0 && !hasProcessedInitialProperty.current) {
-      const property = allHomes.find(home => home.id === targetPropertyId);
-      if (property) {
-        setSelectedProperty(property);
-        hasProcessedInitialProperty.current = true;
-      }
+    if (targetPropertyId && !hasProcessedInitialProperty.current) {
+      hasProcessedInitialProperty.current = true;
+      router.replace(`/property/${targetPropertyId}`);
     }
-  }, [targetPropertyId, allHomes]);
-
-  // Handle closing the modal - clear URL parameter
-  const handleCloseModal = () => {
-    setSelectedProperty(null);
-    if (targetPropertyId) {
-      router.replace(config.basePath, { scroll: false });
-    }
-  };
+  }, [targetPropertyId, router]);
 
   const toggleCounty = (county: string) => {
     setSelectedCounties(prev =>
@@ -575,7 +564,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   }, [hoveredPropertyId]);
 
   const handlePropertyClick = (property: Property) => {
-    setSelectedProperty(property);
+    router.push(`/property/${property.id}`);
     if (onPropertyClick) {
       onPropertyClick(property);
     }
@@ -1401,15 +1390,6 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
           </div>
        </div>
 
-       {/* Property Detail Modal */}
-       {selectedProperty && (
-         <PropertyDetailModal
-           property={selectedProperty}
-           onClose={handleCloseModal}
-           onPropertyClick={(property) => setSelectedProperty(property)}
-           allProperties={allHomes}
-         />
-       )}
     </div>
   );
 };
