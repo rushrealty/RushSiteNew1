@@ -78,7 +78,7 @@ export async function searchListings(
     // Request raw Bright MLS fields for new construction detection
     // Must include standard fields too, otherwise API only returns the raw fields
     // Include 'class' for home type mapping (ResidentialProperty, CondoProperty, etc.)
-    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType',
+    fields: 'mlsNumber,listPrice,address,details,status,class,listDate,images,map,office,agent,taxes,condominium,raw.NewConstructionYN,raw.ConstructionCompletedYN,raw.StructureDesignType,raw.TaxAnnualAmount,raw.AssociationFee,raw.AssociationFeeFrequency',
   };
 
   // Board ID for multi-MLS accounts
@@ -226,6 +226,23 @@ export function mapHomeType(listingClass?: string, structureDesignType?: string)
 }
 
 /**
+ * Parse HOA fee into monthly amount based on the stated frequency.
+ * Handles: Monthly, Annually, Semi-Annually, Quarterly, Bi-Monthly, Weekly.
+ */
+function parseMonthlyHoa(amount: number, frequency?: string): number {
+  if (!amount || amount <= 0) return 0;
+  if (!frequency) return amount; // assume monthly if unspecified
+
+  const freq = frequency.toLowerCase();
+  if (freq.includes('annual') && !freq.includes('semi')) return Math.round(amount / 12);
+  if (freq.includes('semi')) return Math.round(amount / 6);
+  if (freq.includes('quarter')) return Math.round(amount / 3);
+  if (freq.includes('bi-month') || freq.includes('bimonth')) return Math.round(amount / 2);
+  if (freq.includes('week')) return Math.round((amount * 52) / 12);
+  return amount; // Monthly or unknown → use as-is
+}
+
+/**
  * Transform Repliers listing to match our Property interface
  */
 export function transformListing(listing: RepliersListing) {
@@ -236,6 +253,24 @@ export function transformListing(listing: RepliersListing) {
   const images = (listing.images || []).map(img =>
     img.startsWith('http') ? img : `${REPLIERS_CDN_URL}${img}`
   );
+
+  // --- Tax Assessment ---
+  // Try structured taxes field first, then raw Bright MLS field
+  const taxAnnual =
+    listing.taxes?.annualAmount ??
+    (listing.raw?.TaxAnnualAmount ? parseFloat(listing.raw.TaxAnnualAmount) : 0);
+
+  // --- HOA / Association Fee ---
+  // Try condominium.fees.maintenance first, then raw Bright MLS field
+  const rawHoaAmount =
+    listing.condominium?.fees?.maintenance ??
+    (listing.raw?.AssociationFee ? parseFloat(listing.raw.AssociationFee) : 0);
+
+  const hoaFrequency =
+    listing.condominium?.fees?.type ??
+    listing.raw?.AssociationFeeFrequency;
+
+  const monthlyHoa = parseMonthlyHoa(rawHoaAmount, hoaFrequency);
 
   return {
     id: listing.mlsNumber,
@@ -270,8 +305,8 @@ export function transformListing(listing: RepliersListing) {
     cooling: '',
     parking: details.numGarageSpaces ? `${details.numGarageSpaces} Car Garage` : '',
     basement: '',
-    hoaFee: 0,
-    taxAssessment: 0,
+    hoaFee: monthlyHoa,
+    taxAssessment: taxAnnual || 0,
     schools: [],
     priceHistory: [],
   };

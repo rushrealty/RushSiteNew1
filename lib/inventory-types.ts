@@ -120,10 +120,22 @@ export interface RepliersListing {
     name: string;
     phone?: string;
   };
+  taxes?: {
+    annualAmount?: number;
+  };
+  condominium?: {
+    fees?: {
+      maintenance?: number; // HOA / condo fee amount
+      type?: string; // Payment frequency: "Monthly", "Annually", "Quarterly", etc.
+    };
+  };
   raw?: {
     NewConstructionYN?: string; // "Y" or "N" - from Bright MLS
     ConstructionCompletedYN?: string; // "Y" or "N" - from Bright MLS
     StructureDesignType?: string; // e.g. "Detached", "Interior Row/Townhouse", "Twin/Semi-Detached"
+    TaxAnnualAmount?: string; // Annual property tax amount from Bright MLS
+    AssociationFee?: string; // HOA/Association fee amount from Bright MLS
+    AssociationFeeFrequency?: string; // "Monthly", "Annually", "Quarterly", etc.
     [key: string]: string | undefined;
   };
 }

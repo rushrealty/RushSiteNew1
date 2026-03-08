@@ -3,6 +3,21 @@ import { RepliersListing } from './inventory-types';
 import { mapHomeType } from './repliers';
 
 /**
+ * Parse HOA fee into monthly amount based on the stated frequency.
+ */
+function parseMonthlyHoa(amount: number, frequency?: string): number {
+  if (!amount || amount <= 0) return 0;
+  if (!frequency) return amount;
+  const freq = frequency.toLowerCase();
+  if (freq.includes('annual') && !freq.includes('semi')) return Math.round(amount / 12);
+  if (freq.includes('semi')) return Math.round(amount / 6);
+  if (freq.includes('quarter')) return Math.round(amount / 3);
+  if (freq.includes('bi-month') || freq.includes('bimonth')) return Math.round(amount / 2);
+  if (freq.includes('week')) return Math.round((amount * 52) / 12);
+  return amount;
+}
+
+/**
  * Build full address string from Repliers address object
  */
 export function buildAddressString(address: RepliersListing['address']): string {
@@ -60,8 +75,14 @@ export function transformRepliersListing(listing: RepliersListing): Property {
     cooling: '',
     parking: listing.details.numGarageSpaces ? `${listing.details.numGarageSpaces} Car Garage` : '',
     basement: '',
-    hoaFee: 0,
-    taxAssessment: 0,
+    hoaFee: parseMonthlyHoa(
+      listing.condominium?.fees?.maintenance ??
+        (listing.raw?.AssociationFee ? parseFloat(listing.raw.AssociationFee) : 0),
+      listing.condominium?.fees?.type ?? listing.raw?.AssociationFeeFrequency,
+    ),
+    taxAssessment:
+      listing.taxes?.annualAmount ??
+      (listing.raw?.TaxAnnualAmount ? parseFloat(listing.raw.TaxAnnualAmount) : 0),
     schools: [],
     homeType: mapHomeType(listing.class, listing.raw?.StructureDesignType),
     mlsId: listing.mlsNumber,

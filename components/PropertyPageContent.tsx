@@ -83,11 +83,12 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
 
   // Mortgage bar segment widths
   const mortgageBarSegments = (() => {
-    const { total, principalAndInterest, propertyTax, hoa } = mortgage;
-    if (total === 0) return { pi: 100, tax: 0, hoa: 0 };
+    const { total, principalAndInterest, propertyTax, insurance, hoa } = mortgage;
+    if (total === 0) return { pi: 100, tax: 0, insurance: 0, hoa: 0 };
     return {
       pi: (principalAndInterest / total) * 100,
       tax: (propertyTax / total) * 100,
+      insurance: (insurance / total) * 100,
       hoa: (hoa / total) * 100,
     };
   })();
@@ -375,6 +376,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                 <div className="flex rounded-full h-3 overflow-hidden mb-4">
                   <div className="bg-blue-500" style={{ width: `${mortgageBarSegments.pi}%` }} />
                   <div className="bg-green-500" style={{ width: `${mortgageBarSegments.tax}%` }} />
+                  <div className="bg-purple-500" style={{ width: `${mortgageBarSegments.insurance}%` }} />
                   <div className="bg-yellow-500" style={{ width: `${mortgageBarSegments.hoa}%` }} />
                 </div>
                 {/* Legend */}
@@ -390,23 +392,44 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                     <span className="font-semibold">${Math.round(mortgage.propertyTax).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                    <span className="text-gray-500">HOA:</span>
-                    <span className="font-semibold">${Math.round(mortgage.hoa).toLocaleString()}</span>
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                    <span className="text-gray-500">Insurance:</span>
+                    <span className="font-semibold">${Math.round(mortgage.insurance).toLocaleString()}</span>
                   </div>
+                  {mortgage.hoa > 0 && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                      <span className="text-gray-500">HOA:</span>
+                      <span className="font-semibold">${Math.round(mortgage.hoa).toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-400 mt-4">Based on FHA 3.5% down at 6.2% interest rate over 30 years.</p>
+                <p className="text-xs text-gray-400 mt-4">Based on FHA 3.5% down at 6.2% interest rate over 30 years. Insurance est. at 0.35% of sale price.</p>
               </div>
             </div>
 
             {/* Location */}
             <div className="mb-10" id="location-section">
               <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5">Location</h2>
-              <div className="bg-gray-100 rounded-2xl h-[250px] flex items-center justify-center mb-3">
-                <div className="flex items-center gap-2 text-gray-500 bg-white px-5 py-2.5 rounded-full shadow-sm text-sm font-medium">
-                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                  Map View Coming Soon
-                </div>
+              <div className="rounded-2xl h-[300px] overflow-hidden mb-3">
+                {property.latitude && property.longitude ? (
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${property.latitude},${property.longitude}&zoom=15`}
+                    className="w-full h-full border-0 rounded-2xl"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`Map of ${property.address}`}
+                  />
+                ) : (
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(`${property.address}, ${property.city}, ${property.state} ${property.zip}`)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    className="w-full h-full border-0 rounded-2xl"
+                    allowFullScreen
+                    loading="lazy"
+                    title={`Map of ${property.address}`}
+                  />
+                )}
               </div>
               <p className="text-gray-500 text-sm font-light">
                 {communitySchoolDistrict && `Located in the ${communitySchoolDistrict}. `}
@@ -530,11 +553,20 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="text-gray-600">HOA Fees</span>
+                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                      <span className="text-gray-600">Insurance</span>
                     </div>
-                    <span className="font-bold">${mortgage.hoa}</span>
+                    <span className="font-bold">${Math.round(mortgage.insurance).toLocaleString()}</span>
                   </div>
+                  {mortgage.hoa > 0 && (
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <span className="text-gray-600">HOA Fees</span>
+                      </div>
+                      <span className="font-bold">${Math.round(mortgage.hoa).toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
