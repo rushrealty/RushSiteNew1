@@ -478,9 +478,9 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
               </div>
             )}
 
-            {/* Legal Info */}
+            {/* Listing Info & Bright MLS Compliance */}
             <div className="mb-10 pt-6 border-t border-gray-100">
-              <div className="space-y-2 text-sm text-gray-500">
+              <div className="space-y-3 text-sm text-gray-500">
                 {property.builder && <p>Listed by: {property.builder}</p>}
                 {property.builderWebsite && (
                   <p>Source:{' '}
@@ -495,14 +495,43 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                   </p>
                 )}
                 {hasMlsData && (
-                  <>
-                    <p className="mt-3">Listing updated: {property.lastUpdated}</p>
-                    <p>Listed by: {property.listingAgent} {property.listingAgentPhone}, {property.listingBrokerage} {property.brokeragePhone}</p>
-                    <div className="flex items-center gap-2 mt-3">
-                      <span>Source: Bright MLS, MLS#: {property.mlsId}</span>
-                      <span className="font-serif font-bold italic text-gray-400">bright</span>
-                    </div>
-                  </>
+                  <div className="space-y-2">
+                    {/* Listing Broker Attribution — Bright MLS IDX Compliance */}
+                    <p className="text-sm font-semibold text-gray-700">
+                      Listing Courtesy of {property.listingBrokerage || 'Listing Broker'}
+                    </p>
+
+                    {/* Listing Agent & Broker Contact Info */}
+                    {property.listingAgent && (
+                      <p className="text-sm text-gray-500">
+                        Listing Agent: {property.listingAgent}
+                        {property.listingAgentPhone && ` • ${property.listingAgentPhone}`}
+                      </p>
+                    )}
+                    {property.brokeragePhone && (
+                      <p className="text-sm text-gray-500">
+                        Broker Phone: {property.brokeragePhone}
+                      </p>
+                    )}
+
+                    {/* MLS # and Last Updated */}
+                    <p className="text-sm text-gray-500">
+                      MLS# {property.mlsId}
+                      {property.lastUpdated && (
+                        <> • Data last updated: {new Date(property.lastUpdated).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}</>
+                      )}
+                    </p>
+
+                    {/* Accuracy Disclaimer */}
+                    <p className="text-xs text-gray-400 italic">
+                      Information Deemed Reliable But Not Guaranteed.
+                    </p>
+
+                    {/* Copyright */}
+                    <p className="text-xs text-gray-400">
+                      © {new Date().getFullYear()} Bright MLS, Inc. All Rights Reserved.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -528,47 +557,6 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                 propertyCity={property.city}
                 propertyState={property.state}
               />
-
-              {/* Monthly Cost Summary (Desktop sidebar) */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h3 className="font-bold text-lg mb-3">Monthly Cost</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  ${Math.round(mortgage.total).toLocaleString()}
-                </div>
-                <p className="text-xs text-gray-400 mb-5">Est. based on FHA 3.5% down at 6.2%</p>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <span className="text-gray-600">Principal &amp; Interest</span>
-                    </div>
-                    <span className="font-bold">${Math.round(mortgage.principalAndInterest).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <span className="text-gray-600">Property Taxes</span>
-                    </div>
-                    <span className="font-bold">${Math.round(mortgage.propertyTax).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                      <span className="text-gray-600">Insurance</span>
-                    </div>
-                    <span className="font-bold">${Math.round(mortgage.insurance).toLocaleString()}</span>
-                  </div>
-                  {mortgage.hoa > 0 && (
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span className="text-gray-600">HOA Fees</span>
-                      </div>
-                      <span className="font-bold">${Math.round(mortgage.hoa).toLocaleString()}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 
@@ -592,12 +580,21 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
           </div>
         )}
 
-        {/* Bright MLS Disclaimer */}
+        {/* Bright MLS Disclaimer — Full IDX Compliance */}
         {hasMlsData && (
           <div className="mt-16 p-8 bg-gray-50 rounded-2xl text-[10px] text-gray-500 leading-relaxed font-light">
             <div className="mb-3 font-bold text-gray-700 text-lg font-serif">bright<span className="text-xs align-top">MLS</span></div>
+            <p className="mb-2">
+              The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms in which Rush Home Team / Compass participates, and is provided by BRIGHT through a licensing agreement. The information provided by this website is for the personal, non-commercial use of consumers and may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing.
+            </p>
+            <p className="mb-2">
+              Some properties which appear for sale on this website may no longer be available because they are under contract, have closed or are no longer being offered for sale. Some real estate firms do not participate in IDX and their listings do not appear on this website. Some properties listed with participating firms do not appear on this website at the request of the seller.
+            </p>
+            <p className="mb-2">
+              Information Deemed Reliable But Not Guaranteed. Data last updated: {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}.
+            </p>
             <p>
-              The data relating to real estate for sale on this website appears in part through the BRIGHT Internet Data Exchange program, a voluntary cooperative exchange of property listing data between licensed real estate brokerage firms, and is provided by BRIGHT through a licensing agreement. Listing information is from various brokers who participate in the Bright MLS IDX program and not all listings may be visible on the site. The property information being provided on or through the website is for the personal, non-commercial use of consumers and such information may not be used for any purpose other than to identify prospective properties consumers may be interested in purchasing. Some properties which appear for sale on the website may no longer be available because they are for instance, under contract, sold or are no longer being offered for sale. Property information displayed is deemed reliable but is not guaranteed. Copyright {new Date().getFullYear()} Bright MLS, Inc.
+              © {new Date().getFullYear()} Bright MLS, Inc. All Rights Reserved.
             </p>
           </div>
         )}

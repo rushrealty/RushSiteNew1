@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Loader2, CheckCircle2, Calendar, MessageSquare, Info, Clock, Phone, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, Calendar, MessageSquare, Info, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { sendFubEvent } from '@/lib/fub';
 
@@ -320,17 +320,6 @@ const PropertyContactForm: React.FC<PropertyContactFormProps> = ({
           )}
         </button>
       </form>
-
-      {/* Call / Email links */}
-      <div className="flex items-center justify-center gap-4 mt-5 text-sm">
-        <a href="tel:+13023101560" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
-          <Phone size={14} /> Call Agent
-        </a>
-        <span className="text-gray-300">|</span>
-        <a href="mailto:rush@compass.com" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
-          <Mail size={14} /> Email Agent
-        </a>
-      </div>
 
       <p className="text-center text-[10px] text-gray-400 mt-4 leading-tight">
         By submitting this form, you agree to our{' '}

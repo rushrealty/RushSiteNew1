@@ -124,53 +124,35 @@ export function usePropertyData(property: Property, allProperties?: Property[]) 
     fetchNearbyPlaces();
   }, [communityAddress, property.address, property.city, property.state]);
 
-  // Fetch similar homes
+  // Fetch similar homes from Repliers API (within 1 mile, ±500 sqft)
   useEffect(() => {
     async function fetchSimilarHomes() {
-      if (property.communityId) {
-        try {
-          const response = await fetch(`/api/quick-move-in?communityId=${encodeURIComponent(property.communityId)}`);
-          if (response.ok) {
-            const data = await response.json();
-            const communityHomes = (data.homes || []).filter((h: Property) => h.id !== property.id);
-            if (communityHomes.length > 0) {
-              setSimilarHomes(communityHomes);
-              return;
-            }
+      // Build query params for the similar-homes API
+      const params = new URLSearchParams();
+      if (property.mlsId) params.set('mlsId', property.mlsId);
+      if (property.zip) params.set('zip', property.zip);
+      if (property.city) params.set('city', property.city);
+      if (property.sqft) params.set('sqft', String(property.sqft));
+      if (property.latitude) params.set('lat', String(property.latitude));
+      if (property.longitude) params.set('lng', String(property.longitude));
+      params.set('limit', '6');
+
+      try {
+        const response = await fetch(`/api/similar-homes?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.homes && data.homes.length > 0) {
+            setSimilarHomes(data.homes);
+            return;
           }
-        } catch (error) {
-          console.error('Error fetching community homes:', error);
         }
+      } catch (error) {
+        console.error('Error fetching similar homes:', error);
       }
 
+      // Fallback: use local data if API returned nothing
       const propertyList = allProperties && allProperties.length > 0 ? allProperties : MOCK_PROPERTIES;
       const others = propertyList.filter(p => p.id !== property.id);
-
-      const sameCommunity = others.filter(p => p.community && p.community === property.community);
-
-      const getDistanceMiles = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-        const toRad = (deg: number) => deg * (Math.PI / 180);
-        const R = 3958.8;
-        const dLat = toRad(lat2 - lat1);
-        const dLng = toRad(lng2 - lng1);
-        const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      };
-
-      const nearbyHomes = (property.latitude && property.longitude)
-        ? others.filter(p => {
-            if (sameCommunity.some(sc => sc.id === p.id)) return false;
-            if (!p.latitude || !p.longitude) return false;
-            return getDistanceMiles(property.latitude!, property.longitude!, p.latitude, p.longitude) <= 0.5;
-          })
-        : [];
-
-      const results = [...sameCommunity, ...nearbyHomes];
-
-      if (results.length > 0) {
-        setSimilarHomes(results);
-        return;
-      }
 
       setSimilarHomes(
         others
