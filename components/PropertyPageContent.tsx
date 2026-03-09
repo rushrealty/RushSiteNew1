@@ -108,7 +108,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
   })();
 
   return (
-    <div className="bg-white min-h-screen font-sans">
+    <div className="bg-white min-h-screen font-sans pt-20">
       {/* ===================== HERO IMAGE GALLERY ===================== */}
       <div className="relative bg-gray-100">
         {/* Mobile: Scrollable gallery */}
