@@ -163,6 +163,18 @@ export interface RepliersListing {
   };
 }
 
+// Repliers listing history entry (from /listings/history endpoint)
+export interface RepliersHistoryEntry {
+  mlsNumber: string;
+  type?: string; // "Sale", "Lease", etc.
+  listPrice?: number;
+  soldPrice?: number;
+  listDate?: string;
+  soldDate?: string;
+  lastStatus?: string; // "Sold", "Terminated", "Expired", etc.
+  office?: { brokerageName?: string };
+}
+
 // Repliers API response
 export interface RepliersResponse {
   listings: RepliersListing[];
