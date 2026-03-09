@@ -541,7 +541,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                           )}
                         </div>
                         <div className="text-right text-gray-400 text-xs">
-                          {hasMlsData ? 'Rush Home MLS' : 'Public Record'}
+                          {hasMlsData ? 'MLS' : 'Public Record'}
                         </div>
                       </div>
                     );
