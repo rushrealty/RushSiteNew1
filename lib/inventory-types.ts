@@ -204,6 +204,7 @@ export interface RepliersSearchFilters {
   propertyType?: string;
   status?: string;
   mlsNumber?: string;
+  agent?: string; // Agent MLS ID for filtering by listing agent
   boardId?: string;
   page?: number;
   resultsPerPage?: number;

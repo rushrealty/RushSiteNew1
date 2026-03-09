@@ -116,6 +116,9 @@ export async function searchListings(
   // MLS number
   if (filters.mlsNumber) params.mlsNumber = filters.mlsNumber;
 
+  // Agent MLS ID
+  if (filters.agent) params.agent = filters.agent;
+
   // Raw MLS field filters (e.g. raw.NewConstructionYN=contains:Y)
   if (filters.rawFilters) {
     for (const [key, value] of Object.entries(filters.rawFilters)) {
