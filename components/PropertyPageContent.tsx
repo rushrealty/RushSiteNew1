@@ -606,17 +606,18 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
 
         {/* ===================== FULL-WIDTH BOTTOM SECTIONS ===================== */}
 
-        {/* Similar Homes */}
+        {/* Similar Homes — horizontal scroll */}
         {similarHomes.length > 0 && (
           <div className="mt-16 pt-12 border-t border-gray-100">
             <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-8">Similar Homes You Might Like</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent -mx-1 px-1">
               {similarHomes.slice(0, 6).map(home => (
-                <PropertyCard
-                  key={home.id}
-                  property={home}
-                  onClick={(p) => router.push(`/property/${p.id}`)}
-                />
+                <div key={home.id} className="flex-none w-[320px] snap-start">
+                  <PropertyCard
+                    property={home}
+                    onClick={(p) => router.push(`/property/${p.id}`)}
+                  />
+                </div>
               ))}
             </div>
           </div>
