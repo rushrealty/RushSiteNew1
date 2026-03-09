@@ -6,6 +6,47 @@ import { MOCK_PROPERTIES } from '@/constants';
 export const revalidate = 300;
 
 /**
+ * Mapping of community slugs to search configuration.
+ * Shared with /api/community-homes — keywords must ALL appear in
+ * the Repliers `address.neighborhood` value for a match.
+ */
+const COMMUNITY_SEARCH_CONFIG: Record<
+  string,
+  { city?: string; keywords: string[]; addressKeywords?: string[] }
+> = {
+  'abbotts-pond': { city: 'Greenwood', keywords: ['abbotts', 'pond'] },
+  'pinehurst-village': { city: 'Felton', keywords: ['pinehurst'] },
+  'wiggins-mill': { city: 'Middletown', keywords: ['wiggins'], addressKeywords: ['wiggins mill'] },
+  'baywood-greens': { city: 'Millsboro', keywords: ['baywood'] },
+  'village-of-bayberry': { city: 'Middletown', keywords: ['village', 'bayberry'] },
+  'bayberry': { city: 'Middletown', keywords: ['village', 'bayberry'] },
+  'mitchells-corner': { city: 'Lewes', keywords: ['mitchell'] },
+};
+
+/**
+ * Check if a listing's neighborhood or address matches the community.
+ */
+function matchesCommunity(
+  listing: { address: { neighborhood?: string; streetName?: string; streetNumber?: string; streetSuffix?: string } },
+  config: { keywords: string[]; addressKeywords?: string[] }
+): boolean {
+  const neighborhood = (listing.address.neighborhood || '').toLowerCase();
+  if (neighborhood && config.keywords.every((kw) => neighborhood.includes(kw))) {
+    return true;
+  }
+  if (config.addressKeywords) {
+    const streetAddr = [listing.address.streetNumber, listing.address.streetName, listing.address.streetSuffix]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    if (config.addressKeywords.some((kw) => streetAddr.includes(kw))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Seeded shuffle using a simple hash-based PRNG.
  * The seed changes every 4 hours so featured homes rotate ~6 times per day.
  */
@@ -36,30 +77,61 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+    const communityId = searchParams.get('communityId');
 
-    // Fetch new construction homes with completed construction from Repliers
-    // Criteria: NewConstructionYN = Y AND ConstructionCompletedYN = Y
-    const response = await searchListings({
+    // Build search filters
+    const searchFilters: Parameters<typeof searchListings>[0] = {
       status: 'A',
       resultsPerPage: 200,
       rawFilters: {
         'raw.NewConstructionYN': 'contains:Y',
         'raw.ConstructionCompletedYN': 'contains:Y',
       },
-    });
+    };
 
-    if (!response.listings || response.listings.length === 0) {
-      return NextResponse.json({
-        homes: limit ? MOCK_PROPERTIES.slice(0, limit) : MOCK_PROPERTIES,
-        total: MOCK_PROPERTIES.length,
-        isMockData: true,
-      });
+    // If filtering by community, narrow the search to that city
+    const communityConfig = communityId ? COMMUNITY_SEARCH_CONFIG[communityId] : null;
+    if (communityConfig?.city) {
+      searchFilters.city = communityConfig.city;
     }
 
-    console.log(`[QMI API] Fetched ${response.listings.length} quick move-in homes (NewConstruction=Y, ConstructionComplete=Y)`);
+    // Fetch new construction homes with completed construction from Repliers
+    const response = await searchListings(searchFilters);
+
+    if (!response.listings || response.listings.length === 0) {
+      // No community filtering for mock data
+      if (!communityId) {
+        return NextResponse.json({
+          homes: limit ? MOCK_PROPERTIES.slice(0, limit) : MOCK_PROPERTIES,
+          total: MOCK_PROPERTIES.length,
+          isMockData: true,
+        });
+      }
+      return NextResponse.json({ homes: [], total: 0 });
+    }
+
+    console.log(`[QMI API] Fetched ${response.listings.length} quick move-in homes (NewConstruction=Y, ConstructionComplete=Y)${communityId ? ` for city: ${communityConfig?.city || 'all'}` : ''}`);
+
+    // Filter by community neighborhood if communityId was provided
+    let filteredListings = response.listings;
+    if (communityId) {
+      const matchConfig = communityConfig || {
+        keywords: communityId
+          .replace(/-/g, ' ')
+          .toLowerCase()
+          .split(/\s+/)
+          .filter((w) => w.length > 2),
+      };
+      filteredListings = response.listings.filter((listing) =>
+        matchesCommunity(listing, matchConfig)
+      );
+      console.log(
+        `[QMI API] ${filteredListings.length} of ${response.listings.length} listings match community "${communityId}" (keywords: ${matchConfig.keywords.join(', ')})`
+      );
+    }
 
     // Transform using the same function as the search page
-    let homes = response.listings.map((listing) => ({
+    let homes = filteredListings.map((listing) => ({
       ...transformListing(listing),
       isQuickMoveIn: true,
     }));
