@@ -52,6 +52,12 @@ export async function GET() {
 
     const homes = allListings.map(transformListing);
 
+    // Shuffle to rotate which homes appear first
+    for (let i = homes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [homes[i], homes[j]] = [homes[j], homes[i]];
+    }
+
     return NextResponse.json({
       homes,
       total: homes.length,
