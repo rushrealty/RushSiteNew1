@@ -103,6 +103,10 @@ export async function searchListings(
   if (filters.minSqft) params.minSqft = filters.minSqft;
   if (filters.maxSqft) params.maxSqft = filters.maxSqft;
 
+  // Lot size filters (in square feet)
+  if (filters.minLotSizeSqft) params.minLotSizeSqft = filters.minLotSizeSqft;
+  if (filters.maxLotSizeSqft) params.maxLotSizeSqft = filters.maxLotSizeSqft;
+
   // Property type and status
   if (filters.propertyType) params.propertyType = filters.propertyType;
   if (filters.status) params.status = filters.status;

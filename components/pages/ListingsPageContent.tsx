@@ -70,10 +70,10 @@ const LOT_SIZE_OPTIONS = [
   { label: '5+ Acres', value: 5 },
 ];
 
-function parseLotSize(lotSize: string): number {
-  if (!lotSize) return 0;
+function parseLotSize(lotSize: string): number | null {
+  if (!lotSize) return null;
   const match = lotSize.match(/([\d.]+)/);
-  return match ? parseFloat(match[1]) : 0;
+  return match ? parseFloat(match[1]) : null;
 }
 
 export interface ListingsPageConfig {
@@ -362,7 +362,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       // More filters
       const matchesSqftMin = sqftMin === null || property.sqft >= sqftMin;
       const matchesSqftMax = sqftMax === null || property.sqft <= sqftMax;
-      const matchesLotSize = lotSizeMin === null || parseLotSize(property.lotSize) >= lotSizeMin;
+      const parsedLot = parseLotSize(property.lotSize);
+      const matchesLotSize = lotSizeMin === null || parsedLot === null || parsedLot >= lotSizeMin;
       const matchesBasement = basementFilter === null ||
         (basementFilter === true
           ? property.basement !== '' && property.basement.toLowerCase() !== 'none' && property.basement.toLowerCase() !== 'no'

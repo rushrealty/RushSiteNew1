@@ -176,6 +176,8 @@ export interface RepliersSearchFilters {
   maxBaths?: number;
   minSqft?: number;
   maxSqft?: number;
+  minLotSizeSqft?: number;
+  maxLotSizeSqft?: number;
   propertyType?: string;
   status?: string;
   mlsNumber?: string;
