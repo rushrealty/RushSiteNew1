@@ -1,65 +1,197 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchListings } from '@/lib/repliers';
-import { fetchInventoryData } from '@/lib/inventory';
-import { normalizeAddress } from '@/lib/utils';
-import { buildAddressString, transformRepliersListing } from '@/lib/listing-utils';
+import { searchListings, transformListing } from '@/lib/repliers';
+import { MOCK_COMMUNITIES } from '@/constants';
+import { COMMUNITIES_DATA } from '@/data/communities';
+
+// Cache for 5 minutes
+export const revalidate = 300;
+
+/**
+ * Mapping of community slugs to search configuration.
+ * `keywords` are lowercased tokens that must ALL appear in the
+ * Repliers `address.neighborhood` value for a match.
+ * `addressKeywords` are used as a secondary match against the
+ * full street address (for communities named after a road).
+ */
+const COMMUNITY_SEARCH_CONFIG: Record<
+  string,
+  { city: string; keywords: string[]; addressKeywords?: string[] }
+> = {
+  'abbotts-pond': {
+    city: 'Greenwood',
+    keywords: ['abbotts', 'pond'],
+  },
+  'pinehurst-village': {
+    city: 'Felton',
+    keywords: ['pinehurst'],
+  },
+  'wiggins-mill': {
+    city: 'Middletown',
+    keywords: ['wiggins'],
+    addressKeywords: ['wiggins mill'],
+  },
+  'baywood-greens': {
+    city: 'Millsboro',
+    keywords: ['baywood'],
+  },
+};
+
+/**
+ * Check if a listing's neighborhood or address matches the community.
+ */
+function matchesCommunity(
+  listing: {
+    address: {
+      neighborhood?: string;
+      streetName?: string;
+      streetNumber?: string;
+      streetSuffix?: string;
+    };
+  },
+  config: { keywords: string[]; addressKeywords?: string[] }
+): boolean {
+  // Primary match: neighborhood field contains all keywords
+  const neighborhood = (listing.address.neighborhood || '').toLowerCase();
+  if (
+    neighborhood &&
+    config.keywords.every((kw) => neighborhood.includes(kw))
+  ) {
+    return true;
+  }
+
+  // Secondary match: street address contains address keywords
+  if (config.addressKeywords) {
+    const streetAddr = [
+      listing.address.streetNumber,
+      listing.address.streetName,
+      listing.address.streetSuffix,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    if (config.addressKeywords.some((kw) => streetAddr.includes(kw))) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 export async function GET(request: NextRequest) {
   try {
-    const community = request.nextUrl.searchParams.get('community'); // Community name
-    const type = request.nextUrl.searchParams.get('type'); // 'new-construction' | 'quick-move-in'
+    const searchParams = request.nextUrl.searchParams;
+    const slug = searchParams.get('slug');
 
-    // Fetch from Repliers and Google Sheet
-    const [repliersResponse, inventoryData] = await Promise.all([
-      searchListings({ status: 'A', resultsPerPage: 100 }),
-      fetchInventoryData(),
-    ]);
+    if (!slug) {
+      return NextResponse.json(
+        { error: 'Missing slug parameter' },
+        { status: 400 }
+      );
+    }
 
-    // Build sheet address set for QMI detection
-    const sheetAddressSet = new Set(
-      inventoryData.homes.map(h => normalizeAddress(h.address))
+    // Look up community data
+    const mockCommunity = MOCK_COMMUNITIES.find(
+      (c) => c.slug === slug || c.id === slug
     );
+    const communityData = COMMUNITIES_DATA[slug];
 
-    if (type === 'new-construction') {
-      // Filter for new construction homes NOT in sheet (NOT quick move-ins)
-      // These are "to be built" homes that can be customized
-      const homes = repliersResponse.listings.filter(listing => {
-        const status = listing.constructionStatus;
-        if (!status) return false; // Not new construction
+    if (!mockCommunity && !communityData) {
+      return NextResponse.json(
+        { error: 'Community not found' },
+        { status: 404 }
+      );
+    }
 
-        // Must be under construction or proposed
-        const isUnderConstruction = ['under construction', 'proposed'].includes(status.toLowerCase());
-        if (!isUnderConstruction) return false;
+    // Get search config for this community
+    const config = COMMUNITY_SEARCH_CONFIG[slug];
+    const city =
+      config?.city ||
+      mockCommunity?.city ||
+      communityData?.location?.split(',')[0]?.trim() ||
+      '';
+    const communityName = mockCommunity?.name || communityData?.name || '';
 
-        // Must NOT be in Google Sheet (that would make it a QMI)
-        const normalizedAddr = normalizeAddress(buildAddressString(listing.address));
-        return !sheetAddressSet.has(normalizedAddr);
-      });
+    // Fetch all new construction homes in this city from Repliers
+    const response = await searchListings({
+      status: 'A',
+      city,
+      resultsPerPage: 200,
+      rawFilters: {
+        'raw.NewConstructionYN': 'contains:Y',
+      },
+    });
 
-      // Filter by community name (match neighborhood or area field)
-      const communityHomes = community
-        ? homes.filter(h => {
-            const neighborhood = h.address.neighborhood?.toLowerCase() || '';
-            const area = h.address.area?.toLowerCase() || '';
-            const communityLower = community.toLowerCase();
-            return neighborhood.includes(communityLower) || area.includes(communityLower);
-          })
-        : homes;
-
+    if (!response.listings || response.listings.length === 0) {
+      console.log(
+        `[Community Homes] No new construction listings found in ${city}`
+      );
       return NextResponse.json({
-        homes: communityHomes.map(transformRepliersListing),
-        total: communityHomes.length,
+        availableHomes: [],
+        quickMoveInHomes: [],
+        total: 0,
+        communityName,
       });
     }
 
-    // Default: return empty
-    return NextResponse.json({ homes: [], total: 0 });
+    console.log(
+      `[Community Homes] Found ${response.listings.length} new construction listings in ${city}`
+    );
+
+    // Filter to listings matching this community
+    const matchConfig = config || {
+      keywords: communityName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 2),
+    };
+
+    const matchingListings = response.listings.filter((listing) =>
+      matchesCommunity(listing, matchConfig)
+    );
+
+    console.log(
+      `[Community Homes] ${matchingListings.length} listings match "${communityName}" (keywords: ${matchConfig.keywords.join(', ')})`
+    );
+
+    // Split into two groups:
+    // 1. Available Homes: New Construction = Y, ConstructionCompleted != Y
+    // 2. Quick Move-In: New Construction = Y, ConstructionCompleted = Y
+    const availableHomes = matchingListings
+      .filter(
+        (listing) =>
+          listing.raw?.ConstructionCompletedYN?.toUpperCase() !== 'Y'
+      )
+      .map((listing) => ({
+        ...transformListing(listing),
+        isQuickMoveIn: false,
+      }));
+
+    const quickMoveInHomes = matchingListings
+      .filter(
+        (listing) =>
+          listing.raw?.ConstructionCompletedYN?.toUpperCase() === 'Y'
+      )
+      .map((listing) => ({
+        ...transformListing(listing),
+        isQuickMoveIn: true,
+      }));
+
+    return NextResponse.json({
+      availableHomes,
+      quickMoveInHomes,
+      total: availableHomes.length + quickMoveInHomes.length,
+      communityName,
+      lastUpdated: new Date().toISOString(),
+    });
   } catch (error) {
     console.error('Error fetching community homes:', error);
     return NextResponse.json({
-      homes: [],
+      availableHomes: [],
+      quickMoveInHomes: [],
       total: 0,
-      error: 'Failed to fetch community homes',
+      error: 'Failed to fetch homes',
     });
   }
 }
