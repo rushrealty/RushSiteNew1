@@ -1,580 +1,551 @@
 "use client";
 
 import React, { use, useState, useEffect } from 'react';
-import { COMMUNITIES_DATA } from '../../../data/communities';
-import { ShieldCheck, CheckCircle2, Share2, Home, Bed, Bath, Car, Square, Calendar } from 'lucide-react';
-import ShareDropdown from '@/components/ShareDropdown';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { COMMUNITIES_DATA } from '@/data/communities';
+import { MOCK_COMMUNITIES } from '@/constants';
+import PropertyCard from '@/components/PropertyCard';
+import ContactFormModal from '@/components/ContactFormModal';
+import ShareDropdown from '@/components/ShareDropdown';
+import {
+  Bed, Bath, Maximize2, Car, MapPin, Share2,
+  CheckCircle, Calendar, Info, MessageSquare, Home,
+} from 'lucide-react';
+import { Property } from '@/types';
 
-interface InventoryHome {
-  id: string;
-  community_id: string;
-  mls_number: string;
-  source: 'sheet' | 'repliers' | 'merged';
-  status: string;
-  address: string;
-  lot: string;
-  price: string;
-  beds: string;
-  baths: string;
-  sqft: string;
-  garage: string;
-  lot_size: string;
-  move_in_date: string;
-  model_name: string;
-  description: string;
-  photo_url: string;
-  images: string[];
-  featured: boolean;
-  construction_status: string;
-  is_quick_move_in: boolean;
-}
-
-interface SheetCommunity {
-  id: string;
-  name: string;
-  builder_id: string;
-  address: string;
-  city: string;
-  county: string;
-  slug: string;
-  min_price: string;
-  model_photo_1: string;
-  description: string;
-  is_55_plus: boolean;
-  clubhouse: boolean;
-  golfcourse: boolean;
-  community_pool: boolean;
-  school_district: string;
-  schools: string;
-}
-
-// Calculate monthly payment (FHA 3.5% down, 6.2% rate)
-function calculateMonthlyPayment(price: string): string {
-  const priceNum = parseFloat(price.replace(/[^0-9.]/g, ''));
-  if (isNaN(priceNum) || priceNum === 0) return 'N/A';
-
-  const downPayment = priceNum * 0.035; // 3.5% down
-  const loanAmount = priceNum - downPayment;
-  const monthlyRate = 0.062 / 12; // 6.2% annual rate
-  const numPayments = 360; // 30 years
-
-  const monthlyPayment =
-    (loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments))) /
-    (Math.pow(1 + monthlyRate, numPayments) - 1);
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(monthlyPayment);
-}
-
-// Convert Google Drive URL to thumbnail
-function getImageUrl(url: string): string {
-  if (!url) return 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
-
-  // Handle Google Drive URLs
-  if (url.includes('drive.google.com')) {
-    // Extract file ID from various Google Drive URL formats
-    let fileId = '';
-    if (url.includes('/d/')) {
-      fileId = url.split('/d/')[1]?.split('/')[0] || '';
-    } else if (url.includes('id=')) {
-      fileId = url.split('id=')[1]?.split('&')[0] || '';
-    }
-    if (fileId) {
-      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-    }
-  }
-
-  return url;
-}
-
-export default function Page({ params }: { params: Promise<{ communityId: string }> }) {
+export default function CommunityPage({
+  params,
+}: {
+  params: Promise<{ communityId: string }>;
+}) {
   const { communityId } = use(params);
-  const [inventoryHomes, setInventoryHomes] = useState<InventoryHome[]>([]);
-  const [sheetCommunity, setSheetCommunity] = useState<SheetCommunity | null>(null);
+  const router = useRouter();
+
+  // State
+  const [availableHomes, setAvailableHomes] = useState<Property[]>([]);
+  const [quickMoveInHomes, setQuickMoveInHomes] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedHome, setExpandedHome] = useState<string | null>(null);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [contactMode, setContactMode] = useState<
+    'tour' | 'info' | 'message' | null
+  >(null);
 
-  // Try to get community from hardcoded data first
-  const hardcodedCommunity = COMMUNITIES_DATA[communityId];
+  // Get community data from both data sources
+  const communityData = COMMUNITIES_DATA[communityId];
+  const mockCommunity = MOCK_COMMUNITIES.find(
+    (c) => c.slug === communityId || c.id === communityId
+  );
 
+  // Handle external URL redirect (e.g. Baywood Greens)
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        // Fetch community from Google Sheet
-        const communityRes = await fetch(`/api/communities?slug=${communityId}`);
-        const communityData = await communityRes.json();
-        if (communityData.success && communityData.data.length > 0) {
-          setSheetCommunity(communityData.data[0]);
-        }
+    if (communityData?.externalUrl) {
+      window.location.href = communityData.externalUrl;
+    }
+  }, [communityData]);
 
-        // Fetch inventory homes for this community (merged from Google Sheet + Repliers)
-        const inventoryRes = await fetch(`/api/listings?community_id=${communityId}&quick_move_in=true`);
-        const inventoryData = await inventoryRes.json();
-        if (inventoryData.success) {
-          setInventoryHomes(inventoryData.data);
+  // Fetch homes from Repliers via our API
+  useEffect(() => {
+    async function fetchHomes() {
+      try {
+        const response = await fetch(
+          `/api/community-homes?slug=${communityId}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setAvailableHomes(data.availableHomes || []);
+          setQuickMoveInHomes(data.quickMoveInHomes || []);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching community homes:', error);
       } finally {
         setLoading(false);
       }
     }
-
-    fetchData();
+    fetchHomes();
   }, [communityId]);
 
-  // Use sheet data if available, otherwise fall back to hardcoded
-  const community = sheetCommunity || hardcodedCommunity;
+  // Derived community info
+  const communityName =
+    mockCommunity?.name || communityData?.name || communityId;
+  const communityLocation =
+    mockCommunity
+      ? `${mockCommunity.city}, ${mockCommunity.state}`
+      : communityData?.location || '';
+  const communityImage = mockCommunity?.image || communityData?.img || '';
+  const communityDescription =
+    mockCommunity?.description || communityData?.description || '';
+  const communityFeatures =
+    communityData?.features || mockCommunity?.features || [];
+  const communityPrice =
+    communityData?.price || mockCommunity?.priceRange || '';
+  const communityStatus =
+    communityData?.status || (mockCommunity?.status as string) || 'Now Selling';
 
-  if (!community && !loading) {
+  // Community not found
+  if (!communityData && !mockCommunity) {
     return (
-      <div className="pt-32 text-center min-h-screen">
-        <h1 className="text-2xl font-bold">Community Not Found</h1>
-        <Link href="/available-communities" className="text-blue-600 underline">Back to communities</Link>
+      <div className="pt-32 text-center min-h-screen bg-white">
+        <h1 className="text-2xl font-bold mb-4">Community Not Found</h1>
+        <Link href="/" className="text-blue-600 underline">
+          Back to Home
+        </Link>
       </div>
     );
   }
 
-  if (loading && !hardcodedCommunity) {
+  // External redirect in progress
+  if (communityData?.externalUrl) {
     return (
-      <div className="pt-32 text-center min-h-screen">
+      <div className="pt-32 text-center min-h-screen bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-        <p className="mt-4 text-gray-500">Loading community...</p>
+        <p className="mt-4 text-gray-500">
+          Redirecting to {communityName}...
+        </p>
       </div>
     );
   }
-
-  // Normalize community data from different sources
-  const communityName = sheetCommunity?.name || hardcodedCommunity?.name || '';
-  const communityLocation = sheetCommunity
-    ? `${sheetCommunity.city}, ${sheetCommunity.county} County`
-    : hardcodedCommunity?.location || '';
-  const communityPrice = sheetCommunity
-    ? `$${parseInt(sheetCommunity.min_price?.replace(/,/g, '')).toLocaleString()}`
-    : hardcodedCommunity?.price || '';
-  const communityDescription = sheetCommunity?.description || hardcodedCommunity?.description || '';
-  const communityImg = sheetCommunity?.model_photo_1
-    ? getImageUrl(sheetCommunity.model_photo_1)
-    : hardcodedCommunity?.img || '';
-  const communityFeatures = hardcodedCommunity?.features || [];
-  const communityGallery = hardcodedCommunity?.gallery || [];
-  const communityStatus = hardcodedCommunity?.status || 'Now Selling';
 
   return (
-    <div className="pt-24 min-h-screen bg-white font-sans">
-      <style jsx>{`
-        .inventory-card {
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 16px;
-          overflow: hidden;
-          transition: all 0.3s ease;
-        }
-        .inventory-card:hover {
-          border-color: #d4d4d4;
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-          transform: translateY(-2px);
-        }
-        .inventory-card-main {
-          display: grid;
-          grid-template-columns: 280px 1fr auto;
-          cursor: pointer;
-        }
-        .inventory-image {
-          position: relative;
-          height: 200px;
-          overflow: hidden;
-        }
-        .inventory-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.4s ease;
-        }
-        .inventory-card:hover .inventory-image img {
-          transform: scale(1.05);
-        }
-        .inventory-badge {
-          position: absolute;
-          top: 12px;
-          left: 12px;
-          padding: 6px 12px;
-          background: #22c55e;
-          color: white;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          border-radius: 4px;
-        }
-        .inventory-badge.coming-soon {
-          background: #f59e0b;
-        }
-        .inventory-content {
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-        .inventory-price {
-          font-size: 24px;
-          font-weight: 800;
-          color: #171717;
-          margin-bottom: 4px;
-        }
-        .inventory-monthly {
-          font-size: 14px;
-          color: #737373;
-          margin-bottom: 8px;
-        }
-        .inventory-address {
-          font-size: 15px;
-          color: #525252;
-          margin-bottom: 12px;
-        }
-        .inventory-specs {
-          display: flex;
-          gap: 16px;
-          font-size: 14px;
-          color: #525252;
-          flex-wrap: wrap;
-        }
-        .inventory-spec {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .inventory-action {
-          display: flex;
-          align-items: center;
-          padding: 0 24px;
-        }
-        .inventory-btn {
-          padding: 14px 24px;
-          background: white;
-          color: black;
-          font-size: 14px;
-          font-weight: 600;
-          border: 2px solid black;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s;
-          white-space: nowrap;
-        }
-        .inventory-btn:hover {
-          background: black;
-          color: white;
-        }
-        .inventory-details {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.4s ease;
-          background: #fafafa;
-        }
-        .inventory-card.expanded .inventory-details {
-          max-height: 400px;
-        }
-        .inventory-details-content {
-          padding: 24px;
-        }
-        .inventory-description {
-          color: #525252;
-          line-height: 1.7;
-          margin-bottom: 16px;
-        }
-        @media (max-width: 1024px) {
-          .inventory-card-main {
-            grid-template-columns: 220px 1fr auto;
-          }
-        }
-        @media (max-width: 768px) {
-          .inventory-card-main {
-            grid-template-columns: 1fr;
-          }
-          .inventory-image {
-            height: 200px;
-          }
-          .inventory-action {
-            padding: 0 24px 24px;
-          }
-          .inventory-btn {
-            width: 100%;
-          }
-        }
-      `}</style>
+    <div className="bg-white min-h-screen font-sans pt-20">
+      {/* ===================== HERO IMAGE ===================== */}
+      <div className="relative bg-gray-100">
+        <div className="h-[360px] lg:h-[500px] max-w-7xl mx-auto px-4 xl:px-0">
+          <img
+            src={communityImage}
+            alt={communityName}
+            className="w-full h-full object-cover lg:rounded-2xl"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      </div>
 
-      <section className="px-4 max-w-7xl mx-auto py-8">
-        {/* Breadcrumb and Share */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
-            <Link href="/available-communities">Communities</Link>
-            <span>/</span>
-            <span className="text-black font-bold">{communityName}</span>
-          </div>
-          <div className="flex gap-4">
-            <div className="relative">
-              <button
-                onClick={() => setShowShareDropdown(!showShareDropdown)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 font-bold transition-colors"
-              >
-                <Share2 size={18} /> Share
-              </button>
-              {showShareDropdown && (
-                <ShareDropdown
-                  url={`https://rushhome.com/available-communities/${communityId}`}
-                  title={`${communityName} - New Homes in ${communityLocation}`}
-                  description={communityDescription}
-                  onClose={() => setShowShareDropdown(false)}
-                />
+      {/* ===================== MAIN CONTENT ===================== */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-14">
+          {/* =================== LEFT COLUMN =================== */}
+          <div className="flex-grow lg:w-2/3">
+            {/* Status Badge */}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 font-bold rounded-full text-xs uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                {communityStatus}
+              </span>
+              {mockCommunity?.is55Plus && (
+                <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-full text-xs uppercase tracking-wider">
+                  55+ Community
+                </span>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-4 h-[500px] rounded-3xl overflow-hidden mb-12">
-          <div className="relative bg-gray-100">
-            <img
-              src={communityImg}
-              alt={communityName}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <div className="grid grid-cols-2 grid-rows-2 gap-4">
-            {(communityGallery.length > 0 ? communityGallery : [communityImg, communityImg, communityImg, communityImg])
-              .slice(0, 4)
-              .map((src, i) => (
-                <div key={i} className="bg-gray-100 rounded-lg overflow-hidden">
-                  <img
-                    src={src}
-                    alt={`${communityName} gallery ${i}`}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
+            {/* Community Name */}
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+              {communityName}
+            </h1>
+
+            {/* Location */}
+            <p className="flex items-center gap-2 text-gray-600 text-lg mb-4">
+              <MapPin
+                size={18}
+                className="text-gray-400 flex-shrink-0"
+              />
+              {communityLocation}
+            </p>
+
+            {/* Action Icons */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setShowShareDropdown(!showShareDropdown)
+                  }
+                  className="p-2.5 rounded-full border border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600 transition-all"
+                >
+                  <Share2 size={20} />
+                </button>
+                {showShareDropdown && (
+                  <ShareDropdown
+                    url={`https://rushhome.com/available-communities/${communityId}`}
+                    title={`${communityName} - New Homes in ${communityLocation}`}
+                    description={communityDescription}
+                    onClose={() => setShowShareDropdown(false)}
                   />
-                </div>
-              ))}
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-16">
-          <div>
-            {/* Status Badge */}
-            <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-green-600 mb-4">
-              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
-              {communityStatus}
+                )}
+              </div>
             </div>
 
-            {/* Title */}
-            <h1 className="text-5xl font-black uppercase tracking-tighter mb-4">{communityName}</h1>
-            <p className="text-lg text-gray-500 mb-8">{communityLocation}</p>
-
-            {/* Specs */}
-            {hardcodedCommunity && (
-              <div className="border-t border-b border-gray-100 py-8 grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-                <div>
-                  <div className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-1">Bedrooms</div>
-                  <div className="text-2xl font-black">{hardcodedCommunity.bedrooms}</div>
+            {/* Stats Grid (2x2) */}
+            {communityData && (
+              <div className="grid grid-cols-2 gap-3 mb-10">
+                <div className="bg-gray-50 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-gray-400 mb-1">
+                    <Bed size={16} />
+                    <span className="text-xs font-medium uppercase tracking-wider">
+                      Beds
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {communityData.bedrooms}
+                  </p>
                 </div>
-                <div>
-                  <div className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-1">Bathrooms</div>
-                  <div className="text-2xl font-black">{hardcodedCommunity.bathrooms}</div>
+                <div className="bg-gray-50 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-gray-400 mb-1">
+                    <Bath size={16} />
+                    <span className="text-xs font-medium uppercase tracking-wider">
+                      Baths
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {communityData.bathrooms}
+                  </p>
                 </div>
-                <div>
-                  <div className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-1">Garage</div>
-                  <div className="text-2xl font-black">{hardcodedCommunity.garage}</div>
+                <div className="bg-gray-50 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-gray-400 mb-1">
+                    <Maximize2 size={16} />
+                    <span className="text-xs font-medium uppercase tracking-wider">
+                      Sq Ft
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {communityData.sqft}
+                  </p>
                 </div>
-                <div>
-                  <div className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-1">Sq Ft</div>
-                  <div className="text-2xl font-black">{hardcodedCommunity.sqft}</div>
+                <div className="bg-gray-50 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-gray-400 mb-1">
+                    <Car size={16} />
+                    <span className="text-xs font-medium uppercase tracking-wider">
+                      Garage
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {communityData.garage}
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Description */}
-            <div className="prose prose-lg text-gray-600 max-w-none mb-12">
-              <p>{communityDescription}</p>
-            </div>
+            {/* Divider */}
+            <hr className="border-gray-100 mb-10" />
 
-            {/* QuickBuy Banner */}
-            <div className="bg-black text-white p-8 rounded-3xl flex items-center gap-8 border-4 border-gray-800 mb-12">
-              <ShieldCheck size={48} className="text-brand-yellow shrink-0" />
-              <div>
-                <h4 className="text-xl font-bold uppercase mb-2">Need to sell first?</h4>
-                <p className="text-gray-400">
-                  Ask about our <strong>RushHome QuickBuy Lock</strong>. We provide a guaranteed backup offer so you can
-                  buy your next home without a sale contingency.
+            {/* About this Community */}
+            {communityDescription && (
+              <div className="mb-10">
+                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-4">
+                  About {communityName}
+                </h2>
+                <p className="text-gray-600 leading-relaxed font-light">
+                  {communityDescription}
                 </p>
               </div>
-            </div>
+            )}
 
-            {/* Inventory Homes Section */}
-            {inventoryHomes.length > 0 && (
-              <div className="mb-12">
-                <h2 className="text-2xl font-black uppercase tracking-tight mb-6">
-                  Quick Move-In Homes ({inventoryHomes.length})
+            {/* Features & Amenities */}
+            {communityFeatures.length > 0 && (
+              <div className="mb-10">
+                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5">
+                  Features &amp; Amenities
                 </h2>
-                <div className="space-y-4">
-                  {inventoryHomes.map((home) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {communityFeatures.map((feature, i) => (
                     <div
-                      key={home.id}
-                      className={`inventory-card ${expandedHome === home.id ? 'expanded' : ''}`}
+                      key={i}
+                      className="flex items-center gap-3 py-1.5"
                     >
-                      <div
-                        className="inventory-card-main"
-                        onClick={() => setExpandedHome(expandedHome === home.id ? null : home.id)}
-                      >
-                        <div className="inventory-image">
-                          <img
-                            src={getImageUrl(home.photo_url)}
-                            alt={home.model_name || home.address}
-                            referrerPolicy="no-referrer"
-                          />
-                          <span className={`inventory-badge ${home.status === 'Coming Soon' ? 'coming-soon' : ''}`}>
-                            {home.move_in_date || home.status}
-                          </span>
-                        </div>
-                        <div className="inventory-content">
-                          <div className="inventory-price">
-                            ${parseInt(home.price).toLocaleString()}
-                            {home.mls_number && home.source !== 'sheet' && (
-                              <span style={{ fontSize: '11px', color: '#737373', marginLeft: '8px', fontWeight: 500 }}>
-                                MLS# {home.mls_number}
-                              </span>
-                            )}
-                          </div>
-                          <div className="inventory-monthly">
-                            Est. {calculateMonthlyPayment(home.price)}/mo
-                          </div>
-                          <div className="inventory-address">
-                            {home.address}
-                            {home.model_name && ` • ${home.model_name}`}
-                          </div>
-                          <div className="inventory-specs">
-                            <span className="inventory-spec">
-                              <Bed size={16} /> {home.beds} Beds
-                            </span>
-                            <span className="inventory-spec">
-                              <Bath size={16} /> {home.baths} Baths
-                            </span>
-                            <span className="inventory-spec">
-                              <Car size={16} /> {home.garage} Garage
-                            </span>
-                            <span className="inventory-spec">
-                              <Square size={16} /> {parseInt(home.sqft).toLocaleString()} Sq Ft
-                            </span>
-                          </div>
-                        </div>
-                        <div className="inventory-action">
-                          <button className="inventory-btn">View Details</button>
-                        </div>
-                      </div>
-                      <div className="inventory-details">
-                        <div className="inventory-details-content">
-                          {home.description && (
-                            <p className="inventory-description">{home.description}</p>
-                          )}
-                          <div className="flex gap-4 flex-wrap">
-                            <button className="inventory-btn" style={{ background: 'black', color: 'white' }}>
-                              Request Information
-                            </button>
-                            <button className="inventory-btn">Schedule Tour</button>
-                          </div>
-                        </div>
-                      </div>
+                      <CheckCircle
+                        size={18}
+                        className="text-green-500 flex-shrink-0"
+                      />
+                      <span className="text-gray-700 text-sm">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Loading state for inventory */}
-            {loading && (
-              <div className="mb-12 p-8 bg-gray-50 rounded-2xl text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
-                <p className="mt-4 text-gray-500">Loading available homes...</p>
-              </div>
-            )}
-          </div>
+            {/* ===================== AVAILABLE HOMES ===================== */}
+            <div className="mb-10 pt-10 border-t border-gray-100">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-2">
+                Available Homes
+                {!loading && availableHomes.length > 0 && (
+                  <span className="text-gray-400 text-lg ml-2 font-normal">
+                    ({availableHomes.length})
+                  </span>
+                )}
+              </h2>
+              <p className="text-gray-500 text-sm mb-8">
+                New construction homes currently available in{' '}
+                {communityName}
+              </p>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100">
-              <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Pricing From</div>
-              <div className="text-4xl font-black mb-2">{communityPrice}</div>
-              <div className="text-sm text-gray-500 mb-8">Est. {calculateMonthlyPayment(communityPrice)}/mo*</div>
-              <button className="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest hover:scale-[1.02] transition-transform">
-                Request Information
-              </button>
-              <button className="w-full border-2 border-black py-4 rounded-xl font-black uppercase tracking-widest mt-4 hover:bg-black hover:text-white transition-all">
-                Schedule a Tour
-              </button>
-              <p className="text-xs text-gray-400 mt-4">*Based on FHA 3.5% down, 6.2% rate, 30-year term. P&I only.</p>
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                </div>
+              ) : availableHomes.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {availableHomes.map((home) => (
+                    <PropertyCard
+                      key={home.id}
+                      property={home}
+                      onClick={(p) => router.push(`/property/${p.id}`)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                  <Home
+                    size={32}
+                    className="mx-auto text-gray-300 mb-3"
+                  />
+                  <p className="text-gray-500">
+                    No available homes at this time
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Check back soon or contact us for updates
+                  </p>
+                </div>
+              )}
             </div>
 
-            {communityFeatures.length > 0 && (
-              <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Standard Features</h4>
-                <ul className="space-y-4">
-                  {communityFeatures.map((feature, i) => (
-                    <li key={i} className="flex gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={18} className="text-brand-yellow shrink-0" />
-                      {feature}
-                    </li>
+            {/* ===================== QUICK MOVE-IN HOMES ===================== */}
+            <div className="mb-10 pt-10 border-t border-gray-100">
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 mb-2">
+                Quick Move-In Homes
+                {!loading && quickMoveInHomes.length > 0 && (
+                  <span className="text-gray-400 text-lg ml-2 font-normal">
+                    ({quickMoveInHomes.length})
+                  </span>
+                )}
+              </h2>
+              <p className="text-gray-500 text-sm mb-8">
+                Move-in ready homes with completed construction
+              </p>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                </div>
+              ) : quickMoveInHomes.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {quickMoveInHomes.map((home) => (
+                    <PropertyCard
+                      key={home.id}
+                      property={home}
+                      onClick={(p) => router.push(`/property/${p.id}`)}
+                    />
                   ))}
-                </ul>
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                  <Home
+                    size={32}
+                    className="mx-auto text-gray-300 mb-3"
+                  />
+                  <p className="text-gray-500">
+                    No quick move-in homes available
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Check back soon or contact us for updates
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ===================== LOCATION MAP ===================== */}
+            {communityData && (
+              <div className="mb-10" id="location-section">
+                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5">
+                  Location
+                </h2>
+                <div className="rounded-2xl h-[300px] overflow-hidden mb-3">
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${communityData.lat},${communityData.lng}&zoom=14`}
+                    className="w-full h-full border-0 rounded-2xl"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`Map of ${communityName}`}
+                  />
+                </div>
+                <p className="text-gray-500 text-sm font-light">
+                  {communityData.schoolDistrict &&
+                    `Located in the ${communityData.schoolDistrict}. `}
+                  {communityData.address}
+                </p>
               </div>
             )}
 
-            {/* Community Amenities from Sheet */}
-            {sheetCommunity && (sheetCommunity.clubhouse || sheetCommunity.golfcourse || sheetCommunity.community_pool || sheetCommunity.is_55_plus) && (
-              <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-bold uppercase tracking-widest mb-6">Community Amenities</h4>
-                <ul className="space-y-4">
-                  {sheetCommunity.is_55_plus && (
-                    <li className="flex gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={18} className="text-brand-yellow shrink-0" />
-                      55+ Active Adult Community
-                    </li>
-                  )}
-                  {sheetCommunity.clubhouse && (
-                    <li className="flex gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={18} className="text-brand-yellow shrink-0" />
-                      Clubhouse
-                    </li>
-                  )}
-                  {sheetCommunity.golfcourse && (
-                    <li className="flex gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={18} className="text-brand-yellow shrink-0" />
-                      Golf Course
-                    </li>
-                  )}
-                  {sheetCommunity.community_pool && (
-                    <li className="flex gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={18} className="text-brand-yellow shrink-0" />
-                      Community Pool
-                    </li>
-                  )}
-                </ul>
+            {/* Mobile Contact Buttons */}
+            <div className="lg:hidden mb-10">
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col gap-2.5">
+                <button
+                  onClick={() => setContactMode('tour')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-black text-white shadow-md hover:bg-gray-800 transition-all"
+                >
+                  <Calendar size={16} /> Schedule a Tour
+                </button>
+                <button
+                  onClick={() => setContactMode('info')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <Info size={16} /> Request Info
+                </button>
+                <button
+                  onClick={() => setContactMode('message')}
+                  className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                >
+                  <MessageSquare size={16} /> Send Message
+                </button>
               </div>
-            )}
+            </div>
+          </div>
 
-            {/* School District */}
-            {sheetCommunity?.school_district && (
-              <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                <h4 className="text-sm font-bold uppercase tracking-widest mb-4">School District</h4>
-                <p className="text-gray-600">{sheetCommunity.school_district}</p>
+          {/* =================== RIGHT COLUMN (Desktop Sidebar) =================== */}
+          <div className="hidden lg:block lg:w-1/3">
+            <div className="sticky top-28 space-y-6">
+              {/* Pricing & Contact */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="mb-6">
+                  <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
+                    Starting From
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900">
+                    {communityPrice}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    onClick={() => setContactMode('tour')}
+                    className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-black text-white shadow-md hover:bg-gray-800 transition-all"
+                  >
+                    <Calendar size={16} /> Schedule a Tour
+                  </button>
+                  <button
+                    onClick={() => setContactMode('info')}
+                    className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                  >
+                    <Info size={16} /> Request Info
+                  </button>
+                  <button
+                    onClick={() => setContactMode('message')}
+                    className="w-full py-3.5 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-900 hover:bg-gray-50 transition-all"
+                  >
+                    <MessageSquare size={16} /> Send Message
+                  </button>
+                </div>
               </div>
-            )}
+
+              {/* Community Details */}
+              {communityData && (
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-5 border-b border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Community Details
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    <div className="flex justify-between px-6 py-4 text-sm">
+                      <span className="text-gray-500">Builder</span>
+                      <span className="font-semibold text-gray-900">
+                        {communityData.builderName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between px-6 py-4 text-sm">
+                      <span className="text-gray-500">
+                        School District
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {communityData.schoolDistrict}
+                      </span>
+                    </div>
+                    {mockCommunity?.is55Plus && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">
+                          55+ Community
+                        </span>
+                        <span className="font-semibold text-green-600">
+                          Yes
+                        </span>
+                      </div>
+                    )}
+                    {mockCommunity?.hasClubhouse && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">
+                          Clubhouse
+                        </span>
+                        <span className="font-semibold text-green-600">
+                          Yes
+                        </span>
+                      </div>
+                    )}
+                    {mockCommunity?.hasGolfCourse && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">
+                          Golf Course
+                        </span>
+                        <span className="font-semibold text-green-600">
+                          Yes
+                        </span>
+                      </div>
+                    )}
+                    {mockCommunity?.hasCommunityPool && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">
+                          Community Pool
+                        </span>
+                        <span className="font-semibold text-green-600">
+                          Yes
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Schools */}
+              {communityData?.schools && communityData.schools.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="px-6 py-5 border-b border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Nearby Schools
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {communityData.schools.map((school, i) => (
+                      <div
+                        key={i}
+                        className="px-6 py-4 text-sm"
+                      >
+                        <div className="font-semibold text-gray-900">
+                          {school.name}
+                        </div>
+                        <div className="text-gray-500 text-xs mt-0.5">
+                          Grades: {school.grades} &bull;{' '}
+                          {school.distance}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+
+      {/* Contact Form Modal */}
+      <ContactFormModal
+        isOpen={!!contactMode}
+        onClose={() => setContactMode(null)}
+        mode={contactMode || 'info'}
+        subjectName={communityName}
+        subjectType="community"
+        subjectDetails={communityLocation}
+        propertyCity={mockCommunity?.city || ''}
+        propertyState="DE"
+      />
     </div>
   );
 }

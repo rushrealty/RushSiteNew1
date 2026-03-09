@@ -185,11 +185,7 @@ const HomeContent: React.FC = () => {
               ))}
           </div>
 
-          <div className="flex justify-center mt-8">
-            <Link href="/available-communities" className="px-10 py-4 bg-white border border-gray-200 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white hover:border-black transition-all shadow-sm">
-              View All Neighborhoods
-            </Link>
-          </div>
+          {/* Carousel navigation dots or additional spacing */}
         </div>
       </section>
 
