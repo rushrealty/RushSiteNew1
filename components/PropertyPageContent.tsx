@@ -294,7 +294,7 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                   <Maximize2 size={16} />
                   <span className="text-xs font-medium uppercase tracking-wider">Sq Ft</span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{property.sqft.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">{property.sqft.toLocaleString('en-US')}</p>
               </div>
               <div className="bg-gray-50 rounded-2xl p-5">
                 <div className="flex items-center gap-2 text-gray-400 mb-1">
