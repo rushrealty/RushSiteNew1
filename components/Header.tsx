@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { name: 'Search', href: '/search' },
+  { name: 'Our Listings', href: '/exclusive' },
   { name: 'Quick Move-In', href: '/quick-move-in' },
   { name: 'New Construction Guide', href: '/guide' },
   { name: 'Selling', href: '/selling' },
@@ -31,7 +32,7 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Desktop Nav (Centered Absolutely) */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center space-x-8 lg:space-x-10 whitespace-nowrap">
+          <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 items-center space-x-6 lg:space-x-8 whitespace-nowrap">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
 
