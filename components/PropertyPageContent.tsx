@@ -238,9 +238,9 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
             </h1>
 
             {/* Address */}
-            <p className="flex items-center gap-2 text-gray-600 text-lg mb-4">
-              <MapPin size={18} className="text-gray-400 flex-shrink-0" />
-              {property.address}, {property.city}, {property.state} {property.zip}
+            <p className="flex items-start gap-2 text-gray-600 text-base md:text-lg mb-4">
+              <MapPin size={18} className="text-gray-400 flex-shrink-0 mt-1" />
+              <span>{property.address}, {property.city}, {property.state} {property.zip}</span>
             </p>
 
             {/* Action Icons */}
