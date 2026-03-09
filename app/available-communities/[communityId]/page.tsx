@@ -14,6 +14,25 @@ import {
 } from 'lucide-react';
 import { Property } from '@/types';
 
+/** Community data fetched from Google Sheet API */
+interface SheetCommunity {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  county: string;
+  minPrice?: number;
+  description?: string;
+  is55Plus?: boolean;
+  hasClubhouse?: boolean;
+  hasGolfCourse?: boolean;
+  hasCommunityPool?: boolean;
+  address?: string;
+  schoolDistrict?: string;
+  modelPhotos?: string[];
+  builder?: { name: string; logoUrl?: string; website?: string };
+}
+
 export default function CommunityPage({
   params,
 }: {
@@ -30,12 +49,42 @@ export default function CommunityPage({
   const [contactMode, setContactMode] = useState<
     'tour' | 'info' | 'message' | null
   >(null);
+  // Community data fetched from Google Sheet (for communities not in static data)
+  const [sheetCommunity, setSheetCommunity] = useState<SheetCommunity | null>(null);
+  const [communityLoading, setCommunityLoading] = useState(true);
 
-  // Get community data from both data sources
+  // Get community data from static data sources
   const communityData = COMMUNITIES_DATA[communityId];
   const mockCommunity = MOCK_COMMUNITIES.find(
     (c) => c.slug === communityId || c.id === communityId
   );
+
+  // If not found in static data, fetch from Google Sheet API
+  useEffect(() => {
+    if (communityData || mockCommunity) {
+      setCommunityLoading(false);
+      return;
+    }
+    async function fetchFromSheet() {
+      try {
+        const response = await fetch('/api/communities');
+        if (response.ok) {
+          const data = await response.json();
+          const match = data.communities?.find(
+            (c: SheetCommunity) => c.slug === communityId || c.id === communityId
+          );
+          if (match) {
+            setSheetCommunity(match);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching sheet community:', error);
+      } finally {
+        setCommunityLoading(false);
+      }
+    }
+    fetchFromSheet();
+  }, [communityId, communityData, mockCommunity]);
 
   // Handle external URL redirect (e.g. Baywood Greens)
   useEffect(() => {
@@ -65,25 +114,48 @@ export default function CommunityPage({
     fetchHomes();
   }, [communityId]);
 
-  // Derived community info
+  // Derived community info — use static data, then sheet data, then fallback
   const communityName =
-    mockCommunity?.name || communityData?.name || communityId;
+    mockCommunity?.name || communityData?.name || sheetCommunity?.name || communityId;
   const communityLocation =
     mockCommunity
       ? `${mockCommunity.city}, ${mockCommunity.state}`
-      : communityData?.location || '';
-  const communityImage = mockCommunity?.image || communityData?.img || '';
+      : communityData?.location || (sheetCommunity?.city ? `${sheetCommunity.city}, DE` : '');
+  const communityImage =
+    mockCommunity?.image || communityData?.img || sheetCommunity?.modelPhotos?.[0] || '';
   const communityDescription =
-    mockCommunity?.description || communityData?.description || '';
+    mockCommunity?.description || communityData?.description || sheetCommunity?.description || '';
   const communityFeatures =
     communityData?.features || mockCommunity?.features || [];
   const communityPrice =
-    communityData?.price || mockCommunity?.priceRange || '';
+    communityData?.price || mockCommunity?.priceRange || (sheetCommunity?.minPrice ? `From $${sheetCommunity.minPrice.toLocaleString()}` : '');
   const communityStatus =
     communityData?.status || (mockCommunity?.status as string) || 'Now Selling';
+  const communityBuilder =
+    communityData?.builderName || mockCommunity?.builder || sheetCommunity?.builder?.name || '';
+  const communitySchoolDistrict =
+    communityData?.schoolDistrict || sheetCommunity?.schoolDistrict || '';
+  const communityIs55Plus =
+    mockCommunity?.is55Plus || sheetCommunity?.is55Plus || false;
+  const communityHasClubhouse =
+    mockCommunity?.hasClubhouse || sheetCommunity?.hasClubhouse || false;
+  const communityHasGolfCourse =
+    mockCommunity?.hasGolfCourse || sheetCommunity?.hasGolfCourse || false;
+  const communityHasPool =
+    mockCommunity?.hasCommunityPool || sheetCommunity?.hasCommunityPool || false;
 
-  // Community not found
-  if (!communityData && !mockCommunity) {
+  // Still loading community data
+  if (communityLoading) {
+    return (
+      <div className="pt-32 text-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
+        <p className="mt-4 text-gray-500">Loading community...</p>
+      </div>
+    );
+  }
+
+  // Community not found in any data source
+  if (!communityData && !mockCommunity && !sheetCommunity) {
     return (
       <div className="pt-32 text-center min-h-screen bg-white">
         <h1 className="text-2xl font-bold mb-4">Community Not Found</h1>
@@ -131,7 +203,7 @@ export default function CommunityPage({
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                 {communityStatus}
               </span>
-              {mockCommunity?.is55Plus && (
+              {communityIs55Plus && (
                 <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-full text-xs uppercase tracking-wider">
                   55+ Community
                 </span>
@@ -354,14 +426,18 @@ export default function CommunityPage({
             </div>
 
             {/* ===================== LOCATION MAP ===================== */}
-            {communityData && (
+            {(communityData || sheetCommunity?.address) && (
               <div className="mb-10" id="location-section">
                 <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5">
                   Location
                 </h2>
                 <div className="rounded-2xl h-[300px] overflow-hidden mb-3">
                   <iframe
-                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${communityData.lat},${communityData.lng}&zoom=14`}
+                    src={
+                      communityData?.lat
+                        ? `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${communityData.lat},${communityData.lng}&zoom=14`
+                        : `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${encodeURIComponent(sheetCommunity?.address || communityLocation)}&zoom=14`
+                    }
                     className="w-full h-full border-0 rounded-2xl"
                     allowFullScreen
                     loading="lazy"
@@ -370,9 +446,9 @@ export default function CommunityPage({
                   />
                 </div>
                 <p className="text-gray-500 text-sm font-light">
-                  {communityData.schoolDistrict &&
-                    `Located in the ${communityData.schoolDistrict}. `}
-                  {communityData.address}
+                  {communitySchoolDistrict &&
+                    `Located in the ${communitySchoolDistrict}. `}
+                  {communityData?.address || sheetCommunity?.address || ''}
                 </p>
               </div>
             )}
@@ -438,7 +514,7 @@ export default function CommunityPage({
               </div>
 
               {/* Community Details */}
-              {communityData && (
+              {(communityBuilder || communitySchoolDistrict) && (
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                   <div className="px-6 py-5 border-b border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900">
@@ -446,21 +522,25 @@ export default function CommunityPage({
                     </h3>
                   </div>
                   <div className="divide-y divide-gray-50">
-                    <div className="flex justify-between px-6 py-4 text-sm">
-                      <span className="text-gray-500">Builder</span>
-                      <span className="font-semibold text-gray-900">
-                        {communityData.builderName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between px-6 py-4 text-sm">
-                      <span className="text-gray-500">
-                        School District
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {communityData.schoolDistrict}
-                      </span>
-                    </div>
-                    {mockCommunity?.is55Plus && (
+                    {communityBuilder && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">Builder</span>
+                        <span className="font-semibold text-gray-900">
+                          {communityBuilder}
+                        </span>
+                      </div>
+                    )}
+                    {communitySchoolDistrict && (
+                      <div className="flex justify-between px-6 py-4 text-sm">
+                        <span className="text-gray-500">
+                          School District
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          {communitySchoolDistrict}
+                        </span>
+                      </div>
+                    )}
+                    {communityIs55Plus && (
                       <div className="flex justify-between px-6 py-4 text-sm">
                         <span className="text-gray-500">
                           55+ Community
@@ -470,7 +550,7 @@ export default function CommunityPage({
                         </span>
                       </div>
                     )}
-                    {mockCommunity?.hasClubhouse && (
+                    {communityHasClubhouse && (
                       <div className="flex justify-between px-6 py-4 text-sm">
                         <span className="text-gray-500">
                           Clubhouse
@@ -480,7 +560,7 @@ export default function CommunityPage({
                         </span>
                       </div>
                     )}
-                    {mockCommunity?.hasGolfCourse && (
+                    {communityHasGolfCourse && (
                       <div className="flex justify-between px-6 py-4 text-sm">
                         <span className="text-gray-500">
                           Golf Course
@@ -490,7 +570,7 @@ export default function CommunityPage({
                         </span>
                       </div>
                     )}
-                    {mockCommunity?.hasCommunityPool && (
+                    {communityHasPool && (
                       <div className="flex justify-between px-6 py-4 text-sm">
                         <span className="text-gray-500">
                           Community Pool
@@ -543,7 +623,7 @@ export default function CommunityPage({
         subjectName={communityName}
         subjectType="community"
         subjectDetails={communityLocation}
-        propertyCity={mockCommunity?.city || ''}
+        propertyCity={mockCommunity?.city || sheetCommunity?.city || ''}
         propertyState="DE"
       />
     </div>
