@@ -52,12 +52,28 @@ export function transformRepliersListing(listing: RepliersListing): Property {
   const status = mapConstructionStatus(listing.details.constructionStatus);
 
   // --- Lot Size (normalized to acres) ---
+  // Priority: 1) lot.acres, 2) raw.LotSizeAcres, 3) raw.LotSizeArea+Units, 4) raw.LotSizeSquareFeet, 5) lot.size, 6) details.lotSize
+  let lotSize = '';
+  const lotAcres = listing.lot?.acres ? parseFloat(listing.lot.acres) : 0;
+  const rawLotSizeAcres = listing.raw?.LotSizeAcres ? parseFloat(listing.raw.LotSizeAcres) : 0;
   const rawLotArea = listing.raw?.LotSizeArea ? parseFloat(listing.raw.LotSizeArea) : 0;
   const rawLotUnits = listing.raw?.LotSizeUnits || '';
-  let lotSize = listing.details.lotSize || '';
-  if (rawLotArea > 0) {
+  const rawLotSqft = listing.raw?.LotSizeSquareFeet ? parseFloat(listing.raw.LotSizeSquareFeet) : 0;
+
+  if (lotAcres > 0) {
+    lotSize = `${lotAcres.toFixed(2)} Acres`;
+  } else if (rawLotSizeAcres > 0) {
+    lotSize = `${rawLotSizeAcres.toFixed(2)} Acres`;
+  } else if (rawLotArea > 0) {
     const acres = rawLotUnits.toLowerCase().includes('square') ? rawLotArea / 43560 : rawLotArea;
     lotSize = `${acres.toFixed(2)} Acres`;
+  } else if (rawLotSqft > 0) {
+    const acres = rawLotSqft / 43560;
+    lotSize = `${acres.toFixed(2)} Acres`;
+  } else if (listing.lot?.size) {
+    lotSize = listing.lot.size;
+  } else {
+    lotSize = listing.details.lotSize || '';
   }
 
   // --- Stories ---

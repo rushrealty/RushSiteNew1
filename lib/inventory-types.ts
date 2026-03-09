@@ -103,6 +103,15 @@ export interface RepliersListing {
     constructionStatus?: string; // "Complete", "Under Construction", "Proposed", or null
     style?: string;
   };
+  lot?: {
+    acres?: string;
+    size?: string;
+    depth?: string;
+    width?: string;
+    measurement?: string;
+    irregular?: string;
+    legalDescription?: string;
+  };
   images?: string[];
   constructionStatus?: string;
   map?: {
@@ -148,6 +157,8 @@ export interface RepliersListing {
     PoolYN?: string; // Y/N - whether property has a pool
     LotSizeArea?: string; // Numeric lot size value
     LotSizeUnits?: string; // "Acres" or "Square Feet"
+    LotSizeAcres?: string; // Lot size in acres (RESO standard)
+    LotSizeSquareFeet?: string; // Lot size in square feet (RESO standard)
     [key: string]: string | undefined;
   };
 }
