@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchListings, transformListing } from '@/lib/repliers';
 import { MOCK_COMMUNITIES } from '@/constants';
 import { COMMUNITIES_DATA } from '@/data/communities';
+import { fetchInventoryData } from '@/lib/inventory';
 
 // Cache for 5 minutes
 export const revalidate = 300;
@@ -90,13 +91,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Look up community data
+    // Look up community data from static sources first
     const mockCommunity = MOCK_COMMUNITIES.find(
       (c) => c.slug === slug || c.id === slug
     );
     const communityData = COMMUNITIES_DATA[slug];
 
+    // If not found in static data, check Google Sheet inventory
+    let sheetCommunity: { name: string; city: string } | null = null;
     if (!mockCommunity && !communityData) {
+      try {
+        const inventoryData = await fetchInventoryData();
+        const match = inventoryData.communities.find(
+          (c) => c.slug === slug || c.id === slug
+        );
+        if (match) {
+          sheetCommunity = { name: match.name, city: match.city };
+        }
+      } catch (error) {
+        console.error('[Community Homes] Error fetching sheet data:', error);
+      }
+    }
+
+    if (!mockCommunity && !communityData && !sheetCommunity) {
       return NextResponse.json(
         { error: 'Community not found' },
         { status: 404 }
@@ -109,8 +126,9 @@ export async function GET(request: NextRequest) {
       config?.city ||
       mockCommunity?.city ||
       communityData?.location?.split(',')[0]?.trim() ||
+      sheetCommunity?.city ||
       '';
-    const communityName = mockCommunity?.name || communityData?.name || '';
+    const communityName = mockCommunity?.name || communityData?.name || sheetCommunity?.name || '';
 
     // Fetch all new construction homes in this city from Repliers
     const response = await searchListings({
