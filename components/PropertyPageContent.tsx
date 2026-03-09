@@ -451,47 +451,6 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
               </p>
             </div>
 
-            {/* Price & Tax History */}
-            {!isQuickMoveIn && property.priceHistory.length > 0 && (
-              <div className="mb-10">
-                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <TrendingUp size={22} className="text-gray-400" /> Price &amp; Tax History
-                </h2>
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                  <div className="grid grid-cols-4 bg-gray-50 px-6 py-3 font-bold text-xs uppercase tracking-widest text-gray-500">
-                    <div>Date</div>
-                    <div>Event</div>
-                    <div>Price</div>
-                    <div className="text-right">Source</div>
-                  </div>
-                  {property.priceHistory.map((item, idx) => {
-                    const prevPrice = idx < property.priceHistory.length - 1
-                      ? property.priceHistory[idx + 1].price
-                      : undefined;
-                    const change = item.price > 0 ? getPriceChange(item.price, prevPrice) : null;
-
-                    return (
-                      <div key={idx} className="grid grid-cols-4 px-6 py-4 border-t border-gray-50 text-sm items-center">
-                        <div className="text-gray-600">{item.date}</div>
-                        <div className="font-medium text-gray-900">{item.event}</div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '—'}</span>
-                          {change !== null && (
-                            <span className={`text-xs font-semibold ${change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                              {change >= 0 ? '↗' : '↘'} {Math.abs(Math.round(change))}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-right text-gray-400 text-xs">
-                          {hasMlsData ? 'Rush Home MLS' : 'Public Record'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Listing Info & Bright MLS Compliance */}
             <div className="mb-10 pt-6 border-t border-gray-100">
               <div className="space-y-3 text-sm text-gray-500">
@@ -549,6 +508,47 @@ const PropertyPageContent: React.FC<PropertyPageContentProps> = ({ property }) =
                 )}
               </div>
             </div>
+
+            {/* Property History — shown for non-new-construction homes */}
+            {!property.isNewConstruction && property.priceHistory.length > 0 && (
+              <div className="mb-10">
+                <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5 flex items-center gap-2">
+                  <TrendingUp size={22} className="text-gray-400" /> Property History
+                </h2>
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                  <div className="grid grid-cols-4 bg-gray-50 px-6 py-3 font-bold text-xs uppercase tracking-widest text-gray-500">
+                    <div>Date</div>
+                    <div>Event</div>
+                    <div>Price</div>
+                    <div className="text-right">Source</div>
+                  </div>
+                  {property.priceHistory.map((item, idx) => {
+                    const prevPrice = idx < property.priceHistory.length - 1
+                      ? property.priceHistory[idx + 1].price
+                      : undefined;
+                    const change = item.price > 0 ? getPriceChange(item.price, prevPrice) : null;
+
+                    return (
+                      <div key={idx} className="grid grid-cols-4 px-6 py-4 border-t border-gray-50 text-sm items-center">
+                        <div className="text-gray-600">{item.date}</div>
+                        <div className="font-medium text-gray-900">{item.event}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold">{item.price > 0 ? `$${item.price.toLocaleString()}` : '—'}</span>
+                          {change !== null && (
+                            <span className={`text-xs font-semibold ${change >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {change >= 0 ? '↗' : '↘'} {Math.abs(Math.round(change))}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-right text-gray-400 text-xs">
+                          {hasMlsData ? 'Rush Home MLS' : 'Public Record'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Contact Buttons — Mobile Only */}
             <div className="lg:hidden mb-10">

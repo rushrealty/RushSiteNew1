@@ -70,7 +70,7 @@ export interface SchoolInfo {
 
 export interface PriceHistoryItem {
   date: string;
-  event: 'Listed' | 'Price Change' | 'Sold' | 'Pending' | 'Contingent';
+  event: 'Listed' | 'Price Change' | 'Sold' | 'Pending' | 'Contingent' | 'Expired' | 'Withdrawn' | 'Terminated';
   price: number;
 }
 

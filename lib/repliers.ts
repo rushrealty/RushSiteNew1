@@ -2,7 +2,9 @@ import {
   RepliersListing,
   RepliersResponse,
   RepliersSearchFilters,
+  RepliersHistoryEntry,
 } from './inventory-types';
+import { PriceHistoryItem } from '../types';
 
 const REPLIERS_API_URL = 'https://api.repliers.io';
 function getApiKey(): string {
@@ -348,6 +350,90 @@ export function transformListing(listing: RepliersListing) {
     schools: [],
     priceHistory: [],
   };
+}
+
+/**
+ * Fetch listing history for an address from the Repliers history endpoint.
+ * Returns past listings / transactions for the given property address.
+ */
+export async function getListingHistory(address: {
+  streetNumber: string;
+  streetName: string;
+  streetSuffix?: string;
+  city: string;
+  zip: string;
+}): Promise<RepliersHistoryEntry[]> {
+  try {
+    const params: Record<string, string | number | undefined> = {
+      streetNumber: address.streetNumber,
+      streetName: address.streetName,
+      streetSuffix: address.streetSuffix,
+      city: address.city,
+      zip: address.zip,
+    };
+
+    const response = await repliersRequest<{ history?: RepliersHistoryEntry[] } | RepliersHistoryEntry[]>(
+      '/listings/history',
+      params,
+      'GET'
+    );
+
+    // API may return { history: [...] } or the array directly
+    if (Array.isArray(response)) return response;
+    if (response && Array.isArray(response.history)) return response.history;
+    return [];
+  } catch (error) {
+    console.error('[Repliers] Error fetching listing history:', error);
+    return [];
+  }
+}
+
+/**
+ * Map a Repliers lastStatus string to a PriceHistoryItem event type.
+ */
+function mapHistoryStatus(lastStatus?: string): PriceHistoryItem['event'] {
+  if (!lastStatus) return 'Listed';
+  const s = lastStatus.toLowerCase();
+  if (s.includes('sold') || s.includes('closed')) return 'Sold';
+  if (s.includes('pending')) return 'Pending';
+  if (s.includes('contingent')) return 'Contingent';
+  if (s.includes('expired')) return 'Expired';
+  if (s.includes('withdrawn') || s.includes('cancelled') || s.includes('canceled')) return 'Withdrawn';
+  if (s.includes('terminated') || s.includes('suspend')) return 'Terminated';
+  return 'Listed';
+}
+
+/**
+ * Transform Repliers history entries into PriceHistoryItem[].
+ * Returns entries sorted newest-first.
+ */
+export function transformHistory(entries: RepliersHistoryEntry[]): PriceHistoryItem[] {
+  const items: PriceHistoryItem[] = entries
+    .filter(e => e.listDate || e.soldDate) // skip entries with no date
+    .map(entry => {
+      const event = mapHistoryStatus(entry.lastStatus);
+      const isSold = event === 'Sold';
+
+      // Use soldDate for sold events, otherwise listDate
+      const rawDate = isSold && entry.soldDate ? entry.soldDate : entry.listDate || '';
+      const date = rawDate
+        ? new Date(rawDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
+        : '';
+
+      // Use soldPrice for sold events, otherwise listPrice
+      const price = (isSold && entry.soldPrice) ? entry.soldPrice : (entry.listPrice || 0);
+
+      return { date, event, price };
+    });
+
+  // Sort newest first by date
+  items.sort((a, b) => {
+    const da = new Date(a.date).getTime();
+    const db = new Date(b.date).getTime();
+    return db - da;
+  });
+
+  return items;
 }
 
 // Delaware-specific location options
