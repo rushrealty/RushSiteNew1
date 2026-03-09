@@ -35,14 +35,6 @@ const COMMUNITY_SEARCH_CONFIG: Record<
     city: 'Millsboro',
     keywords: ['baywood'],
   },
-  'village-of-bayberry': {
-    city: 'Middletown',
-    keywords: ['village', 'bayberry'],
-  },
-  'bayberry': {
-    city: 'Middletown',
-    keywords: ['village', 'bayberry'],
-  },
   'mitchells-corner': {
     city: 'Lewes',
     keywords: ['mitchell'],

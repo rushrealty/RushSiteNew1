@@ -18,8 +18,6 @@ const COMMUNITY_SEARCH_CONFIG: Record<
   'pinehurst-village': { city: 'Felton', keywords: ['pinehurst'] },
   'wiggins-mill': { city: 'Middletown', keywords: ['wiggins'], addressKeywords: ['wiggins mill'] },
   'baywood-greens': { city: 'Millsboro', keywords: ['baywood'] },
-  'village-of-bayberry': { city: 'Middletown', keywords: ['village', 'bayberry'] },
-  'bayberry': { city: 'Middletown', keywords: ['village', 'bayberry'] },
   'mitchells-corner': { city: 'Lewes', keywords: ['mitchell'] },
 };
 
