@@ -32,9 +32,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick, onMouseE
             }}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-gray-400 text-sm">No image available</span>
-          </div>
+          <img
+            src="/images/placeholder-home.jpg"
+            alt="Photo coming soon"
+            className="w-full h-full object-cover"
+          />
         )}
         <div className="absolute top-5 left-5 flex flex-col gap-2">
           {property.community && property.community.toLowerCase() !== 'none available' && (
