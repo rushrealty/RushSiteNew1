@@ -117,6 +117,11 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
 
+  // Map-driven filtering: when user manually moves the map
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+  const [isMapDriven, setIsMapDriven] = useState(false);
+  const isProgrammaticMoveRef = useRef(false);
+
   // Autocomplete (shared hook)
   const autocomplete = useAutocomplete({
     onInventorySelect: (prediction) => {
@@ -209,6 +214,27 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
         mapInfoWindowRef.current = new InfoWindow();
         geocoderRef.current = new Geocoder();
+
+        // Listen for user-initiated map movements (pan/zoom)
+        let idleDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+        googleMapRef.current.addListener('idle', () => {
+          if (isProgrammaticMoveRef.current) {
+            isProgrammaticMoveRef.current = false;
+            return;
+          }
+          // Debounce: wait 600ms after map stops to avoid jitter during dragging
+          if (idleDebounceTimer) clearTimeout(idleDebounceTimer);
+          idleDebounceTimer = setTimeout(() => {
+            const b = googleMapRef.current?.getBounds();
+            if (b) {
+              const ne = b.getNorthEast();
+              const sw = b.getSouthWest();
+              setMapBounds({ north: ne.lat(), south: sw.lat(), east: ne.lng(), west: sw.lng() });
+              setIsMapDriven(true);
+              setSearchTerm(''); // Release city lock
+            }
+          }, 600);
+        });
       } catch (error) {
         console.error('Error initializing Google Maps:', error);
       }
@@ -231,6 +257,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const handleSelectPrediction = (prediction: AutocompletePrediction) => {
     // Stay on the listings page — apply filters locally instead of navigating
     autocomplete.setIsOpen(false);
+    // Disable map-driven mode when user selects a search prediction
+    setIsMapDriven(false);
+    setMapBounds(null);
 
     switch (prediction.type) {
       case 'location':
@@ -371,9 +400,16 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       const matchesStory = !singleStoryOnly ||
         (property.stories !== undefined && property.stories <= 1);
 
+      // Map bounds filter — only when user has manually moved the map
+      const matchesBounds = !isMapDriven || !mapBounds || (
+        property.latitude != null && property.longitude != null &&
+        property.latitude >= mapBounds.south && property.latitude <= mapBounds.north &&
+        property.longitude >= mapBounds.west && property.longitude <= mapBounds.east
+      );
+
       return matchesSearch && matchesPriceMin && matchesPriceMax && matchesCounty &&
         matchesBeds && matchesBaths && matches55Plus && matchesNewConstruction && matchesHomeType &&
-        matchesSqftMin && matchesSqftMax && matchesLotSize && matchesBasement && matchesStory;
+        matchesSqftMin && matchesSqftMax && matchesLotSize && matchesBasement && matchesStory && matchesBounds;
     });
 
     // Sort
@@ -398,7 +434,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     }
     return sorted;
   }, [allHomes, searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
-    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy, mapBounds, isMapDriven]);
 
   // Pagination
   const ITEMS_PER_PAGE = 24;
@@ -412,7 +448,12 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, priceMin, priceMax, selectedCounties, minBeds, minBaths,
-    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy]);
+    is55PlusOnly, newConstructionOnly, selectedHomeTypes, sqftMin, sqftMax, lotSizeMin, basementFilter, singleStoryOnly, sortBy, mapBounds, isMapDriven]);
+
+  // In map-driven mode, show all filtered homes as markers (up to 200); otherwise current page only
+  const markersSource = isMapDriven
+    ? filteredProperties.slice(0, 200)
+    : paginatedProperties;
 
   // Update map markers when filtered properties change
   useEffect(() => {
@@ -466,10 +507,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       hasMarkers = true;
     };
 
-    // Add markers only for the current page's properties (not all 4,500+)
     const toGeocode: Property[] = [];
 
-    paginatedProperties.forEach(property => {
+    markersSource.forEach(property => {
       if (property.latitude && property.longitude) {
         addMarker(property, { lat: property.latitude, lng: property.longitude });
       } else {
@@ -489,9 +529,11 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
             if (status === 'OK' && results[0] && googleMapRef.current) {
               const pos = results[0].geometry.location;
               addMarker(property, { lat: pos.lat(), lng: pos.lng() });
-              if (mapMarkersRef.current.size > 0) {
+              if (mapMarkersRef.current.size > 0 && !isMapDriven) {
+                isProgrammaticMoveRef.current = true;
                 googleMapRef.current.fitBounds(bounds, { padding: 40 });
                 if (googleMapRef.current.getZoom() > 15) {
+                  isProgrammaticMoveRef.current = true;
                   googleMapRef.current.setZoom(15);
                 }
               }
@@ -501,17 +543,19 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
       });
     }
 
-    // Fit bounds if we have markers with coordinates
-    if (hasMarkers) {
+    // Fit bounds if we have markers with coordinates (skip in map-driven mode — keep user's position)
+    if (hasMarkers && !isMapDriven) {
+      isProgrammaticMoveRef.current = true;
       googleMapRef.current.fitBounds(bounds, { padding: 40 });
       const listener = googleMapRef.current.addListener('idle', () => {
         if (googleMapRef.current.getZoom() > 15) {
+          isProgrammaticMoveRef.current = true;
           googleMapRef.current.setZoom(15);
         }
         listener.remove();
       });
     }
-  }, [paginatedProperties]);
+  }, [markersSource, isMapDriven]);
 
   // Highlight map marker on card hover
   useEffect(() => {
@@ -536,8 +580,9 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
           el.style.transform = 'scale(1.3)';
         }
         marker.zIndex = 999;
-        // Pan map to the marker
+        // Pan map to the marker (guard as programmatic move)
         if (googleMapRef.current && marker.position) {
+          isProgrammaticMoveRef.current = true;
           googleMapRef.current.panTo(marker.position);
         }
       }
@@ -580,7 +625,7 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
   const hasActiveFilters = priceMin !== null || priceMax !== null || selectedCounties.length > 0 ||
     minBeds > 0 || minBaths > 0 || is55PlusOnly || newConstructionOnly ||
     selectedHomeTypes.length < HOME_TYPES.length || sqftMin !== null || sqftMax !== null ||
-    lotSizeMin !== null || basementFilter !== null || singleStoryOnly || searchTerm !== '';
+    lotSizeMin !== null || basementFilter !== null || singleStoryOnly || searchTerm !== '' || isMapDriven;
 
   const clearAllFilters = () => {
     setSearchTerm('');
@@ -598,6 +643,8 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
     setLotSizeMin(null);
     setBasementFilter(null);
     setSingleStoryOnly(false);
+    setIsMapDriven(false);
+    setMapBounds(null);
     // Clear URL search params without navigation
     router.replace(config.basePath, { scroll: false });
   };
@@ -632,7 +679,13 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
                       placeholder="Search by city, ZIP code, address, or community..."
                       className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm hover:border-gray-300 transition-colors focus:ring-1 focus:ring-black outline-none placeholder-gray-400"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        if (isMapDriven) {
+                          setIsMapDriven(false);
+                          setMapBounds(null);
+                        }
+                      }}
                       onFocus={() => autocomplete.hasResults && autocomplete.setIsOpen(true)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -1168,6 +1221,22 @@ const ListingsPageContent: React.FC<ListingsPageContentProps> = ({ config, onPro
 
              {/* Property Grid Content */}
              <div className="p-4 lg:p-8 bg-white">
+
+                {/* Map-driven mode indicator */}
+                {isMapDriven && (
+                  <div className="flex items-center gap-2 mb-3 px-1">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-medium">
+                      <MapPin size={12} />
+                      Showing homes in map area
+                    </span>
+                    <button
+                      onClick={() => { setIsMapDriven(false); setMapBounds(null); }}
+                      className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                )}
 
                 {/* Result Count Bar */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
