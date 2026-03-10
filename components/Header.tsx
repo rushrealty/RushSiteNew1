@@ -7,7 +7,7 @@ import { Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { name: 'Search', href: '/search' },
-  { name: 'Our Listings', href: '/exclusive' },
+  { name: 'Exclusives', href: '/exclusive' },
   { name: 'Quick Move-In', href: '/quick-move-in' },
   { name: 'New Construction Guide', href: '/guide' },
   { name: 'Selling', href: '/selling' },
