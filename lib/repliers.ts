@@ -119,6 +119,9 @@ export async function searchListings(
   // Agent MLS ID
   if (filters.agent) params.agent = filters.agent;
 
+  // Only return listings with photos
+  if (filters.hasImages) params.hasImages = 'true';
+
   // Raw MLS field filters (e.g. raw.NewConstructionYN=contains:Y)
   if (filters.rawFilters) {
     for (const [key, value] of Object.entries(filters.rawFilters)) {

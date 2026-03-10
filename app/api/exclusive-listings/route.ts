@@ -23,6 +23,7 @@ export async function GET() {
       searchListings({
         status: 'A',
         agent: agentId,
+        hasImages: true, // Only include listings with photos from Repliers
         resultsPerPage: 200,
       })
     );

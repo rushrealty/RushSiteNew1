@@ -205,6 +205,7 @@ export interface RepliersSearchFilters {
   status?: string;
   mlsNumber?: string;
   agent?: string; // Agent MLS ID for filtering by listing agent
+  hasImages?: boolean; // Only return listings that have photos
   boardId?: string;
   page?: number;
   resultsPerPage?: number;
