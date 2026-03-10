@@ -62,6 +62,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://api.followupboss.com" />
+        <link rel="dns-prefetch" href="https://formspree.io" />
         <Script
   id="google-maps"
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w&libraries=places,marker&v=weekly"

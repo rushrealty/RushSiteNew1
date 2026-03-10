@@ -1,21 +1,17 @@
-'use client';
-
-import Script from 'next/script';
-
 /**
  * LocalBusinessSchema Component
- * 
+ *
  * Adds JSON-LD structured data for local SEO including:
  * - RealEstateAgent schema
  * - Organization schema
  * - Service area coverage
  * - Contact information
- * 
+ *
  * Usage: Add to app/layout.tsx inside the <body> tag
- * 
+ *
  * Example:
  *   import LocalBusinessSchema from '@/components/LocalBusinessSchema';
- *   
+ *
  *   // In layout.tsx body:
  *   <LocalBusinessSchema />
  */
@@ -170,13 +166,6 @@ const LocalBusinessSchema = () => {
               }
             }
           ]
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5",
-          "bestRating": "5",
-          "worstRating": "1",
-          "ratingCount": "50"
         }
       },
       {
@@ -187,14 +176,6 @@ const LocalBusinessSchema = () => {
         "description": "Delaware's New Construction Experts - Browse Communities, Quick Move-In Homes & Builder Guides",
         "publisher": {
           "@id": "https://rushhome.com/#realestate-agent"
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": {
-            "@type": "EntryPoint",
-            "urlTemplate": "https://rushhome.com/search?q={search_term_string}"
-          },
-          "query-input": "required name=search_term_string"
         }
       },
       {
@@ -213,11 +194,9 @@ const LocalBusinessSchema = () => {
   };
 
   return (
-    <Script
-      id="local-business-schema"
+    <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="afterInteractive"
     />
   );
 };

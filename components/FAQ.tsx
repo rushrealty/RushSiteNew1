@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Script from 'next/script';
 
 interface FAQItem {
   question: string;
@@ -61,11 +60,9 @@ const FAQ: React.FC<FAQProps> = ({
     <>
       {/* JSON-LD Structured Data for SEO */}
       {schemaJson && (
-        <Script
-          id="faq-schema"
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: schemaJson }}
-          strategy="afterInteractive"
         />
       )}
 
