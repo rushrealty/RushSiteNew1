@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Mortgage101Content from '@/components/pages/Mortgage101Content';
+import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 
 export const metadata: Metadata = {
   title: 'Mortgage 101: Understanding Home Loans | Delaware Mortgage Guide | Rush Home Team',
@@ -35,6 +36,41 @@ export const metadata: Metadata = {
   },
 };
 
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Mortgage 101: Understanding Home Loans in Delaware",
+  "description": "Learn the basics of mortgage loans, types of financing, qualification requirements, and costs. Your complete guide to understanding home financing in Delaware.",
+  "author": {
+    "@type": "Organization",
+    "name": "Rush Home Team",
+    "url": "https://rushhome.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Rush Home Team",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://rushhome.com/images/logo.png"
+    }
+  },
+  "datePublished": "2024-01-01",
+  "dateModified": "2026-01-01",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://rushhome.com/mortgage-101"
+  }
+};
+
 export default function Mortgage101Page() {
-  return <Mortgage101Content />;
+  return (
+    <>
+      <BreadcrumbSchema crumbs={[
+        { name: 'Home', url: 'https://rushhome.com' },
+        { name: 'Mortgage 101', url: 'https://rushhome.com/mortgage-101' },
+      ]} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <Mortgage101Content />
+    </>
+  );
 }

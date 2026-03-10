@@ -89,7 +89,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ onClose, isOpen }
     return () => {
       // Cleanup autocomplete reference when modal closes
       if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
         autocompleteRef.current = null;
       }
     };
