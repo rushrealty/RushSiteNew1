@@ -27,6 +27,9 @@ let inventoryCache: { data: InventoryData | null; timestamp: number } = {
 };
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Singleflight: deduplicate concurrent fetches so only one request runs at a time
+let inflightRequest: Promise<InventoryData> | null = null;
+
 /**
  * Fetch CSV data from a published Google Sheet tab
  * Uses the "Publish to web" CSV export format
@@ -254,49 +257,63 @@ export async function fetchInventoryData(): Promise<InventoryData> {
     return inventoryCache.data;
   }
 
-  console.log('[Inventory] Fetching fresh data from Google Sheets');
-  console.log(`[Inventory] Sheet ID: ${PUBLISHED_SHEET_ID}`);
-  console.log(`[Inventory] Tab GIDs - Builders: ${TABS.builders}, Communities: ${TABS.communities}, Inventory: ${TABS.inventory}`);
+  // Deduplicate concurrent requests — if a fetch is already in progress, reuse it
+  if (inflightRequest) {
+    console.log('[Inventory] Reusing in-flight request');
+    return inflightRequest;
+  }
+
+  inflightRequest = (async () => {
+    console.log('[Inventory] Fetching fresh data from Google Sheets');
+    console.log(`[Inventory] Sheet ID: ${PUBLISHED_SHEET_ID}`);
+    console.log(`[Inventory] Tab GIDs - Builders: ${TABS.builders}, Communities: ${TABS.communities}, Inventory: ${TABS.inventory}`);
+
+    try {
+      // Fetch all tabs in parallel
+      const [buildersCSV, communitiesCSV, inventoryCSV] = await Promise.all([
+        fetchSheetTab(TABS.builders, 'builders'),
+        fetchSheetTab(TABS.communities, 'communities'),
+        fetchSheetTab(TABS.inventory, 'inventory'),
+      ]);
+
+      // Parse CSV data
+      const buildersRaw = parseCSV<Record<string, string>>(buildersCSV);
+      const communitiesRaw = parseCSV<Record<string, string>>(communitiesCSV);
+      const inventoryRaw = parseCSV<Record<string, string>>(inventoryCSV);
+
+      console.log(`[Inventory] Parsed ${buildersRaw.length} builders, ${communitiesRaw.length} communities, ${inventoryRaw.length} inventory homes`);
+
+      const data: InventoryData = {
+        builders: parseBuilders(buildersRaw),
+        communities: parseCommunities(communitiesRaw),
+        homes: parseInventory(inventoryRaw),
+      };
+
+      console.log(`[Inventory] Final data: ${data.builders.length} builders, ${data.communities.length} communities, ${data.homes.length} homes`);
+
+      // Update cache
+      inventoryCache = { data, timestamp: Date.now() };
+
+      return data;
+    } catch (error) {
+      console.error('[Inventory] Error fetching inventory data:', error);
+
+      // Return cached data if available, even if stale
+      if (inventoryCache.data) {
+        console.log('[Inventory] Returning stale cached data due to error');
+        return inventoryCache.data;
+      }
+
+      // Return empty data as fallback
+      console.log('[Inventory] Returning empty data as fallback');
+      return { builders: [], communities: [], homes: [] };
+    }
+  })();
 
   try {
-    // Fetch all tabs in parallel
-    const [buildersCSV, communitiesCSV, inventoryCSV] = await Promise.all([
-      fetchSheetTab(TABS.builders, 'builders'),
-      fetchSheetTab(TABS.communities, 'communities'),
-      fetchSheetTab(TABS.inventory, 'inventory'),
-    ]);
-
-    // Parse CSV data
-    const buildersRaw = parseCSV<Record<string, string>>(buildersCSV);
-    const communitiesRaw = parseCSV<Record<string, string>>(communitiesCSV);
-    const inventoryRaw = parseCSV<Record<string, string>>(inventoryCSV);
-
-    console.log(`[Inventory] Parsed ${buildersRaw.length} builders, ${communitiesRaw.length} communities, ${inventoryRaw.length} inventory homes`);
-
-    const data: InventoryData = {
-      builders: parseBuilders(buildersRaw),
-      communities: parseCommunities(communitiesRaw),
-      homes: parseInventory(inventoryRaw),
-    };
-
-    console.log(`[Inventory] Final data: ${data.builders.length} builders, ${data.communities.length} communities, ${data.homes.length} homes`);
-
-    // Update cache
-    inventoryCache = { data, timestamp: now };
-
-    return data;
-  } catch (error) {
-    console.error('[Inventory] Error fetching inventory data:', error);
-
-    // Return cached data if available, even if stale
-    if (inventoryCache.data) {
-      console.log('[Inventory] Returning stale cached data due to error');
-      return inventoryCache.data;
-    }
-
-    // Return empty data as fallback
-    console.log('[Inventory] Returning empty data as fallback');
-    return { builders: [], communities: [], homes: [] };
+    return await inflightRequest;
+  } finally {
+    inflightRequest = null;
   }
 }
 
