@@ -16,7 +16,6 @@ const COMMUNITY_SEARCH_CONFIG: Record<
 > = {
   'abbotts-pond': { city: 'Greenwood', keywords: ['abbotts', 'pond'] },
   'pinehurst-village': { city: 'Felton', keywords: ['pinehurst'] },
-  'wiggins-mill': { city: 'Middletown', keywords: ['wiggins'], addressKeywords: ['wiggins mill'] },
   'baywood-greens': { city: 'Millsboro', keywords: ['baywood'] },
   'mitchells-corner': { city: 'Lewes', keywords: ['mitchell'] },
 };
