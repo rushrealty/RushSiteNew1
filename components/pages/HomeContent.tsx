@@ -8,7 +8,7 @@ import PropertyCard from '../PropertyCard';
 import CommunityCard from '../CommunityCard';
 import { MOCK_PROPERTIES, MOCK_COMMUNITIES } from '../../constants';
 import { Property, Community } from '../../types';
-import { ChevronLeft, ChevronRight, MapPin, Bed, Bath, Maximize2, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const HomeContent: React.FC = () => {
   const router = useRouter();
@@ -19,9 +19,6 @@ const HomeContent: React.FC = () => {
   // State for communities from API
   const [communities, setCommunities] = useState<Community[]>(MOCK_COMMUNITIES);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
-
-  // Featured property (404 Wiggins Mill Rd)
-  const [featuredProperty, setFeaturedProperty] = useState<Property | null>(null);
 
   // Fetch real Quick Move-In homes on mount
   useEffect(() => {
@@ -43,24 +40,6 @@ const HomeContent: React.FC = () => {
     }
 
     fetchHomes();
-  }, []);
-
-  // Fetch featured property (404 Wiggins Mill Rd)
-  useEffect(() => {
-    async function fetchFeaturedProperty() {
-      try {
-        const response = await fetch('/api/property?id=DENC2087732');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.property) {
-            setFeaturedProperty(data.property);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching featured property:', error);
-      }
-    }
-    fetchFeaturedProperty();
   }, []);
 
   // Fetch communities from API
@@ -199,7 +178,7 @@ const HomeContent: React.FC = () => {
               className="flex overflow-x-auto gap-8 pb-12 snap-x snap-mandatory px-4 md:px-8"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-              {communities.filter(c => !c.name.toLowerCase().includes('village of bayberry') && !c.slug?.includes('village-of-bayberry')).slice(0, 10).map((community) => (
+              {communities.filter(c => !c.name.toLowerCase().includes('village of bayberry') && !c.slug?.includes('village-of-bayberry') && !c.name.toLowerCase().includes('wiggins mill') && !c.slug?.includes('wiggins-mill')).slice(0, 10).map((community) => (
                 <div key={community.id} className="w-[55vw] md:w-[240px] snap-center flex-shrink-0">
                   <CommunityCard community={community} onClick={handleCommunityClick} />
                 </div>
@@ -209,113 +188,6 @@ const HomeContent: React.FC = () => {
           {/* Carousel navigation dots or additional spacing */}
         </div>
       </section>
-
-      {/* Featured Property — 404 Wiggins Mill Rd */}
-      {featuredProperty && (
-        <section className="py-24 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-12 flex flex-col items-center text-center">
-              <span className="text-xs font-bold tracking-[0.25em] text-compass-gold uppercase mb-4">Exclusive Listing</span>
-              <h2 className="text-4xl md:text-5xl font-sans font-bold text-gray-900 leading-tight">Featured Property</h2>
-            </div>
-
-            <div
-              className="group cursor-pointer rounded-[2rem] overflow-hidden bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.12)] transition-all duration-500"
-              onClick={() => router.push(`/property/${featuredProperty.id}`)}
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                {/* Image */}
-                <div className="relative h-80 lg:h-[480px] overflow-hidden bg-gray-100">
-                  {featuredProperty.images?.[0] ? (
-                    <img
-                      src={featuredProperty.images[0]}
-                      alt={featuredProperty.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <img
-                      src="/images/placeholder-home.jpg"
-                      alt="Photo coming soon"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  <div className="absolute top-5 left-5 flex flex-col gap-2">
-                    <span className="px-4 py-2 rounded-full bg-compass-gold text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
-                      Exclusive Listing
-                    </span>
-                    {featuredProperty.isNewConstruction && (
-                      <span className="px-4 py-2 rounded-full bg-black/80 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-white shadow-lg border border-white/10">
-                        New Construction
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Details */}
-                <div className="p-8 lg:p-12 flex flex-col justify-center">
-                  <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 font-sans">
-                    ${featuredProperty.price.toLocaleString()}
-                  </div>
-
-                  <div className="flex items-center gap-2 text-gray-500 mb-6">
-                    <MapPin size={16} className="text-compass-gold" />
-                    <span className="text-base font-medium">
-                      {featuredProperty.address}, {featuredProperty.city}, {featuredProperty.state} {featuredProperty.zip}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-6 mb-8">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bed size={18} /></div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">{featuredProperty.beds}</span>
-                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Beds</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Bath size={18} /></div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">{featuredProperty.baths}</span>
-                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">Baths</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-gray-50 rounded-full text-gray-900"><Maximize2 size={18} /></div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 text-sm">{featuredProperty.sqft.toLocaleString()}</span>
-                        <span className="text-[10px] text-gray-500 uppercase tracking-wider">SqFt</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {featuredProperty.lotSize && (
-                    <p className="text-sm text-gray-500 mb-2">
-                      <span className="font-semibold text-gray-700">Lot Size:</span> {featuredProperty.lotSize}
-                    </p>
-                  )}
-                  {featuredProperty.builder && (
-                    <p className="text-sm text-gray-500 mb-6">
-                      <span className="font-semibold text-gray-700">Builder:</span> {featuredProperty.builder}
-                    </p>
-                  )}
-
-                  <div className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white rounded-full font-bold text-sm tracking-wide group-hover:bg-gray-800 transition-all shadow-lg w-fit">
-                    View Property
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                  </div>
-
-                  {featuredProperty.listingBrokerage && (
-                    <p className="mt-6 text-[10px] text-gray-400">
-                      Courtesy of {featuredProperty.listingBrokerage}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Selling Section */}
       <section id="selling" className="py-24 bg-white relative">
