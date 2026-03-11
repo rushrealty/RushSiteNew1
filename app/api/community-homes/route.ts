@@ -26,11 +26,6 @@ const COMMUNITY_SEARCH_CONFIG: Record<
     city: 'Felton',
     keywords: ['pinehurst'],
   },
-  'wiggins-mill': {
-    city: 'Middletown',
-    keywords: ['wiggins'],
-    addressKeywords: ['wiggins mill'],
-  },
   'baywood-greens': {
     city: 'Millsboro',
     keywords: ['baywood'],

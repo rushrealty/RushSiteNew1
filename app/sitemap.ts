@@ -33,7 +33,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const knownSlugs = [
       'abbotts-pond',
       'pinehurst-village',
-      'wiggins-mill',
       'baywood-greens',
       'currie-lane',
       'canaan-woods',
@@ -51,7 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const knownSlugs = [
       'abbotts-pond',
       'pinehurst-village',
-      'wiggins-mill',
       'baywood-greens',
       'currie-lane',
       'canaan-woods',

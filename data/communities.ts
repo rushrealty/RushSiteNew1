@@ -75,39 +75,6 @@ export interface Community {
 }
 
 export const COMMUNITIES_DATA: Record<string, Community> = {
-  'wiggins-mill': {
-    id: 'wiggins-mill',
-    name: 'Wiggins Mill Rd',
-    location: 'Middletown, DE',
-    county: 'newcastle',
-    price: 'From $1,329,000',
-    lat: 39.4294406,
-    lng: -75.7275466,
-    address: '404 Wiggins Mill Rd, Middletown, DE 19709',
-    status: 'Closing Out',
-    img: 'https://drive.google.com/thumbnail?id=1GAaP2HYSxHD93csWawWXxZGM2OpG-pEO&sz=w1200',
-    gallery: [
-      'https://drive.google.com/thumbnail?id=1GAaP2HYSxHD93csWawWXxZGM2OpG-pEO&sz=w1600',
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600',
-      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1600'
-    ],
-    description: 'Experience luxury living at Wiggins Mill Rd. This exclusive community features custom-designed homes on spacious lots, offering the perfect blend of modern sophistication and rural charm in the heart of Middletown.',
-    features: ['Custom Floor Plans', '1+ Acre Lots', 'High-End Finishes', 'Appoquinimink School District'],
-    bedrooms: '3 - 5',
-    bathrooms: '2.5 - 4.5',
-    garage: '2 - 3',
-    stories: '1 - 2',
-    sqft: '2,400 - 4,200',
-    builderName: 'Custom Homes by Rush',
-    builderLogoText: 'RUSH',
-    builderExperience: 'Crafting luxury homes for over 25 years',
-    floorplans: [],
-    moveInReadyHomes: [],
-    siteMapUrl: 'https://app.higharc.com/builders/demo',
-    schoolDistrict: 'Appoquinimink School District',
-    schools: [],
-    nearbyPlaces: []
-  },
   'abbotts-pond': {
     id: 'abbotts-pond',
     name: "Abbott's Pond Acres",
