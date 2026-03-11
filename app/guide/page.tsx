@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import GuideContent from '@/components/pages/GuideContent';
+import BreadcrumbSchema from '@/components/BreadcrumbSchema';
 
 export const metadata: Metadata = {
   title: 'New Construction Guide | Rush Home Team at Compass',
@@ -26,6 +27,41 @@ export const metadata: Metadata = {
   },
 };
 
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "New Construction Guide: How to Buy a New Home in Delaware",
+  "description": "The ultimate guide to buying new construction in Delaware. Learn the 7 steps to your new home, why you need an agent, and frequently asked questions.",
+  "author": {
+    "@type": "Organization",
+    "name": "Rush Home Team",
+    "url": "https://rushhome.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Rush Home Team",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://rushhome.com/images/logo.png"
+    }
+  },
+  "datePublished": "2024-01-01",
+  "dateModified": "2026-01-01",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://rushhome.com/guide"
+  }
+};
+
 export default function GuidePage() {
-  return <GuideContent />;
+  return (
+    <>
+      <BreadcrumbSchema crumbs={[
+        { name: 'Home', url: 'https://rushhome.com' },
+        { name: 'New Construction Guide', url: 'https://rushhome.com/guide' },
+      ]} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <GuideContent />
+    </>
+  );
 }
