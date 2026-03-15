@@ -429,20 +429,22 @@ export default function CommunityPage({
             {(communityData || sheetCommunity?.address) && (
               <div className="mb-10" id="location-section">
                 <h2 className="text-2xl font-serif font-bold text-gray-900 mb-5">
-                  Location
+                  {communityData?.siteMapUrl ? 'Interactive Site Map' : 'Location'}
                 </h2>
                 <div className="rounded-2xl h-[300px] overflow-hidden mb-3">
                   <iframe
                     src={
-                      communityData?.lat
-                        ? `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${communityData.lat},${communityData.lng}&zoom=14`
-                        : `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${encodeURIComponent(sheetCommunity?.address || communityLocation)}&zoom=14`
+                      communityData?.siteMapUrl
+                        ? communityData.siteMapUrl
+                        : communityData?.lat
+                          ? `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${communityData.lat},${communityData.lng}&zoom=14`
+                          : `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCr7oXHFPoN5UsFynxNcR6w_G2YfJ-FE2w'}&q=${encodeURIComponent(sheetCommunity?.address || communityLocation)}&zoom=14`
                     }
                     className="w-full h-full border-0 rounded-2xl"
                     allowFullScreen
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    title={`Map of ${communityName}`}
+                    title={communityData?.siteMapUrl ? `${communityName} Site Map` : `Map of ${communityName}`}
                   />
                 </div>
                 <p className="text-gray-500 text-sm font-light">
